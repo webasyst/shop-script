@@ -66,6 +66,9 @@ class shopSalesChannelModel extends waModel
             return $this->getParams($channel);
         }
 
+        if (!$channel) {
+            return null;
+        }
         return reset(ref($this->getParams([$channel])));
     }
 }

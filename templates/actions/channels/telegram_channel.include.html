@@ -13,231 +13,16 @@
     }
 </style>
 
-{if empty($channel.id)}
+<p class="small">
+    [`Set up a mini-app online store within the Telegram messaging app. Your store seamlessly integrates with Telegram via a custom bot or a public channel and supports an in-mini-app checkout.`]
+</p>
+<p class="small">
+    <a href="[`https://support.webasyst.com/shop-script/48485/shop-telegram/`]" class="bold" target="_blank">[`Telegram mini-app setup guide ›`]</a>
+</p>
 
-    <a class="js-back-to-select small gray" href="javascript:void(0)" style="display: none;">&larr; [`Back`]</a>
-    <p class="small">
-        [`Set up a mini-app online store within the Telegram messaging app. Your store seamlessly integrates with Telegram via a custom bot or a public channel and supports an in-mini-app checkout.`]
-    </p>
-    <p class="small">
-        [`There are two ways to launch your store: either via Shop-Script bot which adds BUY NOW buttons to posts in your public Telegram channel, or via your custom Telegram bot with a mini-app.`]
-        <a href="[`https://support.webasyst.com/48485/shop-telegram/`]" class="bold" target="_blank">[`Telegram mini-app setup guide ›`]</a>
-    </p>
-
-    <ul class="chips rounded js-telegram-new-mode-toggle">
-        <li><a href="javascript:$('.js-telegram-new-mode-public-channel').slideDown(200);$('.js-telegram-new-mode-custom-bot').slideUp(200);">
-            <i class="fas fa-bullhorn text-blue custom-mr-4"></i> [`My Telegram channel + BUY buttons with Shop-Script bot`]
-        </a> <span class="hint">&larr; [`easier to set up`]</span></li>
-        <br>
-        <li><a href="javascript:$('.js-telegram-new-mode-public-channel').slideUp(200);$('.js-telegram-new-mode-custom-bot').slideDown(200);">
-            <i class="fas fa-robot text-gray custom-mr-4"></i> [`My custom bot with a mini-app`]</a>
-        </a> <span class="hint">&larr; [`more config options`]</span></li>
-    </ul>
-
-    <div class="js-telegram-new-mode-public-channel" style="display: none;">
-        <p class="small">
-            {sprintf_wp(
-                '<b>The easiest and the fastest option</b> for bloggers and Telegram channel owners. You will be posting products’ <b>Buy now</b> buttons to your public Telegram channel so that your subscribers can buy & check out right within the Telegram messenger using the <code><a %s>@WebasystShopScript_bot</a></code> bot and mini-app.',
-                'href="https://t.me/WebasystShopScript_bot" target="_blank"'
-            )}
-        </p>
-        <p class="small">
-            [`<b>It’s free!</b> There are no platform commissions for selling online via Shop-Script bot.`]
-        </p>
-        <p class="small">
-            [`This mode assumes that you have a public Telegram channel.`]
-        </p>
-        <p class="small js-telegram-mode-accept-button">
-            <a class="js-select-public-channel button" href="javascript:void(0)">
-                [`Ok, public Telegram channel is my option ›`]
-            </a>
-        </p>
-    </div>
-
-    <div class="js-telegram-new-mode-custom-bot" style="display: none;">
-        <p class="small">
-            {sprintf_wp(
-                '<b>An advanced option</b> with a custom bot and your branding. In this mode, you will need to create your own Telegram bot using <code><a %s>@BotFather</a></code> and link your store to that bot as a mini-app.',
-                'href="https://t.me/BotFather" target="_blank"'
-            )}
-        </p>
-        <p class="small">
-            {sprintf_wp(
-                '<b>%s%% commission</b> for orders processed via a custom bot. <a %s>How it works ›</a>',
-                1.5|wa_format_number:1,
-                sprintf(
-                    'href="%s" target="_blank"',
-                    '[`https://www.shop-script.com/pricing/`]'
-                )
-            )}
-        </p>
-        <p class="small js-telegram-mode-accept-button">
-            <a class="js-select-custom-bot button gray" href="javascript:void(0)">
-                [`Ok, a custom @bot is what I’m looking for ›`]
-            </a>
-        </p>
-    </div>
-
-{/if}
-
-<div class="fields form js-telegram-settings-form"{if empty($channel.id)} style="display: none;"{/if}>
+<div class="fields form js-telegram-settings-form">
     <form action="{$wa_app_url}?module=channels&action=save" id="js-sales-channel-form">
         <div class="fields-group custom-mt-16">
-
-            {if $mini_app_mode == 'custom_bot' || empty($channel.id)}
-
-                <div class="field"{if $mini_app_mode != 'custom_bot'} style="display: none;"{/if}>
-                    <div class="name for-input">[`Your custom bot token`]</div>
-                    <div class="value js-bot-token">
-                        <div class="state-with-inner-icon right">
-                            <input type="password" name="data[params][bot_token]" class="input" value="{$channel.params.bot_token|default:''|escape}" autocomplete="off">
-                        </div>
-                        <button class="{if empty($channel.params.bot_username)}blue{else}light-gray{/if} js-connect-bot">[`Connect`]</button>
-                        <span class="text-light-gray js-bot-username-block{if empty($channel.params.bot_username)} hidden{/if}">
-                            <span class="js-bot-username state-success">@{$channel.params.bot_username|default:''|escape}</span>
-                        </span>
-                        <span class="hidden js-bot-not-found state-error">[`Telegram bot not found`]</span>
-                        <input type="hidden" name="data[params][bot_username]" value="{if !empty($channel.params.bot_token)}{$channel.params.bot_username|default:''|escape}{/if}">
-
-                        {$bot_state = ''}
-                        {if !empty($channel.params.bot_token)}
-                            {if empty($channel.params.bot_username)}
-                                {$bot_state = ' state-error-hint'}
-                            {else}
-                                {$bot_state = ' state-success-hint'}
-                            {/if    }
-                        {/if}
-                        <p class="hint">
-                            {sprintf_wp(
-                                'Create your custom Telegram bot and obtain its token using the <code><a %s>@BotFather</a></code> bot.',
-                                'href="https://t.me/BotFather" target="_blank"'
-                            )}
-                        </p>
-                    </div>
-                </div>
-
-                {* custom bot mode mini-app URL *}
-                <div class="field"{if empty($channel.id)} style="display: none;"{/if}>
-                    <div class="name">[`Mini-app URL`]</div>
-                    <div class="value js-bot-url">
-                        {if empty($channel.wa_channel_id)}
-                            <em class="small">[`Save this channel to get a link for your bot’s mini-app.`]</em>
-                        {else}
-                            <code>{sprintf($bot_url, $channel.wa_channel_id|default:''|escape)}</code>
-                            <p class="hint">
-                                [`Save this URL to <em>Telegram › @BotFather › your bot › Mini-app › URL</em>.`]
-                                <br> [`The URL will never change unless the channel is deleted.`]
-                            </p>
-                        {/if}
-                    </div>
-                </div>
-                <script>
-                    $(function () {
-                        let $p_state = $('.js-bot-token').find('p.hint');
-                        let $bot_username = $('.js-bot-username-block');
-
-                        $('[name="data[params][bot_token]"]').on('input', function () {
-                            $('[name="data[params][bot_username]"]').val('');
-                            $bot_username.addClass('hidden');
-                            $('.js-connect-bot').removeClass('light-gray').addClass('blue');
-                            $p_state.removeClass('state-error-hint state-success-hint');
-                        });
-
-                        $('.js-connect-bot').on('click', function (e) {
-                            e.preventDefault();
-                            let $token_input = $('[name="data[params][bot_token]"]');
-                            let token = $token_input.val();
-
-                            if (token) {
-                                let bot_not_found = function () {
-                                    $('[name="data[params][bot_username]"]').val('');
-                                    $('.js-bot-not-found').removeClass('hidden');
-                                    console.warn('TELEGRAM BOT NOT FOUND');
-                                };
-                                $token_input.removeClass('state-caution');
-                                $('.js-bot-not-found').addClass('hidden');
-                                $.ajax({
-                                    url: 'https://api.telegram.org/bot'+ token +'/getMe',
-                                    method: 'GET',
-                                    dataType: 'json',
-                                    global: false,
-                                    success: function (response) {
-                                        if (response.ok && response.result.username) {
-                                            $bot_username.removeClass('hidden');
-                                            $('.js-connect-bot').removeClass('blue').addClass('light-gray');
-                                            $('.js-bot-username').html('@' + response.result.username);
-                                            $('[name="data[params][bot_username]"]').val(response.result.username);
-                                        } else {
-                                            bot_not_found();
-                                        }
-                                    },
-                                    statusCode: {
-                                        401: bot_not_found,
-                                        404: bot_not_found
-                                    }
-                                });
-                            } else {
-                                $token_input.addClass('state-caution');
-                            }
-                        });
-
-                        $('[name="data[params][channel_username]"]').on('input', function () {
-                            let channel_username = $(this).val().trim();
-                            if (channel_username.charAt(0) !== '@') {
-                                $(this).val('@'+ channel_username);
-                            }
-                        });
-                    });
-                </script>
-            {/if}
-
-            <div class="field">
-                <div class="name">[`Your Telegram public channel`]</div>
-                <div class="value">
-                    <input type="text" name="data[params][channel_username]" value="{$channel.params.channel_username|default:''|escape}">
-                    <p class="hint">[`If you have a public Telegram channel, enter its @username here to make the main Shop-Script bot being able to post BUY buttons to this channel.`]</p>
-                </div>
-            </div>
-
-            {if !empty($channel.id)}
-
-                {* link to Shop-Script master Telegram bot *}
-                <div class="field">
-                    <div class="name">[`Shop-Script bot`]</div>
-                    <div class="value js-public-url">
-                        <a href="https://t.me/WebasystShopScript_bot" class="bold" target="_blank">https://t.me/WebasystShopScript_bot <i class="fas fa-external-link-alt fa-xs opacity-50 custom-ml-4"></i></a>
-                        <p class="hint">
-                            [`Use this bot to publish posts with BUY buttons leading directly to your mini-app shopping experience.`]
-                        </p>
-                        {if $mini_app_mode == 'custom_bot'}
-                            <p class="hint">[`If your custom bot token is connected above, Shop-Script bot will automatically redirect all BUY buttons to your custom bot mini-app.`]
-                        {/if}
-                        <p class="hint">
-                            <i class="fas fa-info-circle text-gray"></i>
-                            [`To start posting, make sure @WebasystShopScript_bot is added as an admin to your Telegram public channel.`]
-                            <a href="[`https://support.webasyst.com/48485/shop-telegram/`]" class="bold" target="_blank">[`Telegram mini-app setup guide ›`]</a>
-                        </p>
-                    </div>
-                </div>
-
-                <div class="field">
-                    <div class="name">[`Payment`]</div>
-                    <div class="value small">
-                        {if 1}
-                            <i class="fas fa-check-circle text-green"></i> [`Mini-app payments are based on the storefront settings.`]
-                        {else}
-                            <i class="fas fa-exclamation-triangle text-orange"></i>
-                            {sprintf_wp(
-                                'To enable Telegram checkout payment, <a %s>set up Webasyst Pay</a>.',
-                                'href="'|cat:$wa_app_url|cat:'?action=settings#/payment/"'
-                            )}
-                        {/if}
-                    </div>
-                </div>
-
-            {/if}
-
-            <hr class="custom-mt-16" />
 
             {if !empty($channel.id)}
             <input type="hidden" name="id" value="{$channel.id|escape}">
@@ -265,6 +50,178 @@
             {/foreach}
 
 
+            <h3>[`Your Telegram public channel`]</h3>
+
+            <p class="small">
+                [`Use Shop-Script bot for posting products’ <b>BUY buttons</b> to your public Telegram channel so that your subscribers can buy & check out right within the Telegram messenger.`]
+            </p>
+            <p class="small">
+                [`<b>It’s free!</b> There are no platform commissions for selling online via Shop-Script bot.`]
+            </p>
+
+            <div class="field">
+                <div class="name">[`Your Telegram public channel`]</div>
+                <div class="value">
+                    <input type="text" name="data[params][channel_username]" value="{$channel.params.channel_username|default:''|escape}">
+                    <p class="hint">[`Optional.`] [`If you have a public Telegram channel, enter its @username here to allow the main Shop-Script bot to post BUY buttons to this channel.`]</p>
+                </div>
+            </div>
+
+            {* link to Shop-Script master Telegram bot *}
+            <div class="field">
+                <div class="name">[`Shop-Script bot`]</div>
+                <div class="value js-public-url">
+                    <a href="https://t.me/WebasystShopScript_bot" class="bold" target="_blank">https://t.me/WebasystShopScript_bot <i class="fas fa-external-link-alt fa-xs opacity-50 custom-ml-4"></i></a>
+                    <p class="hint">
+                        [`Use this bot to publish posts with BUY buttons leading directly to your mini-app shopping experience.`]
+                    </p>
+                    <p class="hint">
+                        <i class="fas fa-info-circle text-gray"></i>
+                        [`To start posting, make sure @WebasystShopScript_bot is added as an admin to your Telegram public channel.`]
+                        <a href="[`https://support.webasyst.com/shop-script/48485/shop-telegram/`]" class="bold" target="_blank">[`Telegram mini-app setup guide ›`]</a>
+                    </p>
+                </div>
+            </div>
+
+
+            <h3>[`Your Telegram custom bot`]</h3>
+            <p class="small">
+                {sprintf_wp(
+                    '<b>An advanced option</b> with a custom bot and your branding. In this mode, you will need to create your own Telegram bot using <code><a %s>@BotFather</a></code> and link your store to that bot as a mini-app.',
+                    'href="https://t.me/BotFather" target="_blank"'
+                )}
+            </p>
+            <p class="small">
+                [`If your custom bot token is connected, Shop-Script bot will automatically redirect all BUY buttons to your custom bot mini-app.`]
+            </p>
+            <p class="small">
+                {sprintf_wp(
+                    '<b>%s%% commission</b> for orders processed via a custom bot. <a %s>How it works ›</a>',
+                    1.5|wa_format_number:1,
+                    sprintf(
+                        'href="%s" target="_blank"',
+                        '[`https://www.shop-script.com/pricing/`]'
+                    )
+                )}
+            </p>
+
+            <div class="field">
+                <div class="name for-input">[`Your custom bot token`]</div>
+                <div class="value js-bot-token">
+                    <div class="state-with-inner-icon right">
+                        <input type="password" name="data[params][bot_token]" class="input" value="{$channel.params.bot_token|default:''|escape}" autocomplete="off">
+                    </div>
+                    <button class="{if empty($channel.params.bot_username)}blue{else}light-gray{/if} js-connect-bot">[`Connect`]</button>
+                    <span class="text-light-gray js-bot-username-block{if empty($channel.params.bot_username)} hidden{/if}">
+                        <span class="js-bot-username state-success">@{$channel.params.bot_username|default:''|escape}</span>
+                    </span>
+                    <span class="hidden js-bot-not-found state-error">[`Telegram bot not found`]</span>
+                    <input type="hidden" name="data[params][bot_username]" value="{if !empty($channel.params.bot_token)}{$channel.params.bot_username|default:''|escape}{/if}">
+
+                    {$bot_state = ''}
+                    {if !empty($channel.params.bot_token)}
+                        {if empty($channel.params.bot_username)}
+                            {$bot_state = ' state-error-hint'}
+                        {else}
+                            {$bot_state = ' state-success-hint'}
+                        {/if    }
+                    {/if}
+                    <p class="hint">
+                        {sprintf_wp(
+                            'Create your custom Telegram bot and obtain its token using the <code><a %s>@BotFather</a></code> bot.',
+                            'href="https://t.me/BotFather" target="_blank"'
+                        )}
+                    </p>
+                </div>
+            </div>
+
+            {* custom bot mode mini-app URL *}
+            <div class="field">
+                <div class="name">[`Mini-app URL`]</div>
+                <div class="value js-bot-url">
+                    {if empty($channel.wa_channel_id)}
+                        <em class="small">[`Save this channel to get a link for your bot’s mini-app.`]</em>
+                    {else}
+                        <code>{sprintf($bot_url, $channel.wa_channel_id|default:''|escape)}</code>
+                        <p class="hint">
+                            [`Save this URL to <em>Telegram › @BotFather › your bot › Mini-app › URL</em>.`]
+                            <br> [`The URL will never change unless the channel is deleted.`]
+                        </p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Payment`]</div>
+                <div class="value small">
+                    <i class="fas fa-check-circle text-green"></i>
+                    {sprintf_wp(
+                        'Telegram mini-app checkout payment is based on <a %s>Webasyst Pay</a>.',
+                        'href="'|cat:$wa_app_url|cat:'?action=settings#/payment/" class="nowrap"'
+                    )}
+                </div>
+            </div>
+
+            <script>
+                $(function () {
+                    let $p_state = $('.js-bot-token').find('p.hint');
+                    let $bot_username = $('.js-bot-username-block');
+
+                    $('[name="data[params][bot_token]"]').on('input', function () {
+                        $('[name="data[params][bot_username]"]').val('');
+                        $bot_username.addClass('hidden');
+                        $('.js-connect-bot').removeClass('light-gray').addClass('blue');
+                        $p_state.removeClass('state-error-hint state-success-hint');
+                    });
+
+                    $('.js-connect-bot').on('click', function (e) {
+                        e.preventDefault();
+                        let $token_input = $('[name="data[params][bot_token]"]');
+                        let token = $token_input.val();
+
+                        if (token) {
+                            let bot_not_found = function () {
+                                $('[name="data[params][bot_username]"]').val('');
+                                $('.js-bot-not-found').removeClass('hidden');
+                                console.warn('TELEGRAM BOT NOT FOUND');
+                            };
+                            $token_input.removeClass('state-caution');
+                            $('.js-bot-not-found').addClass('hidden');
+                            $.ajax({
+                                url: 'https://api.telegram.org/bot'+ token +'/getMe',
+                                method: 'GET',
+                                dataType: 'json',
+                                global: false,
+                                success: function (response) {
+                                    if (response.ok && response.result.username) {
+                                        $bot_username.removeClass('hidden');
+                                        $('.js-connect-bot').removeClass('blue').addClass('light-gray');
+                                        $('.js-bot-username').html('@' + response.result.username);
+                                        $('[name="data[params][bot_username]"]').val(response.result.username);
+                                    } else {
+                                        bot_not_found();
+                                    }
+                                },
+                                statusCode: {
+                                    401: bot_not_found,
+                                    404: bot_not_found
+                                }
+                            });
+                        } else {
+                            $token_input.addClass('state-caution');
+                        }
+                    });
+
+                    $('[name="data[params][channel_username]"]').on('input', function () {
+                        let channel_username = $(this).val().trim();
+                        if (channel_username.charAt(0) !== '@') {
+                            $(this).val('@'+ channel_username);
+                        }
+                    });
+                });
+            </script>
+
+
             <div class="field">
                 <div class="name"></div>
                 <div class="value">
@@ -290,7 +247,7 @@
 <div class="s-mini-app-preview">
     <iframe width="375" height="670" src="" frameborder="0"></iframe>
     <div class="align-center custom-mx-32 custom-mt-8">
-        <p class="hint">[`This is a preview how a mini-app will look within a messenging app. Shopping functionality is disabled in the preview mode.`]</p>
+        <p class="hint">[`This is a preview of how the mini-app will look within the messaging app. The shopping functionality is disabled in the preview mode.`]</p>
         <button type="button" class="js-reload-mini-app button light-gray rounded smaller custom-mt-4"><i class="fas fa-redo opacity-50 custom-mr-4"></i> [`Update`]</button>
     </div>
 </div>
@@ -334,32 +291,6 @@
             {/if}
         });
 
-        // mode selection wizard
-        $('.js-select-public-channel').on('click', () => {
-            $('.js-back-to-select').show();
-            $('.js-telegram-new-mode-toggle').slideUp(200);
-            $('.js-telegram-mode-accept-button').slideUp(200);
-            $('.js-telegram-settings-form').slideDown(200).find('[name="[data[params][mini_app_mode]"]').val('public_channel');
-            $('.js-public-url').closest('div.field').show();
-        });
-
-        $('.js-select-custom-bot').on('click', () => {
-            $('.js-back-to-select').show();
-            $('.js-telegram-new-mode-toggle').slideUp(200);
-            $('.js-telegram-mode-accept-button').slideUp(200);
-            $('.js-telegram-settings-form').slideDown(200).find('[name="[data[params][mini_app_mode]"]').val('custom_bot');
-            $('.js-bot-url, .js-bot-token').closest('div.field').show();
-        });
-
-        $('.js-back-to-select').on('click', () => {
-            $('.js-back-to-select').hide();
-            $('.js-telegram-new-mode-toggle').slideDown(200);
-            $('.js-telegram-mode-accept-button').slideDown(200);
-            $('.js-telegram-settings-form').hide().find('[name="[data[params][mini_app_mode]"]').val('');
-            $('.js-bot-url, .js-bot-token').closest('div.field').hide();
-            $('.js-telegram-new-mode-public-channel').hide();
-            $('.js-telegram-new-mode-custom-bot').hide();
-        });
 
         {if !empty($channel.id)}
             const channel_id = {$channel.id|json_encode};

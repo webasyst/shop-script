@@ -405,6 +405,9 @@ class shopMainMenu
     protected static function getSalesChannelItems()
     {
         $result = [];
+        if (!wa()->getUser()->isAdmin('shop')) {
+            return $result;
+        }
         $channel_types = shopSalesChannelType::getAllTypes();
         if (!$channel_types) {
             return $result;

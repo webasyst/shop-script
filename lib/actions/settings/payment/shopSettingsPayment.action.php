@@ -54,8 +54,10 @@ class shopSettingsPaymentAction extends waViewAction
             'per_month' => self::getPromotionDataForPeriod(30, $promotion_enabled, $plugins),
             'per_year' => self::getPromotionDataForPeriod(365, $promotion_enabled, $plugins),
         ];
-        if ($promotion_enabled) $result['per_year']['total'] .= '/'._w('year');
-        $result['per_month']['total'] .= '/'._w('mo.');
+        if ($promotion_enabled) {
+            $result['per_year']['total'] .= '/'._w('year');
+            $result['per_month']['total'] .= '/'._w('mo.');
+        }
         return $result;
     }
 
@@ -191,9 +193,14 @@ class shopSettingsPaymentAction extends waViewAction
         if ($promotion_enabled) {
             $total_fee_sbp_actual = $total_fee_sbp_predicted;
         } else {
-            $total_fee_sbp_actual = $sbp_total_fee;
+            // This is real SBP fees paid
+            //$total_fee_sbp_actual = $sbp_total_fee;
+
+            // This is fee calculated from sales of all orders paid with SBP, hardcoded 0.7% rate
+            $total_fee_sbp_actual = $sbp_total_sales*0.007;
         }
-        $total_fee_card_predicted_from_sbp = $total_fee_sbp_actual / 0.007 * 0.03;
+        // This is predicted card payment fees for SBP orders if all of them were paid with card
+        $total_fee_card_predicted_from_sbp = ifempty($sbp_total_sales, $total_fee_sbp_actual / 0.007) * 0.03;
 
         $cur = function($amount) {
             return strip_tags(shop_currency_html(round($amount)));

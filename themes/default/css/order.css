@@ -1,12 +1,12 @@
 :root {
-  --wa-delivery-type-bg: light-dark(var(--gray7), var(--black_tr_50));
+  --wa-delivery-type-active-bg: light-dark(color-mix(in srgb, var(--accent-color) 100%, white 100%), color-mix(in srgb, var(--accent-color) 100%, black 100%));
   --wa-delivery-type-hover-bg: light-dark(var(--gray6), var(--black_tr_8));
   --wa-order-dialog-header-border: light-dark(#e9ecef, #333333);
 }
 
 @supports not (color: light-dark(white, black)) {
   :root {
-    --wa-delivery-type-bg: var(--gray7);
+    --wa-delivery-type-active-bg: color-mix(in srgb, var(--accent-color) 100%, white 100%);
     --wa-delivery-type-hover-bg: var(--gray6);
     --wa-order-dialog-header-border: #e9ecef;
   }
@@ -177,7 +177,7 @@ html.is-order-page .container {
   color: var(--header-menu-pages-link-color);
   appearance: none;
   outline: 0;
-  background-color: var(--input-bg-color);
+  background-color: transparent;
   box-sizing: border-box;
   cursor: pointer;
   transition: border-color 200ms linear;
@@ -304,8 +304,8 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-header > .s-header {
   margin: 0;
-  font-size: 24px;
-  line-height: 28px;
+  font-size: 1.5em;
+  line-height: 1.75em;
   font-weight: 400;
   color: var(--text-color);
 }
@@ -417,7 +417,7 @@ html.is-order-page .container {
   padding: 12px 12px;
   height: auto;
   line-height: 1.125em;
-  background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 9L12 15L6 9' stroke='%23333333' stroke-width='1.875' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-image: var(--chevron-svg) !important;
   background-position: right 0.525em center !important;
   background-size: 16px !important;
   background-repeat: no-repeat !important;
@@ -462,7 +462,7 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-dropdown > .wa-dropdown-toggle {
   padding: 11px 12px;
-  border: 1px solid var(--gray5);
+  border: 1px solid var(--input-border-color);
   border-radius: var(--element-border-radius);
   font-size: 14px;
 }
@@ -479,8 +479,8 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section .wa-types-list .wa-type-wrapper {
   position: relative;
-  border: 1px solid var(--gray5);
-  background: var(--wa-delivery-type-bg);
+  border: 1px solid var(--bg_tr_10);
+  background: var(--bg-color-accent);
   padding: 16px;
 }
 @media screen and (max-width: 760px) {
@@ -502,7 +502,7 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section .wa-types-list .wa-type-wrapper.is-active {
   box-shadow: none;
-  background: var(--white);
+  background: var(--wa-delivery-type-active-bg);
   z-index: 0;
   overflow: hidden;
 }
@@ -519,7 +519,7 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section .wa-types-list .wa-type-wrapper.is-active .wa-name {
   font-weight: 600;
-  color: var(--gray1);
+  color: var(--text-color);
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section .wa-types-list .wa-type-wrapper:not(.is-active):hover {
   background: var(--wa-delivery-type-hover-bg);
@@ -531,7 +531,7 @@ html.is-order-page .container {
   display: inline-block;
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section .wa-types-list .wa-type-wrapper.is-active .wa-price {
-  color: var(--black);
+  color: var(--text-color);
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section .wa-types-list .wa-type-wrapper .wa-date {
   display: inline-block;
@@ -633,7 +633,7 @@ html.is-order-page .container {
   display: none !important;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-details .wa-services .wa-label {
-  padding: 3px 0 0 22px !important;
+  padding: 3px 0 0 27px !important;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-details .wa-services .wa-variant {
   margin-left: 23px !important;
@@ -708,15 +708,14 @@ html.is-order-page .container {
   white-space: nowrap;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body select {
-  background-color: var(--white) !important;
   background-repeat: no-repeat !important;
-  border: 1px solid var(--gray4) !important;
+  border: 1px solid var(--input-border-color) !important;
   border-radius: var(--element-border-radius) !important;
   vertical-align: middle;
   padding: 0.392em 2.25em 0.392em 0.57em !important;
   font-weight: 400;
   line-height: 1.15;
-  background-image: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 9L12 15L6 9' stroke='%23333333' stroke-width='1.875' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-image: var(--chevron-svg) !important;
   background-position: right 0.525em center !important;
   background-size: 16px !important;
 }
@@ -752,17 +751,18 @@ html.is-order-page .container {
   font-size: 1em;
   padding: 0.392em 0.57em;
   border: 1px solid var(--input-border-color);
+  background-color: transparent;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-inactive-state .wa-button {
   font-size: 1em;
   padding: 0.392em 0.857em;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-inactive-state .wa-button.gray {
-  color: var(--gray3);
-  background-color: var(--gray6);
+  color: var(--text-color);
+  background-color: var(--bg_tr_10);
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-inactive-state .wa-button.gray:hover {
-  color: var(--gray2);
+  color: var(--text-color-secondary);
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-active-state .wa-button {
   font-size: 1em;
@@ -776,11 +776,11 @@ html.is-order-page .container {
   padding: 0.392em 0.857em;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details .wa-inactive-state .wa-button.gray {
-  color: revert-layer;
-  background-color: revert-layer;
+  color: var(--text-color);
+  background-color: var(--bg_tr_10);
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details .wa-inactive-state .wa-button.gray:hover {
-  color: revert-layer;
+  color: var(--text-color-secondary);
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details .wa-active-state .wa-button {
   font-size: 1em;
@@ -793,6 +793,7 @@ html.is-order-page .container {
   padding-top: 4px;
   padding-bottom: 4px;
 }
+.wa-order-form-wrapper, .wa-order-cart-wrapper { font-size: 0.875em !important; }
 .wa-order-form-wrapper .wa-step-shipping-section .wa-delivery-variants-section .wa-delivery-variant .wa-date {
   opacity: 0.75;
 }

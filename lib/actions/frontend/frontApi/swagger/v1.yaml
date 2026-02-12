@@ -202,18 +202,18 @@ paths:
 
   /countries:
     get:
-      summary: Список стран и регионов
+      summary: Возвращает список стран и регионов.
       parameters:
         - name: country
           in: query
           required: false
-          description: ISO3 код страны
+          description: ISO3-код одной страны, если нужно получить только ее свойства
           schema:
             type: string
         - name: regions
           in: query
           required: false
-          description: Включать регионы
+          description: Нужно ли возвращать список регионов в свойствах стран
           schema:
             type: integer
       responses:
@@ -232,13 +232,13 @@ paths:
                       description: Название страны
                     iso3letter:
                       type: string
-                      description: ISO3 код страны
+                      description: ISO3-код страны
                     iso2letter:
                       type: string
-                      description: ISO2 код страны
+                      description: ISO2-код страны
                     isonumeric:
                       type: string
-                      description: ISO код страны
+                      description: ISO-код страны
                     fav_sort:
                       type: integer
                       nullable: true
@@ -254,7 +254,7 @@ paths:
                             description: Название региона
                           country_iso3:
                             type: string
-                            description: ISO3 код страны региона
+                            description: ISO3-код страны региона
                           code:
                             type: string
                             description: Код региона
@@ -457,7 +457,7 @@ paths:
         - $ref: '#/components/parameters/customerToken'
         - in: query
           name: sales_channel_id
-          description: ID канала продаж, информацию о котором вернуть в поле sales_channel
+          description: ID канала продаж, информацию о котором нужно получить в поле `sales_channel`
           schema:
             type: integer
       responses:
@@ -529,7 +529,7 @@ paths:
                     description: Признак включенного требования авторизации для добавления отзывов
                   allow_review_image_upload:
                     type: boolean
-                    description: Доступность прикрепления изображений к отзывам покупателей
+                    description: Доступность возможности прикрепления изображений к отзывам о товарах
                   address_fields:
                     type: array
                     items:
@@ -743,7 +743,7 @@ paths:
                   sales_channel:
                     type: object
                     nullable: true
-                    description: Информация о канале продаж, если указан параметр sales_channel_id
+                    description: Информация о канале продаж, если указан параметр `sales_channel_id`
                     properties:
                       id:
                         type: integer
@@ -753,7 +753,7 @@ paths:
                         description: Тип канала продаж
                       params:
                         type: object
-                        description: Параметры канала продаж, разные в зависимости от типа
+                        description: Параметры канала продаж в зависимости от его типа
                         additionalProperties: true
 
   /categories:
@@ -1239,7 +1239,7 @@ paths:
           in: query
           required: false
           description: |
-            Идентификатор канала продаж в формате `type:id`, например: `telegram:11`; либо integer ID без type.
+            Идентификатор канала продаж в формате `type:id`, например: *telegram:11*; либо в формате `integer` — без `type`
           schema:
             type: string
         - $ref: '#/components/parameters/customerToken'
@@ -1262,19 +1262,19 @@ paths:
                     description: ID созданного заказа
                   order_id_str:
                     type: string
-                    description: Форматированный ID созданного заказа
+                    description: Форматированный ID заказа
                   order_total:
                     type: number
                     description: Сумма заказа
                   order_currency:
                     type: string
-                    description: Валюта заказа (3-символьный код)
+                    description: 3-буквенный код валюты
                   order_total_str:
                     type: string
-                    description: Сумма заказа с валютой
+                    description: Сумма заказа с обозначением валюты
                   code:
                     type: string
-                    description: Секретный код для работы с заказом в /order/{order_id}/*
+                    description: Секретный код для работы с заказом через узлы `/order/{order_id}/*`
 
   /shipping/costs:
     post:
@@ -1375,7 +1375,7 @@ paths:
 
   /order/{order_id}:
     get:
-      summary: Возвращает информацию о заказе
+      summary: Возвращает информацию о заказе.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -1429,26 +1429,26 @@ paths:
                   properties:
                     id:
                       type: string
-                      description: Уникальный ID способа оплаты, скомбинированный из plugin_id, index и type. Используется в /order/{order_id}/payment
+                      description: Уникальный ID способа оплаты, скомбинированный из значений `plugin_id`, `index` и `type`. Используется в узле `/order/{order_id}/payment`
                     type:
                       type: string
                       description: |
                         Вид оплаты:
-                        - link: переход на платёжный шлюз
-                        - image: QR-код для оплаты через СБП
+                        - **link**: переход на сайт платежного шлюза
+                        - **image**: QR-код для оплаты через СБП
                       enum:
                         - link
                         - image
                     plugin_id:
                       type: integer
-                      description: ID платёжного плагина
+                      description: ID плагина оплаты
                     index:
                       type: integer
                       nullable: true
-                      description: В случае, если платёжный плагин предоставляет несколько способов оплаты типа link, это поле содержит индекс способа оплаты
+                      description: Индекс способа оплаты; доступен, если платежный плагин предоставляет несколько способов оплаты типа `link`
                     plugin:
                       type: string
-                      description: Строковый идентификатор платёжного плагина
+                      description: Строковый идентификатор плагина оплаты
                     name:
                       type: string
                       description: Название способа оплаты
@@ -1461,7 +1461,7 @@ paths:
                       description: URL логотипа способа оплаты
   /order/{order_id}/payment:
     post:
-      summary: Инициализирует оплату заказа выбранным способом оплаты
+      summary: Инициализирует оплату заказа выбранным способом.
       security:
         - ApiKeyAuth: []
       parameters:
@@ -1479,7 +1479,7 @@ paths:
             type: string
         - in: query
           name: payment_id
-          description: ID одного из способов оплаты из списка /order/{order_id}/payment/list
+          description: ID одного из способов оплаты из списка, возвращаемого узлом `/order/{order_id}/payment/list`
           required: true
           schema:
             type: string
@@ -1492,10 +1492,11 @@ paths:
                 params:
                   type: object
                   additionalProperties: true
-                  description: Возможность сохранить дополнительные параметры в заказ, если они требуются плагину оплаты
+                  description: Возможность сохранить дополнительные параметры в свойствах заказа, если они требуются плагину оплаты
       responses:
         '200':
-          description: "Информация о проводимом платеже: ссылка на страницу оплаты или на картинку с QR-кодом"
+          description: |
+            Информация о выполняемом платеже: ссылка на страницу оплаты или на изображение с QR-кодом
           content:
             application/json:
               schema:
@@ -1511,19 +1512,20 @@ paths:
                       qr_payload:
                         type: string
                         nullable: true
-                        description: Содержимое QR-кода на оплату (если поддерживается плагином оплаты)
+                        description: Содержимое QR-кода для оплаты, если поддерживается плагином оплаты
                   - type: object
                     required:
                       - payment_image_url
                     properties:
                       payment_image_url:
                         type: string
-                        description: "Изображение QR-кода СБП: либо https:// ссылка, либо Data URL в формате data:image/png;base64,..."
+                        description: |
+                          Изображение QR-кода СБП: либо адрес, начинающийся на https://, либо Data URL в формате `data:image/png;base64,...`
                         format: uri
                       qr_payload:
                         type: string
                         nullable: true
-                        description: Содержимое QR-кода на оплату (если поддерживается плагином оплаты)
+                        description: Содержимое QR-кода для оплаты, если поддерживается плагином оплаты
 
 components:
   schemas:
@@ -1930,7 +1932,7 @@ components:
               description: URL основного изображения с максимальной стороной 970 пикселей
     OrderInfo:
       type: object
-      description: Свойства товара
+      description: Свойства заказа
       properties:
         id:
           type: integer
@@ -1938,16 +1940,16 @@ components:
         create_datetime:
           type: string
           format: date-time
-          description: Дата и время создания заказа
+          description: Дата и время создания
         state_id:
           type: string
-          description: Идентификатор состояния заказа
+          description: Идентификатор статуса
         currency:
           type: string
-          description: 3-символьный код валюты заказа
+          description: 3-буквенный код валюты
         total:
           type: number
-          description: Общая стоимость заказа
+          description: Общая стоимость
         total_str:
           type: string
           description: Общая стоимость (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
@@ -1959,7 +1961,7 @@ components:
           description: Общая стоимость в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
         tax:
           type: number
-          description: Общая сумма налога со всего заказа
+          description: Общий размер налога
         tax_str:
           type: string
           description: Налог (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
@@ -1983,7 +1985,7 @@ components:
           description: Стоимость доставки в виде строки (позволяет избежать ошибок представления в виде числа с плавающей точкой)
         discount:
           type: number
-          description: Общая сумма скидки на весь заказ
+          description: Общий размер скидки
         discount_str:
           type: string
           description: Скидка (форматированное число с простым текстовым обозначением валюты — без HTML-тегов)
@@ -1996,7 +1998,7 @@ components:
         paid_date:
           type: string
           format: date
-          description: Дата оплаты заказа или null, если не оплачен
+          description: Дата оплаты; или `null`, если заказ не оплачен
           nullable: true
         items:
           $ref: '#/components/schemas/OrderCartInfo'
@@ -2009,7 +2011,7 @@ components:
           id:
             type: integer
             nullable: true
-            description: ID позиции заказа (если уже сохранена в БД)
+            description: ID позиции заказа, если она уже сохранена в базе данных
           type:
             type: string
             description: |
@@ -2482,9 +2484,8 @@ components:
         photo_url:
           type: string
           description: |
-            URL изображения `http:`, `https:` или `data:image/png;base64,`.
-
-            Поддерживаются изображения в формате jpg, png, gif и webp.
+            URL изображения: URL, начинающийся с `http:` или `https:`, либо Data URL в формате `data:image/png;base64,`.
+            Поддерживаются изображения в форматах JPEG, PNG, GIF и WebP.
         is_company:
           type: boolean
           description: Признак покупателя-компании
@@ -2579,7 +2580,7 @@ components:
         + **tags**: в содержимое ответа добавляется элемент с ключом '*tags*' со списком тегов товара.
         + **features**: в содержимое ответа добавляется элемент с ключом '*features*' со списком характеристик товара
         + **sku_features**: в содержимое ответа каждой модификации товара добавляется элемент с ключом '*features*' со списком характеристик модификации
-        + **sku_selection**: в содержимое ответа добавляется элемент с ключом '*sku_selection*' с информацией о характеристиках для выбора артикула на витрине
+        + **sku_selection**: в содержимое ответа добавляется элемент с ключом '*sku_selection*' с информацией о характеристиках для выбора вариантов товара на витрине
       required: false
       schema:
         oneOf:

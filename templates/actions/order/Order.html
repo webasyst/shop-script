@@ -378,8 +378,8 @@
                                                 {/if}
                                                 {if empty($item.deleted) && $item.type == 'product' && $item.current_product_name|escape != $item.name|escape}
                                                     <div class="s-product-previous-name">
-                                                        <i class="fas fa-exclamation-triangle text-yellow"></i>
-                                                        <span class="gray">
+                                                        <span class="hint">
+                                                            <i class="fas fa-exclamation-triangle text-yellow"></i>
                                                             [`Current name`]: {$item.current_product_name|escape}
                                                         </span>
                                                     </div>

@@ -59,7 +59,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                     ],
                     '#178269' => [
                         'ru_RU' => 'Бирюзовый',
-                        'en_US' => 'Torquoise',
+                        'en_US' => 'Turquoise',
                     ],
                     '#1D94A6' => [
                         'ru_RU' => 'Голубой',
@@ -130,12 +130,12 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'locale' => array(
                 'value'        => '',
                 'title'        => _w('Locale'),
-                'description'  => _w('In Auto, storefront locale will depend on the messenging app custom user settings.'),
+                'description'  => _w('With “Auto”, the storefront locale will depend on the messaging app’s custom user settings.'),
                 'control_type' => waHtmlControl::SELECT,
                 'options'      => array(
                     'auto' => _w('Auto'),
                     'en'   => _w('English'),
-                    'ru'   => _w('Русский'),
+                    'ru'   => _w('Russian'),
                 ),
             ),
             'powered_by' => array(

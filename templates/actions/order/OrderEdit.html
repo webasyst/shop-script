@@ -1,3 +1,15 @@
+{if !empty($frame)}
+    {include file="templates/actions/backend/include.orders_assets.html" inline}
+    <style>
+        #order-edit-form .sidebar { top: 0; height: 100vh; }
+        #order-edit-form .sidebar .back { display: none; }
+        #order-edit-form .s-order-items-edit-wrapper { max-width: calc(100vw - 21rem); }
+        #order-edit-form .content { background: var(--background-color-blank); }
+        #order-edit-form .content h2 { font-size: 1.125rem; }
+        #order-edit-form .s-order-items-table tbody tr td { background: var(--background-color) !important; }
+    </style>
+    <div id="s-content">
+{/if}
 {if !empty($money_on_hold_warning)}
     <div class="s-alert s-order-editor-money-on-hold-warning" id="s-order-editor-money-on-hold-warning">
         {if $money_on_hold_warning == 'total_fixed'}
@@ -733,3 +745,10 @@
     {/if}
 
 </script>
+{if !empty($frame)}
+    <script>
+        $('#wa-nav').remove();
+        $('#wa-app > .s-page-menu').remove();
+    </script>
+    </div>
+{/if}

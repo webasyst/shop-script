@@ -20,6 +20,7 @@ class shopFrontendApiCategoriesController extends shopFrontApiJsonController
 
         $this->model = new shopCategoryModel();
         $cats = $this->model->getTree($parent_id, $depth);
+        $cats = $this->removeHidden($cats);
         if ($filters) {
             $cats = $this->fillFilters($cats);
         }
@@ -334,5 +335,18 @@ class shopFrontendApiCategoriesController extends shopFrontApiJsonController
         }
 
         return $v;
+    }
+
+    private function removeHidden($cats)
+    {
+        $hidden_ids = [];
+        foreach ($cats as $cat_id => $_cat) {
+            if (empty($_cat['status']) || in_array($_cat['parent_id'], $hidden_ids)) {
+                $hidden_ids[] = $cat_id;
+                unset($cats[$cat_id]);
+            }
+        }
+
+        return $cats;
     }
 }

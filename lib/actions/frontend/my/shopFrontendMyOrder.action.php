@@ -109,6 +109,17 @@ class shopFrontendMyOrderAction extends shopFrontendAction
                 } else {
                     $payment = $order['state']->paymentNotAllowedText();
                 }
+            } else if ($payment_link_url) {
+                // When payment plugin is not selected, show link to /paymentlink/ page
+                // use the same condition as on checkout/success page
+                $allow_payment_selection = true;
+                if (2 == ifset($route, 'checkout_version', null)) {
+                    $checkout_config = new shopCheckoutConfig(ifset($route, 'checkout_storefront_id', null));
+                    $allow_payment_selection = isset($checkout_config['confirmation']['auto_submit']) ? $checkout_config['confirmation']['auto_submit'] : true;
+                }
+                if ($allow_payment_selection) {
+                    $payment = $this->formatPaymentLinkHtml($payment_link_url);
+                }
             }
         }
 
@@ -242,5 +253,9 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         return wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
             'hash' => $hash,
         ], true);
+    }
+
+    protected function formatPaymentLinkHtml($payment_link_url) {
+        return '<a href="'.htmlspecialchars($payment_link_url).'" class="button order-payment-link">'._w('Proceed to payment').'</a>';
     }
 }

@@ -15,7 +15,7 @@
 {if $category.subcategories}
     <ul class="sub-links row">
         {foreach $category.subcategories as $sc}
-            <li><a class="button bg-gray fw-normal" href="{$sc.url}">{$sc.name|escape}</a></li>
+            <li><a class="button bg-tr-10 fw-normal" href="{$sc.url}">{$sc.name|escape}</a></li>
         {/foreach}
     </ul>
 {/if}
@@ -49,7 +49,7 @@
 
 {function filters_form_skeleton_items count=2 height='370px'}
     {for $i=1 to $count}
-    <li class="skeleton-line wa-flex wa-flex-column col w3" style="height: {$height}; padding: 1.5rem 1.5rem 0.5rem;background: #fff;border-radius: 15px;">
+    <li class="wa-flex wa-flex-column col w3" style="height: {$height};">
         <div class="skeleton-line" style="height: 45%;width: 100%"></div>
         <div>
             <span class="skeleton-line" style="height: 2rem;width: 70%"></span>
@@ -63,7 +63,7 @@
             <div class="skeleton-line" style="height: 0.5rem;width: 60%"></div>
         </div>
         <div class="wa-flex" style="margin: auto 0 0;">
-            <div class="skeleton-line" style="height: 2.7rem;width: 60%;border-radius: 100px;"></div>
+            <div class="skeleton-line" style="height: 2.7rem;width: 80%;"></div>
             <div class="wa-ml-16 wa-flex align-items-end wa-mb-8">
                 <div class="skeleton-line" style="height: 0.5rem;width: 4px;"></div>
                 <div class="skeleton-line" style="height: 1.4rem;width: 4px;margin-left: 3px;"></div>
@@ -106,11 +106,11 @@
                                 <div class="slider nowrap">
                                     <div class="wa-flex justify-content-between space-05">
                                         <div class="wa-flex wa-flex-column space-05">
-                                            <span class="s-label">[`from`]</span> 
+                                            <span class="s-label">[`from`]</span>
                                             <input type="text" class="min" name="price_min" {if $wa->get('price_min')}value="{(int)$wa->get('price_min')}"{/if} placeholder="{floor($filter.min)}">
                                         </div>
                                         <div class="wa-flex wa-flex-column space-05">
-                                            <span class="s-label">[`to`]</span> 
+                                            <span class="s-label">[`to`]</span>
                                             <input type="text" class="max" name="price_max" {if $wa->get('price_max')}value="{(int)$wa->get('price_max')}"{/if} placeholder="{ceil($filter.max)}">
                                         </div>
                                     </div>
@@ -190,11 +190,11 @@
                                     <div class="slider nowrap">
                                         <div class="wa-flex justify-content-between space-05">
                                             <div class="wa-flex wa-flex-column space-05">
-                                                <span class="s-label">[`from`]</span> 
+                                                <span class="s-label">[`from`]</span>
                                                 <input type="text" class="min" name="{$filter.code}[min]" placeholder="{$filter.min}" {if !empty($_v.min)}value="{$_v.min|escape}"{/if}>
                                             </div>
                                             <div class="wa-flex wa-flex-column space-05">
-                                                <span class="s-label">[`to`]</span> 
+                                                <span class="s-label">[`to`]</span>
                                                 <input type="text" class="max" name="{$filter.code}[max]" placeholder="{$filter.max}" {if !empty($_v.max)}value="{$_v.max|escape}"{/if}>
                                             </div>
                                         </div>
@@ -212,7 +212,7 @@
                     {/foreach}
                     {if $wa->get('sort')}<input type="hidden" name="sort" value="{$wa->get('sort')|escape}">{/if}
                     {if $wa->get('order')}<input type="hidden" name="order" value="{$wa->get('order')|escape}">{/if}
-                    
+
                     {* Проверка применения фильтров *}
                     {$filters_applied = false}
                     {if $wa->get('price_min') || $wa->get('price_max')}
@@ -224,7 +224,7 @@
                             {break}
                         {/if}
                     {/foreach}
-                    
+
                     <input class="gray" type="reset" value="[`Reset`]" id="filters-reset-btn"{if !$filters_applied} style="display: none;"{/if}>
                 </form>
             </div>

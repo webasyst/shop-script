@@ -217,12 +217,29 @@ class shopOrdersAction extends shopOrderListAction {
 
     protected function shouldShowWaPayAd()
     {
+        $user = wa()->getUser();
+        if (!$user->isAdmin('shop') && !$user->getRights('shop', 'settings')) {
+            return false;
+        }
+
         $show_wa_pay_ad = true;
         $pay_promotion_enabled = shopHelper::waPayPromotionEnabled();
         $hide_wa_pay_ad_till = wa()->getUser()->getSettings('shop', 'hide_wa_pay_ad_till', null);
         if ($hide_wa_pay_ad_till && (strtotime($hide_wa_pay_ad_till) > time())) {
             $show_wa_pay_ad = false;
         }
+
+        // <<<<< temp for release SS 12.0
+        if (empty($hide_wa_pay_ad_till)) {
+            (new waContactSettingsModel())->set(
+                wa()->getUser()->getId(),
+                'shop',
+                'hide_wa_pay_ad_till',
+                date('Y-m-d', strtotime('+'.mt_rand(1, 10).' days'))
+            );
+            return false;
+        }
+        // end temp >>>>>
 
         if ($pay_promotion_enabled && $show_wa_pay_ad) {
             return true;

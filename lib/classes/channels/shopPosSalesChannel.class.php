@@ -81,8 +81,13 @@ class shopPosSalesChannel extends shopSalesChannelType
         }
 
         if (isset($params['stock_id'])) {
-            $stocks = shopHelper::getStocks();
-            if (!isset($stocks[$params['stock_id']])) {
+            $stocks = (array) shopHelper::getStocks();
+            if (count($stocks) < 1) {
+                $errors['stock_id'] = [
+                    'error_description' => sprintf_wp("If you don't have any stock locations yet, create one in <a %s>Settings > Stocks</a>.", 'href="'.wa()->getAppUrl('shop/?action=settings#/stock/').'"'),
+                    'field' => 'data[params][stock_id]',
+                ];
+            } elseif (!isset($stocks[$params['stock_id']])) {
                 $errors['stock_id'] = [
                     'error_description' => _w('This field is required'),
                     'field' => 'data[params][stock_id]',

@@ -13,13 +13,28 @@ class shopFrontendPaymentLinkAction extends waViewAction
     public function execute()
     {
         $hash = waRequest::param('hash');
-        if (!preg_match('~^(.{16})(.+)(.{16})$~', $hash, $matches)) {
+        if (!preg_match('~^(.{16})(\d+)(.{16})$~', $hash, $matches)) {
             throw new waException(_w('Order not found.'), 404);
         }
         $order_id = substr($hash, 16, -16);
         $order = new shopOrder($order_id);
-        if (!empty($order['paid_date']) || $hash != $order->getPaymentLinkHash()) {
+        if ($hash != $order->getPaymentLinkHash()) {
             throw new waException(_w('Order not found.'), 404);
+        }
+        if (!empty($order['paid_date'])) {
+            $auth_user_id = wa()->getUser()->getId();
+            if ($auth_user_id && $auth_user_id == $order['contact_id']) {
+                $url = wa()->getRouteUrl('shop/frontend/myOrder', [
+                    'id' => $order['id'],
+                ], true);
+            } else {
+                $url = wa()->getRouteUrl('shop/frontend/myOrderByCode', [
+                    'id' => $order['id'],
+                    'code' => ifset($order, 'params', 'auth_code', ''),
+                ], true);
+            }
+            wa()->getResponse()->redirect($url, 302);
+            exit;
         }
 
         if (waRequest::post('clear_payment_selection')) {
@@ -91,11 +106,16 @@ class shopFrontendPaymentLinkAction extends waViewAction
         // Open overlay immediately if plugin saved in order is WA Pay (unless user clicks WA Pay option in overlat itself)
         $auto_open_overlay = $auto_open_overlay || ($payment_form_html && !$payment_id && ifset($order, 'params', 'payment_plugin', null) === 'pay');
 
+        if (!empty($payment_image) ) {
+            $status_check_url = wa()->getRouteUrl('shop/frontend/checkoutSuccessPaymentSelection');
+        }
+
         $this->view->assign([
             'order' => $order,
             'challenge' => $challenge,
             'methods' => $payment_options,
             'payment_image' => ifset($payment_image),
+            'status_check_url' => ifset($status_check_url),
             'auto_open_overlay' => $auto_open_overlay,
             'payment_form_html' => $payment_form_html,
             'enable_auto_submit' => !$this_is_a_bot,

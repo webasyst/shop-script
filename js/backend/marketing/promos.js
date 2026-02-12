@@ -226,11 +226,7 @@
 
             $promos_lists.sortable({
                 animation: 150,
-                distance: 5,
-                opacity: 0.75,
-                items: "> .s-promo-wrapper",
-                cursor: "move",
-                tolerance: "pointer",
+                fallbackOnBody: true,
                 onEnd: function(ui) {
 
                     if (that.sort_enabled) {

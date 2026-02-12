@@ -213,6 +213,9 @@ class shopWorkflowCaptureAction extends shopWorkflowPayAction
         $button_class = $this->getOption('button_class');
 
         $currency_id = ($transaction_data && $plugin) ? $plugin->allowedCurrency() : $order->currency;
+        if ($currency_id === true) {
+            $currency_id = $order->currency;
+        }
         $currency = $this->getConfig()->getCurrencies($currency_id);
         $currency = reset($currency);
 

@@ -660,6 +660,25 @@
                 {/if}
             })(jQuery);
         </script>
+        {if $status_check_url}
+            <script>(function(){
+                    const PERIOD = 9000;
+                    const check_url = {$status_check_url|json_encode};
+                    var timeout = schedule();
+
+                    function schedule() {
+                        setTimeout(function() {
+                            $.post(check_url, function(r) {
+                                if (r.is_paid) {
+                                    window.location.reload();
+                                }
+                            }).always(function() {
+                                timeout = schedule();
+                            });
+                        }, PERIOD);
+                    }
+                }());</script>
+        {/if}
         <style>
             body.is-locked {
                 overflow: hidden;
@@ -914,6 +933,7 @@
                 border-radius: 1rem;
                 text-align: center;
                 display: block;
+                line-height: 1.4;
             }
 
             .dialog.c-payments-wrapper .dialog-body .dialog-content form .c-payment-options .c-payment-item.c-payment-item-sbp img {

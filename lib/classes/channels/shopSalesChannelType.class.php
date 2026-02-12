@@ -82,6 +82,7 @@ abstract class shopSalesChannelType
             }
 
             $channel['name'] = _w(ifset($channel, 'name', $channel['class']));
+            $channel['available'] = ifset($channel, 'available', true);
         }
         unset($channel);
 

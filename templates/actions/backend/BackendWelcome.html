@@ -88,14 +88,15 @@
                             <div class="field">
                                 <div class="value">
 
+                                    {$_has_source = !!$backend_welcome_event_result}
                                     <div class="toggle js-filling-store-toggle">
-                                        <span data-content="1" class="selected">[`Migrate my products`]</span>
-                                        <span data-content="2">[`Start from scratch`]</span>
+                                        <span data-content="1"{if $_has_source} class="selected"{/if}>[`Migrate my products`]</span>
+                                        <span data-content="2"{if !$_has_source} class="selected"{/if}>[`Start from scratch`]</span>
                                         <span data-content="3">[`Add demo products`]</span>
                                     </div>
 
                                     <div class="js-filling-store-content custom-mt-16">
-                                        <div class="js-filling-store-content-item" data-content="1">
+                                        <div class="js-filling-store-content-item{if !$_has_source} hidden{/if}" data-content="1">
 
                                             {if $backend_welcome_event_result}
                                                 {* @event backend_welcome.%plugin_id%.form_bottom *}
@@ -107,7 +108,7 @@
                                             {/if}
                                         </div>
 
-                                        <div class="js-filling-store-content-item hidden" data-content="2">
+                                        <div class="js-filling-store-content-item{if $_has_source} hidden{/if}" data-content="2">
                                             <p class="small"><i class="fas fa-check-circle text-green"></i> [`Start with an empty catalog and easily add products in bulk by uploading a folder of photos or by importing product data from a CSV file at any moment.`]</p>
                                         </div>
 

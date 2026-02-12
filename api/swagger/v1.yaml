@@ -103,7 +103,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
         402:
-          description: Payment required
+          description: Необходима оплата.
           content:
             application/json:
               schema:
@@ -4512,7 +4512,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
         403:
-          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          description: Необходим полный доступ к приложению для использования метода.
           content:
             application/json:
               schema:
@@ -4525,7 +4525,7 @@ paths:
                 $ref: '#/components/schemas/invalidResponse'
   /shop.saleschannel.list:
     get:
-      summary: Возвращает информацию о каналах продаж.
+      summary: Возвращает список каналов продаж.
       security:
         - ApiKeyAuth: []
       externalDocs:
@@ -4534,7 +4534,7 @@ paths:
       parameters:
         - in: query
           name: type
-          description: Фильтр по типу канала продаж
+          description: Тип каналов продаж, если нужна фильтрация
           schema:
             type: string
         - $ref: '#/components/parameters/requestFormat'
@@ -4548,7 +4548,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/SalesChannelInfo'
         403:
-          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          description: Необходим полный доступ к приложению для использования метода.
           content:
             application/json:
               schema:
@@ -4582,7 +4582,7 @@ paths:
                     items:
                       $ref: '#/components/schemas/SalesChannelTypeInfo'
         403:
-          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          description: Необходим полный доступ к приложению для использования метода.
           content:
             application/json:
               schema:
@@ -4595,7 +4595,7 @@ paths:
                 $ref: '#/components/schemas/invalidResponse'
   /shop.saleschannel.add:
     post:
-      summary: Создать новый канал продаж.
+      summary: Создание нового канала продаж.
       security:
         - ApiKeyAuth: []
       externalDocs:
@@ -4625,20 +4625,22 @@ paths:
                     - 0
                     - 1
                   description: |
-                    Состояние: 0 выключен, 1 включен
+                    Статус:
+                    + **0**: выключен
+                    + **1**: включен
                 sort:
                   type: integer
-                  description: Порядок сортировки для определения позиции в списках
+                  description: Значение сортировки
                 params:
                   type: object
                   additionalProperties: true
-                  description: Дополнительные настройки, разные для разных типов каналов продаж
+                  description: Дополнительные настройки в зависимости от типа
               required:
                 - name
                 - type
       responses:
         200:
-          description: Информация о созданном канале продаж
+          description: Информация о созданном канале продаж.
           content:
             application/json:
               schema:
@@ -4653,20 +4655,20 @@ paths:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
         402:
-          description: Payment required
+          description: Необходима оплата.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
         403:
-          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          description: Необходим полный доступ к приложению для использования метода.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
   /shop.saleschannel.update:
     post:
-      summary: Изменить существующий канал продаж.
+      summary: Изменение свойств канала продаж.
       security:
         - ApiKeyAuth: []
       externalDocs:
@@ -4698,24 +4700,27 @@ paths:
                     - 0
                     - 1
                   description: |
-                    Состояние: 0 выключен, 1 включен
+                    Статус:
+
+                    + **0**: выключен
+                    + **1**: включен
                 sort:
                   type: integer
-                  description: Порядок сортировки для определения позиции в списках
+                  description: Значение сортировки
                 params:
                   type: object
                   additionalProperties: true
-                  description: Дополнительные настройки, разные для разных типов каналов продаж
+                  description: Дополнительные настройки в зависимости от типа
                 params_mode:
                   type: string
                   enum:
                     - set
                     - update
                   description: |
-                    Меняет поведение сохранения params:
+                    Режим сохранения значения параметра `params`:
 
-                    - set: (по умолчанию) все ключи, не указанные в params, будут удалены.
-                    - update: ключи, не указанные в params, не будут затронуты сохранением.
+                    + **set**: (*по умолчанию*) все ключи, не указанные в `params`, удаляются
+                    + **update**: ключи, не указанные в `params`, не затрагиваются
       responses:
         200:
           description: Информация о созданном канале продаж
@@ -4733,7 +4738,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/invalidResponse'
         403:
-          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          description: Необходим полный доступ к приложению для использования метода.
           content:
             application/json:
               schema:
@@ -4746,7 +4751,7 @@ paths:
                 $ref: '#/components/schemas/invalidResponse'
   /shop.saleschannel.delete:
     post:
-      summary: Удалить существующий канал продаж.
+      summary: Удаляет канал продаж.
       security:
         - ApiKeyAuth: []
       externalDocs:
@@ -4768,7 +4773,7 @@ paths:
                   description: ID канала продаж
       responses:
         200:
-          description: Удаление успешно
+          description: Успешное удаление.
           content:
             application/json:
               schema:
@@ -4779,7 +4784,7 @@ paths:
                     enum:
                       - ok
         403:
-          description: Пользователь должен иметь полный доступ к приложению Shop, чтобы использовать этот метод.
+          description: Необходим полный доступ к приложению для использования метода.
           content:
             application/json:
               schema:
@@ -5399,7 +5404,7 @@ paths:
                   headless_api_antispam:
                     type: string
                     nullable: true
-                    description: Антиспам-ключ `antispam_api_key` для создания заказа в Headless API на витрине магазина
+                    description: Антиспам-ключ `antispam_api_key` для создания заказа через Headless API
 
   /shop.settings.getContactFields:
     get:
@@ -5519,7 +5524,7 @@ paths:
               - 1
         - in: query
           name: channel_id
-          description: Параметр вида **pos:N** для получения способов оплаты, которые разрешены в настройках конкретной точки продаж **N**
+          description: Значение вида *pos:N* для получения способов оплаты, которые разрешены в настройках точки продаж *N*
           required: false
           schema:
             type: string
@@ -7843,26 +7848,32 @@ components:
         wa_channel_id:
           type: string
           nullable: true
-          description: Глобальный уникальный идентификатор канала продаж
+          description: Глобальный уникальный идентификатор
         status:
           type: integer
           description: |
-            Состояние: 0 выключен, 1 включен
+            Статус:
+
+            + **0**: выключен
+            + **1**: включен
         sort:
           type: integer
-          description: Порядок сортировки для определения позиции в списках
+          description: Значение сортировки
         params:
           type: object
-          description: Дополнительные настройки, разные для разных типов каналов продаж
+          description: Дополнительные настройки в зависимости от типа
     SalesChannelTypeInfo:
       type: object
       properties:
         id:
           type: string
+          description: ID типа
         name:
           type: string
+          description: Название
         menu_icon:
           type: string
+          description: HTML-код иконки
   parameters:
     requestFormat:
       name: format

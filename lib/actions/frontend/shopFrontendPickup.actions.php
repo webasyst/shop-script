@@ -141,7 +141,7 @@ class shopFrontendPickupActions extends waActions
     protected function createAction()
     {
         $pickup_id = waRequest::post('pickup_id');
-        $customer = waRequest::post('customer');
+        $customer = waRequest::post('customer', [], waRequest::TYPE_ARRAY);
         $customer = array_combine(array_column($customer, 'name'), array_column($customer, 'value'));
         unset($customer['id']);
 
@@ -228,7 +228,7 @@ class shopFrontendPickupActions extends waActions
 
     private function getForm($customer = [])
     {
-        $disabled_attr = $customer ? ' disabled' : '';
+        $disabled_attr = $customer ? ' readonly' : '';
         return [
             _w('First name') => '<input title="'._w('First name').'" type="text" name="firstname" value="'.htmlentities(ifset($customer, 'firstname', '')).'"'.$disabled_attr.'>',
             _w('Last name') => '<input title="'._w('Last name').'" type="text" name="lastname" value="'.htmlentities(ifset($customer, 'lastname', '')).'"'.$disabled_attr.'>',
