@@ -24,8 +24,7 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
                     'shipping_id' => ifset($data, 'shipping', 'selected_variant', 'variant_id', null),
                     'payment_id'  => ifset($data, 'payment', 'id', null),
                     'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($config['schedule'])->getDepartureDateTime(),
-                    // stock_id, virtualstock_id see below
-                ] + $this->getOrderParamsFromOrder($data['order']) + $this->getOrderParamsFromRequest(),
+                ] + $this->getOrderParamsFromOrder($data['order']) + $this->getOrderParamsFromRequest() + ifempty($data, 'order', 'params', []),
 
             'comment'  => ifset($data, 'result', 'confirm', 'comment', ''),
             'shipping' => $data['order']['shipping'],
@@ -47,13 +46,15 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
         if ($channel_id) {
             $sales_channel_model = new shopSalesChannelModel();
             if (preg_match('#^([a-z0-9]+):(\d+)$#', $channel_id, $matches)) {
-                if ($sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
+                if ($channel = $sales_channel_model->getByField(['id' => $matches[2], 'type' => $matches[1]])) {
                     $order_data['params']['sales_channel'] = $channel_id;
+                    $order_data['params']['sales_channel_name'] = ifempty($channel, 'name', null);
                 }
             } else if (wa_is_int($channel_id)) {
                 $channel = $sales_channel_model->getById($channel_id);
                 if ($channel) {
                     $order_data['params']['sales_channel'] = $channel['type'].':'.$channel['id'];
+                    $order_data['params']['sales_channel_name'] = ifempty($channel, 'name', null);
                 }
             }
         }

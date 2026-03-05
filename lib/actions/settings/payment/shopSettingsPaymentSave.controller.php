@@ -70,7 +70,7 @@ class shopSettingsPaymentSaveController extends waJsonController
                     // ignore storefronts with step-by-step checkout
                     continue;
                 }
-                // Disable 'payment' step in single-page checkout with WA Pay enabled.
+                // Disable 'payment' step in single-page checkout.
                 // This allows customer to select payment option after order is created.
                 $checkout_config = new shopCheckoutConfig($r['checkout_storefront_id']);
                 if (!empty($checkout_config['payment']['used'])) {

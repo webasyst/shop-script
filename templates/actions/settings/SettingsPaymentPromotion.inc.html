@@ -142,6 +142,9 @@
         </div>
     </div>
 </div>
+<style>
+    #s-settings-payment-plugins { display: none !important; }
+</style>
 <script>(function(){
     const $wrapper = $('#js-promotion-content-wrapper');
     const $chart_wrapper = $('.js-promotion-chart', $wrapper);
@@ -178,7 +181,6 @@
         };
 
         const { toggle, inited } = initToggleWrapper();
-
         toggle(true);
 
         inited.then(() => {

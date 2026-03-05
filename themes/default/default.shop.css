@@ -580,6 +580,7 @@ span.rating { white-space: nowrap; }
 h1 .rating i.icon16 { margin-top: 0.42em; }
 
 .add2cart { margin-bottom: 16px; display: flex; align-items:flex-end;gap: .5rem;flex-wrap: wrap; }
+.add2cart .s-price-wrapper .price-wrapper { line-height: 1; }
 .add2cart .badge:not(:last-child) { margin-right: 4px; }
 .add2cart .price { font-size: 2em; font-weight: 600; }
 .add2cart .pickup-btn { white-space: nowrap; background-color: var(--pickup-btn-bg); color: var(--pickup-btn-color); font-weight: 600; padding: 0.938em; }
@@ -694,6 +695,7 @@ table.rating-distribution td .bar .filling { background: var(--orange); height: 
 .review-form-fields p { margin: 0 0 24px; min-height: 40px; display: flex; align-items: center; gap: 0.35rem; }
 .review-form-fields .review-text label { align-self: flex-start; }
 .review-form-fields p.review-field a { display: inline; padding: 0; text-decoration: none; }
+.review-form-fields p.review-field a .icon16 { transform: scale(1.35); margin-right: .5rem; }
 .review-form-fields label { width: 160px; display: block; float: left; margin: 0 10px 0 0; color: #aaa;}
 .review-form-fields input[type="text"] { width: 20em;}
 .review-form-fields #review-title { min-width: 70%; }

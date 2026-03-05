@@ -927,48 +927,61 @@ body:has(.wa-order-layout) {
 .wa-order-form-wrapper .wa-form-footer .wa-line {
   margin-top: 1.5em !important;
 }
+.wa-channel-confirmation-dialog .wa-dialog-body .wa-field-wrapper.with-content .wa-input {
+  border: .0625em solid var(--input-border-color);
+  color: var(--text-color-secondary);
+  background-color: transparent;
+  width: 100% !important;
+}
+.wa-channel-confirmation-dialog .wa-dialog-body .wa-dialog-footer .wa-button {
+  font-size: revert-layer !important;
+  line-height: revert-layer !important;
+  padding: revert-layer !important;
+  font-weight: normal;
+  text-shadow: none;
+}
 @media screen and (min-width: 841px) {
-  .s-order-page {
-    display: table;
-    width: 100%;
-    table-layout: fixed;
-  }
-  .s-order-page > .s-order-column {
-    display: table-cell;
-    vertical-align: top;
-    padding: 0 13px;
-  }
-  .s-order-page > .s-order-column:first-of-type {
-    padding-left: 0;
-  }
-  .s-order-page > .s-order-column:last-of-type {
-    padding-right: 0;
-  }
-  .wa-order-form-wrapper .wa-form-footer {
-    font-size: 14px;
-    line-height: 1.214285714285714em;
-    text-align: right;
-  }
+.s-order-page {
+display: table;
+width: 100%;
+table-layout: fixed;
+}
+.s-order-page > .s-order-column {
+display: table-cell;
+vertical-align: top;
+padding: 0 13px;
+}
+.s-order-page > .s-order-column:first-of-type {
+padding-left: 0;
+}
+.s-order-page > .s-order-column:last-of-type {
+padding-right: 0;
+}
+.wa-order-form-wrapper .wa-form-footer {
+font-size: 14px;
+line-height: 1.214285714285714em;
+text-align: right;
+}
 }
 @media screen and (max-width: 840px) {
-  .s-order-page > .s-order-column {
-    margin-top: 40px;
-  }
-  .s-order-page > .s-order-column:first-child {
-    margin-top: 0;
-  }
+.s-order-page > .s-order-column {
+margin-top: 40px;
+}
+.s-order-page > .s-order-column:first-child {
+margin-top: 0;
+}
 }
 @media screen and (max-width: 768px) {
-  .s-order-section > .s-section-header {
-    margin-bottom: 1.25rem !important;
-  }
-  .s-order-section .s-delete-button {
-    width: 43%;
-    line-height: 14px;
-    text-align: right;
-  }
-  .s-order-page .wa-dropdown.is-opened > .wa-dropdown-area {
-    max-height: 300px;
-    z-index: 998;
-  }
+.s-order-section > .s-section-header {
+margin-bottom: 1.25rem !important;
+}
+.s-order-section .s-delete-button {
+width: 43%;
+line-height: 14px;
+text-align: right;
+}
+.s-order-page .wa-dropdown.is-opened > .wa-dropdown-area {
+max-height: 300px;
+z-index: 998;
+}
 }
