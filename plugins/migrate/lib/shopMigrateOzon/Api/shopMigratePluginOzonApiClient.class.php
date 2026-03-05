@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonApiClient
+class shopMigratePluginOzonApiClient
 {
     const DEFAULT_BASE_URL = 'https://api-seller.ozon.ru/';
     const DEFAULT_TIMEOUT = 30;
@@ -12,11 +12,11 @@ class shopMigrateOzonApiClient
     private $base_url;
     private $timeout;
     /**
-     * @var shopMigrateOzonLogger
+     * @var shopMigratePluginOzonLogger
      */
     private $logger;
 
-    public function __construct($client_id, $api_key, shopMigrateOzonLogger $logger, array $options = array())
+    public function __construct($client_id, $api_key, shopMigratePluginOzonLogger $logger, array $options = array())
     {
         $this->client_id = (string) $client_id;
         $this->api_key = (string) $api_key;

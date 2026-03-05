@@ -5,7 +5,7 @@ class shopMigratePluginBackendOzonStockMapController extends waJsonController
     public function execute()
     {
         try {
-            $settings = new shopMigrateOzonSettings();
+            $settings = new shopMigratePluginOzonSettings();
             $snapshot_id = $settings->getCurrentSnapshotId();
             if (!$snapshot_id) {
                 throw new waException(_wp('Snapshot is missing.'));
@@ -18,7 +18,7 @@ class shopMigratePluginBackendOzonStockMapController extends waJsonController
                 throw new waException(_wp('Invalid parameters.'));
             }
 
-            $model = new shopMigrateOzonStockMapModel();
+            $model = new shopMigratePluginOzonStockMapModel();
             if ($value === '') {
                 $model->deleteByField(array(
                     'snapshot_id'  => $snapshot_id,
@@ -26,7 +26,7 @@ class shopMigratePluginBackendOzonStockMapController extends waJsonController
                 ));
             } elseif ($value === 'skip') {
                 $model->saveAuto($snapshot_id, $warehouse_id, array(
-                    'mode'   => shopMigrateOzonSettings::MODE_MANUAL,
+                    'mode'   => shopMigratePluginOzonSettings::MODE_MANUAL,
                     'action' => 'skip',
                 ));
             } else {
@@ -36,7 +36,7 @@ class shopMigratePluginBackendOzonStockMapController extends waJsonController
                     throw new waException(_wp('Stock not found.'));
                 }
                 $model->saveAuto($snapshot_id, $warehouse_id, array(
-                    'mode'          => shopMigrateOzonSettings::MODE_MANUAL,
+                    'mode'          => shopMigratePluginOzonSettings::MODE_MANUAL,
                     'action'        => 'manual',
                     'shop_stock_id' => $stock['id'],
                 ));

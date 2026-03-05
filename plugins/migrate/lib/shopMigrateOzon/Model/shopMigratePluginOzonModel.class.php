@@ -1,6 +1,6 @@
 <?php
 
-abstract class shopMigrateOzonModel extends waModel
+abstract class shopMigratePluginOzonModel extends waModel
 {
     public function deleteBySnapshot($snapshot_id)
     {

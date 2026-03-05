@@ -1,12 +1,12 @@
 <?php
 
-class shopMigrateOzonLogger
+class shopMigratePluginOzonLogger
 {
     const LOG_FILE = 'shop/plugins/migrate/migrate_ozon.log';
 
     private $mode;
 
-    public function __construct($mode = shopMigrateOzonSettings::LOG_ERRORS)
+    public function __construct($mode = shopMigratePluginOzonSettings::LOG_ERRORS)
     {
         $this->mode = $mode;
     }
@@ -18,7 +18,7 @@ class shopMigrateOzonLogger
 
     public function logRequest($request_id, $path, array $payload, $body, array $headers)
     {
-        if ($this->mode !== shopMigrateOzonSettings::LOG_FULL) {
+        if ($this->mode !== shopMigratePluginOzonSettings::LOG_FULL) {
             return;
         }
         $message = sprintf(
@@ -34,7 +34,7 @@ class shopMigrateOzonLogger
 
     public function logResponse($request_id, $path, $status_code, $body, $is_error = false)
     {
-        if ($this->mode === shopMigrateOzonSettings::LOG_ERRORS && !$is_error) {
+        if ($this->mode === shopMigratePluginOzonSettings::LOG_ERRORS && !$is_error) {
             return;
         }
         $message = sprintf(

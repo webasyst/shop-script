@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonSnapshotRepository
+class shopMigratePluginOzonSnapshotRepository
 {
     private $snapshots_model;
     private $products_model;
@@ -17,18 +17,18 @@ class shopMigrateOzonSnapshotRepository
 
     public function __construct()
     {
-        $this->snapshots_model = new shopMigrateOzonSnapshotsModel();
-        $this->products_model = new shopMigrateOzonProductsModel();
-        $this->categories_model = new shopMigrateOzonCategoriesModel();
-        $this->attributes_model = new shopMigrateOzonAttributesModel();
-        $this->attribute_values_model = new shopMigrateOzonAttributeValuesModel();
-        $this->warehouses_model = new shopMigrateOzonWarehousesModel();
-        $this->stocks_model = new shopMigrateOzonStocksModel();
-        $this->type_map_model = new shopMigrateOzonTypeMapModel();
-        $this->category_map_model = new shopMigrateOzonCategoryMapModel();
-        $this->stock_map_model = new shopMigrateOzonStockMapModel();
-        $this->feature_map_model = new shopMigrateOzonFeatureMapModel();
-        $this->product_map_model = new shopMigrateOzonProductMapModel();
+        $this->snapshots_model = new shopMigratePluginOzonSnapshotsModel();
+        $this->products_model = new shopMigratePluginOzonProductsModel();
+        $this->categories_model = new shopMigratePluginOzonCategoriesModel();
+        $this->attributes_model = new shopMigratePluginOzonAttributesModel();
+        $this->attribute_values_model = new shopMigratePluginOzonAttributeValuesModel();
+        $this->warehouses_model = new shopMigratePluginOzonWarehousesModel();
+        $this->stocks_model = new shopMigratePluginOzonStocksModel();
+        $this->type_map_model = new shopMigratePluginOzonTypeMapModel();
+        $this->category_map_model = new shopMigratePluginOzonCategoryMapModel();
+        $this->stock_map_model = new shopMigratePluginOzonStockMapModel();
+        $this->feature_map_model = new shopMigratePluginOzonFeatureMapModel();
+        $this->product_map_model = new shopMigratePluginOzonProductMapModel();
     }
 
     public function createSnapshot(array $meta = array())

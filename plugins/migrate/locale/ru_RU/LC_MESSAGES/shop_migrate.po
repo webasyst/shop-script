@@ -541,8 +541,8 @@ msgstr "Client ID обязателен"
 msgid "API Key is required"
 msgstr "API Key обязателен"
 
-msgid "Import products from Ozon (ozon seller API)"
-msgstr "Импорт товаров из Ozon Seller API."
+msgid "Import products via Ozon seller API"
+msgstr "Импорт товаров через Ozon Seller API"
 
 msgid "Ozon import"
 msgstr "Импорт из Ozon"
@@ -617,10 +617,10 @@ msgid "Client ID Ozon"
 msgstr "Client ID Ozon"
 
 msgid "Ozon snapshot"
-msgstr "Снапшот Ozon"
+msgstr "Снимок Ozon"
 
 msgid "Snapshot collected at"
-msgstr "Снапшот собран"
+msgstr "Снимок получен"
 
 msgid "Press “Load data” to fetch a fresh snapshot for preview and mapping."
 msgstr "Нажмите «Загрузить данные», чтобы получить свежий снапшот для предпросмотра и маппинга."
@@ -776,7 +776,7 @@ msgid "Stock not found."
 msgstr "Склад не найден."
 
 msgid "Import everything automatically"
-msgstr "Импортировать все-все-все автоматически"
+msgstr "Импортировать все автоматически"
 
 msgid "Import mode"
 msgstr "Режим импорта"
@@ -835,6 +835,9 @@ msgstr "Закрыть"
 msgid "OpenCart 1.5.x"
 msgstr "OpenCart 1.5.x"
 
+msgid "Import in progress. Do not close this page until it is complete."
+msgstr "Идет импорт. Не закрывайте эту страницу до завершения."
+
 msgid "Import from your seller account on a marketplace"
 msgstr "Импортировать из вашего аккаунта продавца на маркетплейсе"
 
@@ -858,3 +861,37 @@ msgstr "Импортировать данные из PHPShop с помощью Y
 
 msgid "Import data from StoreLand using the generated YML feed provided by the source store."
 msgstr "Импортировать данные из StoreLand с помощью YML-файла, сгенерированного в исходном магазине."
+
+msgid "Marketplaces"
+msgstr "Маркетплейсы"
+
+msgid "Combine #hashtags of product codes and import them into the product"
+msgstr "Объединить #хештеги артикулов и импортировать в товар"
+
+msgid "For products with multiple variants, all tags will be saved in the product properties."
+msgstr "Для товаров с несколькими модификациями все теги будут сохранены в свойствах товара."
+
+msgid "Save tags both in the product properties and in each product variant"
+msgstr "Сохранить теги и в свойствах товара, и в каждой модификации товара"
+
+msgid "The tags of multiple product variants will be saved both as product tags and as variants’ feature values."
+msgstr "Теги товаров с несколькими модификациями будут сохранены и как теги товара, и как значение характеристики модификаций."
+
+msgid "Save tags as product variants’ feature values"
+msgstr "Сохранить теги как значения характеристики модификаций товара"
+
+msgid "The tags of multiple product variants will be saved as variants’ feature values and not as product tags."
+msgstr "Теги товаров с несколькими модификациями будут сохранены как характеристики модификаций, а не как теги товара."
+
+msgid "In the auto mode, the first option is used."
+msgstr "В автоматическом режиме используется первый вариант."
+
+msgid "Show more"
+msgstr "Показать еще"
+
+msgid "Hide extra"
+msgstr "Скрыть дополнительные"
+
+msgid "Hide"
+msgstr "Скрыть"
+

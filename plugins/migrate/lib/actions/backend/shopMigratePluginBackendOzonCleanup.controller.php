@@ -12,7 +12,7 @@ class shopMigratePluginBackendOzonCleanupController extends waJsonController
         $tables = array_map('trim', $tables);
         $tables = array_unique($tables);
 
-        $definitions = shopMigrateOzonHelper::getTablesMeta();
+        $definitions = shopMigratePluginOzonHelper::getTablesMeta();
         $allowed = array_keys($definitions);
         $targets = array_values(array_intersect($allowed, $tables));
 

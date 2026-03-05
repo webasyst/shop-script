@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonSettings
+class shopMigratePluginOzonSettings
 {
     const NS_APP = 'shop';
     const NS_PLUGIN = 'migrate_ozon';
@@ -13,6 +13,9 @@ class shopMigrateOzonSettings
 
     const FEATURE_MODE_AUTO = 'auto';
     const FEATURE_MODE_SKIP = 'skip';
+    const TAG_MODE_PRODUCT_ONLY = 'product_only';
+    const TAG_MODE_PRODUCT_AND_SKU = 'product_and_sku';
+    const TAG_MODE_SKU_ONLY = 'sku_only';
 
     /**
      * @var waAppSettingsModel
@@ -52,7 +55,7 @@ class shopMigrateOzonSettings
 
     public function getOperationMode()
     {
-        $mode = self::MODE_AUTO;
+        $mode = (string) $this->get('mode', self::MODE_AUTO);
         return in_array($mode, array(self::MODE_AUTO, self::MODE_MANUAL), true) ? $mode : self::MODE_AUTO;
     }
 
@@ -79,7 +82,7 @@ class shopMigrateOzonSettings
 
     public function getFeatureImportMode()
     {
-        $mode = self::FEATURE_MODE_AUTO;
+        $mode = (string) $this->get('feature_mode', self::FEATURE_MODE_AUTO);
         return in_array($mode, array(self::FEATURE_MODE_AUTO, self::FEATURE_MODE_SKIP), true) ? $mode : self::FEATURE_MODE_AUTO;
     }
 
@@ -97,6 +100,36 @@ class shopMigrateOzonSettings
     public function setForceTextFeatures($force_text)
     {
         $this->set('feature_force_text', $force_text ? 1 : 0);
+    }
+
+    public function getTagImportMode()
+    {
+        $mode = (string) $this->get('tag_mode', self::TAG_MODE_PRODUCT_ONLY);
+        $allowed = array(
+            self::TAG_MODE_PRODUCT_ONLY,
+            self::TAG_MODE_PRODUCT_AND_SKU,
+            self::TAG_MODE_SKU_ONLY,
+        );
+        return in_array($mode, $allowed, true) ? $mode : self::TAG_MODE_PRODUCT_ONLY;
+    }
+
+    public function setTagImportMode($mode)
+    {
+        $allowed = array(
+            self::TAG_MODE_PRODUCT_ONLY,
+            self::TAG_MODE_PRODUCT_AND_SKU,
+            self::TAG_MODE_SKU_ONLY,
+        );
+        $mode = in_array($mode, $allowed, true) ? $mode : self::TAG_MODE_PRODUCT_ONLY;
+        $this->set('tag_mode', $mode);
+    }
+
+    public function getEffectiveTagImportMode()
+    {
+        if ($this->getOperationMode() === self::MODE_AUTO) {
+            return self::TAG_MODE_PRODUCT_ONLY;
+        }
+        return $this->getTagImportMode();
     }
 
     private function get($name, $default = null)

@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonFeatureMapModel extends shopMigrateOzonModel
+class shopMigratePluginOzonFeatureMapModel extends shopMigratePluginOzonModel
 {
     protected $table = 'shop_migrate_ozon_feature_map';
 

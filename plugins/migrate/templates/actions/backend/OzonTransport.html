@@ -20,6 +20,9 @@
     .s-ozon-preview-lists {display:flex;gap:32px;margin-bottom:20px;}
     .s-ozon-preview-lists__col ul {margin:8px 0 0 16px;padding:0;list-style:disc;}
     .s-ozon-preview-lists__col li {margin-bottom:4px;}
+    .s-ozon-preview-more {margin-top:8px;}
+    .s-ozon-preview-more a {font-size:13px;text-decoration:none;}
+    .s-ozon-preview-more a:hover {text-decoration:underline;}
     .s-ozon-empty {margin:0 0 20px;}
     .s-ozon-actions {display:flex;align-items:center;gap:20px;margin-top:10px;}
     .s-ozon-layout.is-loading::after {content:'';position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,0.7);z-index:10;}
@@ -29,6 +32,10 @@
     .switch-with-text {display:flex;align-items:center;gap:12px;}
     .switch-with-text label {cursor:pointer;font-size:14px;color:var(--text-color-weak);}
     .s-ozon-feature-controls {display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+    .s-ozon-radio-list {display:flex;flex-direction:column;gap:10px;}
+    .s-ozon-radio-item {display:flex;align-items:flex-start;gap:8px;color:var(--text-color);}
+    .s-ozon-radio-item input[type="radio"] {margin-top:3px;flex:0 0 auto;}
+    .s-ozon-radio-note {display:block;color:var(--text-color-weak);font-size:13px;line-height:1.35;margin-top:1px;}
     .s-ozon-col-icon {display:inline-flex;align-items:center;gap:6px;color:var(--text-color-strong);}
     .s-ozon-col-icon img {width:16px;height:16px;border-radius:3px;}
     .s-ozon-success-message {font-weight:600;color:var(--success-color,#3c9a3c);display:inline-block;margin-top:6px;}
@@ -43,6 +50,76 @@
     .s-ozon-clean-table th,.s-ozon-clean-table td {padding:8px 10px;text-align:left;}
     .s-ozon-clean-table tbody tr:nth-child(odd) {background:var(--layer-surface-hover);}
     #js-ozon-clean-dialog .dialog-body {max-width:640px;min-width:60%;}
+    #js-ozon-import-dialog .dialog-body {max-width:620px;min-width:460px;}
+    #js-ozon-import-dialog .dialog-content {padding-top:8px;overflow-x:hidden;min-height:230px;}
+    #js-ozon-import-dialog .js-ozon-import-dialog-footer {display:flex;align-items:center;min-height:42px;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s ease;}
+    #js-ozon-import-dialog.is-complete .js-ozon-import-dialog-footer {visibility:visible;opacity:1;pointer-events:auto;}
+    #js-ozon-import-dialog .js-ozon-import-premium {position:relative;overflow:hidden;}
+    #js-ozon-import-dialog .js-ozon-import-premium .stars-animation {min-width:0;max-width:100%;}
+    .s-ozon-import-flow {display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:nowrap;margin:2px 0 12px;position:relative;min-height:104px;}
+    .s-ozon-import-flow__icon {width:104px;height:104px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;box-shadow:none;position:relative;transition:transform 1.25s cubic-bezier(0.22,0.61,0.36,1);will-change:transform;}
+    .s-ozon-import-flow__icon--ozon {z-index:1;}
+    .s-ozon-import-flow__icon--shop {z-index:2;}
+    .s-ozon-import-flow__icon img {display:block;width:auto;height:auto;max-width:96px;max-height:96px;}
+    .s-ozon-import-flow__icon--ozon img {max-width:90px;max-height:90px;border-radius:24px;animation:s-ozon-import-icon-pulse-ozon 3.5s ease-in-out infinite;}
+    .s-ozon-import-flow__icon--shop img {animation:s-ozon-import-icon-pulse-shop 3.5s ease-in-out infinite;}
+    .s-ozon-import-flow__arrows {display:flex;align-items:center;gap:8px;color:var(--text-color-weak);}
+    .s-ozon-import-flow__chev {display:inline-flex;align-items:center;justify-content:center;line-height:1;opacity:1;transition:opacity .6s ease;}
+    .s-ozon-import-flow.is-finishing .s-ozon-import-flow__chev--1 {opacity:0;transition-delay:0s;}
+    .s-ozon-import-flow.is-finishing .s-ozon-import-flow__chev--2 {opacity:0;transition-delay:.2s;}
+    .s-ozon-import-flow.is-finishing .s-ozon-import-flow__chev--3 {opacity:0;transition-delay:.4s;}
+    .s-ozon-import-flow.is-finishing .s-ozon-import-flow__icon img {animation:none !important;}
+    .s-ozon-import-flow.is-ozon-moving .s-ozon-import-flow__icon--ozon {transform:translateX(var(--ozon-shift-x, 0px));}
+    .s-ozon-import-flow.is-shop-moving .s-ozon-import-flow__icon--shop {transform:translateX(var(--shop-shift-x, 0px));}
+    .s-ozon-import-flow__chev svg{
+      width:16px !important;
+      height:16px !important;
+      display:block !important;
+      transform:rotate(-90deg);
+      transition:transform .2s !important;
+      animation-duration:3.5s;
+      animation-timing-function:linear;
+      animation-iteration-count:infinite;
+    }
+    .s-ozon-import-flow__chev--1 svg {animation-name:s-ozon-import-chev-spin-1;}
+    .s-ozon-import-flow__chev--2 svg {animation-name:s-ozon-import-chev-spin-2;}
+    .s-ozon-import-flow__chev--3 svg {animation-name:s-ozon-import-chev-spin-3;}
+    .s-ozon-import-flow__chev svg path {fill:currentColor;}
+    .s-ozon-import-dialog__status {margin:0;text-align:center;color:var(--text-color);}
+    @keyframes s-ozon-import-icon-pulse-ozon {
+        0%, 100% {transform:scale(1);}
+        3% {transform:scale(1.06);}
+        6% {transform:scale(0.98);}
+        10% {transform:scale(1);}
+    }
+    @keyframes s-ozon-import-icon-pulse-shop {
+        0%, 32.857%, 100% {transform:scale(1);}
+        36% {transform:scale(1.06);}
+        39% {transform:scale(0.98);}
+        42.857% {transform:scale(1);}
+    }
+    @keyframes s-ozon-import-chev-spin-1 {
+        0%, 10% {transform:rotate(-90deg);}
+        15.714% {transform:rotate(270deg);}
+        100% {transform:rotate(270deg);}
+    }
+    @keyframes s-ozon-import-chev-spin-2 {
+        0%, 18.571% {transform:rotate(-90deg);}
+        24.285% {transform:rotate(270deg);}
+        100% {transform:rotate(270deg);}
+    }
+    @keyframes s-ozon-import-chev-spin-3 {
+        0%, 27.142% {transform:rotate(-90deg);}
+        32.857% {transform:rotate(270deg);}
+        100% {transform:rotate(270deg);}
+    }
+    @media (max-width: 760px) {
+        #js-ozon-import-dialog .dialog-body {min-width:0;width:calc(100vw - 36px);}
+        .s-ozon-import-flow {gap:12px;}
+        .s-ozon-import-flow__icon {width:104px;height:104px;}
+        .s-ozon-import-flow__icon img {max-width:96px;max-height:96px;}
+        .s-ozon-import-flow__icon--ozon img {max-width:90px;max-height:90px;}
+    }
 </style>
 {/literal}
 <div class="s-ozon-layout" id="js-ozon-root"
@@ -54,6 +131,7 @@
      data-state="{if $ozon_snapshot}import{else}load{/if}"
      data-load-label="[`Load data`]"
      data-import-label="[`Import data`]"
+     data-import-progress="[`Import in progress. Do not close this page until it is complete.`]"
      data-import-success="[`Import completed successfully`]">
 
     <div class="s-ozon-card">
@@ -104,7 +182,7 @@
             <div class="s-ozon-card__header">
                 <h3>[`Ozon snapshot`]</h3>
                 <p class="hint">
-                    [`Snapshot collected at`] {$ozon_snapshot.updated_at|wa_date}
+                    [`Snapshot collected at`] {$ozon_snapshot.updated_at|wa_datetime}
                 </p>
             </div>
 
@@ -128,20 +206,36 @@
                     <div class="s-ozon-preview-lists__col">
                         <strong>[`Top 5 of your categories`]</strong>
                         <ul>
-                            {foreach $ozon_mapping.types|@array_slice:0:5 as $row}
-                                <li>{$row.path|escape} <span class="gray">({$row.count})</span></li>
+                            {foreach $ozon_mapping.types as $index => $row}
+                                <li{if $index >= 5} class="js-ozon-preview-type-extra" style="display:none;"{/if}>{$row.path|escape} <span class="gray">({$row.count})</span></li>
                             {/foreach}
                         </ul>
+                        {if $ozon_mapping.types|@count >= 6}
+                            <div class="s-ozon-preview-more">
+                                <a href="#"
+                                   class="js-ozon-preview-types-toggle"
+                                   data-label-show="[`Show more`]"
+                                   data-label-hide="[`Hide extra`]">[`Show more`]</a>
+                            </div>
+                        {/if}
                     </div>
                 {/if}
                 {if !empty($ozon_mapping.warehouses)}
                     <div class="s-ozon-preview-lists__col">
                         <strong>[`Detected warehouses`]</strong>
                         <ul>
-                            {foreach $ozon_mapping.warehouses|@array_slice:0:5 as $row}
-                                <li>{$row.name|escape}</li>
+                            {foreach $ozon_mapping.warehouses as $index => $row}
+                                <li{if $index >= 5} class="js-ozon-preview-warehouse-extra" style="display:none;"{/if}>{$row.name|escape}</li>
                             {/foreach}
                         </ul>
+                        {if $ozon_mapping.warehouses|@count >= 6}
+                            <div class="s-ozon-preview-more">
+                                <a href="#"
+                                   class="js-ozon-preview-warehouses-toggle"
+                                   data-label-show="[`Show more`]"
+                                   data-label-hide="[`Hide`]">[`Show more`]</a>
+                            </div>
+                        {/if}
                     </div>
                 {/if}
             </div>
@@ -356,6 +450,64 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="s-ozon-table-block">
+                <h4>
+                    <span class="icon">
+                        <svg class="svg-inline--fa fa-tag fa-w-16" aria-hidden="true" focusable="false" data-prefix="fas" data-icon="tag" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                            <path fill="currentColor" d="M497.941 225.941l-208-208A48 48 0 0 0 256 0H48C21.49 0 0 21.49 0 48v208a48 48 0 0 0 14.059 33.941l208 208c18.746 18.746 49.137 18.746 67.882 0l208-208c18.746-18.745 18.746-49.136 0-67.882zM112 160a48 48 0 1 1 0-96 48 48 0 0 1 0 96z"></path>
+                        </svg>
+                    </span>
+                    Теги
+                </h4>
+                <div class="fields form">
+                    <div class="field">
+                        <div class="name">Теги</div>
+                        <div class="value">
+                            <div class="s-ozon-radio-list">
+                                <label class="s-ozon-radio-item">
+                                    <input type="radio"
+                                           class="js-ozon-tag-mode"
+                                           name="ozon_tag_mode"
+                                           value="product_only"
+                                           data-url="?plugin=migrate&action=ozonTagMode"
+                                           {if $ozon_settings.tag_mode == 'product_only'}checked{/if}>
+                                    <span>
+                                        [`Combine #hashtags of product codes and import them into the product`]
+                                        <span class="s-ozon-radio-note hint">[`For products with multiple variants, all tags will be saved in the product properties.`]</span>
+                                    </span>
+                                </label>
+                                <label class="s-ozon-radio-item">
+                                    <input type="radio"
+                                           class="js-ozon-tag-mode"
+                                           name="ozon_tag_mode"
+                                           value="product_and_sku"
+                                           data-url="?plugin=migrate&action=ozonTagMode"
+                                           {if $ozon_settings.tag_mode == 'product_and_sku'}checked{/if}>
+                                    <span>
+                                        [`Save tags both in the product properties and in each product variant`]
+                                        <span class="s-ozon-radio-note hint">[`The tags of multiple product variants will be saved both as product tags and as variants’ feature values.`]</span>
+                                    </span>
+                                </label>
+                                <label class="s-ozon-radio-item">
+                                    <input type="radio"
+                                           class="js-ozon-tag-mode"
+                                           name="ozon_tag_mode"
+                                           value="sku_only"
+                                           data-url="?plugin=migrate&action=ozonTagMode"
+                                           {if $ozon_settings.tag_mode == 'sku_only'}checked{/if}>
+                                    <span>
+                                        [`Save tags as product variants’ feature values`]
+                                        <span class="s-ozon-radio-note hint">[`The tags of multiple product variants will be saved as variants’ feature values and not as product tags.`]</span>
+                                    </span>
+                                </label>
+                            </div>
+                            <p class="hint">[`In the auto mode, the first option is used.`]</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
                 {if $ozon_debug}
                     <div class="s-ozon-debug-actions">
                         <button type="button" class="button red js-ozon-clean-open">[`Debug: purge tables`]</button>
@@ -364,6 +516,72 @@
             </div>
         </div>
     {/if}
+
+    <script type="text/template" id="js-ozon-import-premium-template">
+        <div class="s-premium-block custom-pb-20 js-ozon-import-premium" style="box-shadow: none; display: none;">
+            <div class="stars-animation-container">
+                <div class="s-premium-shop"></div>
+                <div class="stars-animation">
+                    <div class="stars-animation--left">
+                        <span style="--star-i:13;top:33px;left:17px;"></span>
+                        <span style="--star-i:18;top:15px;left:37px;"></span>
+                        <span style="--star-i:11;top:47px;left:10px;"></span>
+                        <span style="--star-i:11;top:22px;left:39px;"></span>
+                        <span style="--star-i:21;top:34px;left:13px;"></span>
+                        <span style="--star-i:23;top:16px;left:43px;"></span>
+                        <span style="--star-i:12;top:12px;left:29px;"></span>
+                        <span style="--star-i:24;top:15px;left:34px;"></span>
+                        <span style="--star-i:13;top:44px;left:42px;"></span>
+                        <span style="--star-i:15;top:22px;left:41px;"></span>
+                        <span style="--star-i:10;top:13px;left:45px;"></span>
+                        <span style="--star-i:27;top:37px;left:20px;"></span>
+                        <span style="--star-i:15;top:22px;left:35px;"></span>
+                        <span style="--star-i:28;top:21px;left:15px;"></span>
+                        <span style="--star-i:20;top:31px;left:18px;"></span>
+                        <span style="--star-i:24;top:49px;left:12px;"></span>
+                        <span style="--star-i:14;top:47px;left:11px;"></span>
+                        <span style="--star-i:14;top:42px;left:49px;"></span>
+                        <span style="--star-i:29;top:46px;left:35px;"></span>
+                        <span style="--star-i:23;top:47px;left:12px;"></span>
+                        <span style="--star-i:20;top:40px;left:11px;"></span>
+                        <span style="--star-i:23;top:37px;left:37px;"></span>
+                        <span style="--star-i:14;top:25px;left:21px;"></span>
+                        <span style="--star-i:19;top:36px;left:33px;"></span>
+                        <span style="--star-i:26;top:18px;left:45px;"></span>
+                        <span style="--star-i:26;top:36px;left:21px;"></span>
+                    </div>
+                    <div class="stars-animation--right">
+                        <span style="--star-i:12;top:31px;left:28px;"></span>
+                        <span style="--star-i:27;top:12px;left:39px;"></span>
+                        <span style="--star-i:14;top:26px;left:15px;"></span>
+                        <span style="--star-i:26;top:18px;left:36px;"></span>
+                        <span style="--star-i:22;top:37px;left:40px;"></span>
+                        <span style="--star-i:25;top:49px;left:21px;"></span>
+                        <span style="--star-i:30;top:41px;left:33px;"></span>
+                        <span style="--star-i:24;top:20px;left:30px;"></span>
+                        <span style="--star-i:14;top:38px;left:42px;"></span>
+                        <span style="--star-i:23;top:16px;left:46px;"></span>
+                        <span style="--star-i:13;top:13px;left:23px;"></span>
+                        <span style="--star-i:12;top:23px;left:49px;"></span>
+                        <span style="--star-i:30;top:25px;left:23px;"></span>
+                        <span style="--star-i:18;top:14px;left:22px;"></span>
+                        <span style="--star-i:26;top:28px;left:39px;"></span>
+                        <span style="--star-i:12;top:48px;left:16px;"></span>
+                        <span style="--star-i:12;top:22px;left:27px;"></span>
+                        <span style="--star-i:27;top:48px;left:23px;"></span>
+                        <span style="--star-i:18;top:39px;left:46px;"></span>
+                        <span style="--star-i:27;top:16px;left:17px;"></span>
+                        <span style="--star-i:14;top:38px;left:10px;"></span>
+                        <span style="--star-i:12;top:31px;left:42px;"></span>
+                        <span style="--star-i:23;top:49px;left:10px;"></span>
+                        <span style="--star-i:11;top:48px;left:13px;"></span>
+                        <span style="--star-i:26;top:24px;left:34px;"></span>
+                        <span style="--star-i:17;top:49px;left:10px;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </script>
 
     {if $ozon_debug}
         <script type="text/template" id="js-ozon-clean-dialog-template">
@@ -379,7 +597,7 @@
                         <table class="s-ozon-clean-table">
                             <thead>
                                 <tr>
-                                    <th></th>
+                                    <th><input type="checkbox" class="js-ozon-clean-check-all" aria-label="Select all tables"></th>
                                     <th>[`Table`]</th>
                                     <th>[`Description`]</th>
                                 </tr>
@@ -413,3 +631,4 @@
     }
 })(jQuery);
 </script>
+

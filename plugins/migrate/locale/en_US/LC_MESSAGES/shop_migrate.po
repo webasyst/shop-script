@@ -641,3 +641,19 @@ msgstr "All attributes will be saved as text features without detection."
 
 msgid "Auto mode tooltip"
 msgstr "We recommend using this mode!"
+
+msgid "Import completed successfully"
+msgstr "Import completed successfully"
+
+msgid "Import in progress. Do not close this page until it is complete."
+msgstr "Import in progress. Do not close this page until it is complete."
+
+msgid "Show more"
+msgstr "Show more"
+
+msgid "Hide extra"
+msgstr "Hide extra"
+
+msgid "Hide"
+msgstr "Hide"
+

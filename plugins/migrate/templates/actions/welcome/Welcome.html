@@ -80,7 +80,7 @@
         {if !empty($t.group) && $t.group == 'YML'}
             {$_additional_group[$id] = $t}
         {/if}
-        {if !empty($t.group) && $t.group == '3rdParty'}
+        {if !empty($t.group) && $t.group == 'CMS'}
             {if in_array($id, $_third_party_allowed)}
                 {if $id == 'opencart'}{$t.title = '[`OpenCart 1.5.x`]'}{/if}
                 {$_third_party_group[$id] = $t}

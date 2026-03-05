@@ -122,7 +122,7 @@ class shopMigratePluginBackendRunController extends waLongActionController
 
             if ($class) {
                 $params = array(
-                    'type' => preg_replace('@^shopMigrate(\w+)Transport$@', '$1', $class),
+                    'type' => preg_replace('@^shopMigrate(?:Plugin)?(\w+)Transport$@', '$1', $class),
                 );
                 $this->logAction('catalog_import', $params);
             }

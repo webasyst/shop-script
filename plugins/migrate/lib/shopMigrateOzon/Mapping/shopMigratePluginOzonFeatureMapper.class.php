@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonFeatureMapper
+class shopMigratePluginOzonFeatureMapper
 {
     private $repository;
     private $settings;
@@ -9,7 +9,7 @@ class shopMigrateOzonFeatureMapper
     private $map_model;
     private $map = array();
 
-    public function __construct(shopMigrateOzonSnapshotRepository $repository, shopMigrateOzonSettings $settings)
+    public function __construct(shopMigratePluginOzonSnapshotRepository $repository, shopMigratePluginOzonSettings $settings)
     {
         $this->repository = $repository;
         $this->settings = $settings;
@@ -36,35 +36,35 @@ class shopMigrateOzonFeatureMapper
         }
 
         $mode = $this->settings->getOperationMode();
-        if ($mode === shopMigrateOzonSettings::MODE_MANUAL && isset($this->map[$attribute_id])) {
+        if ($mode === shopMigratePluginOzonSettings::MODE_MANUAL && isset($this->map[$attribute_id])) {
             $option = $this->map[$attribute_id];
             if (isset($option['action']) && $option['action'] === 'skip') {
                 return null;
             }
             if (!empty($option['shop_feature_id'])) {
                 $this->bindFeatureToType($option['shop_feature_id'], $shop_type_id);
-                return $this->feature_model->getById((int) $option['shop_feature_id']);
+                return $this->normalizeSelectableFeatureType($this->feature_model->getById((int) $option['shop_feature_id']));
             }
         }
 
-        if (!empty($this->map[$attribute_id]['shop_feature_id']) && $this->map[$attribute_id]['mode'] === shopMigrateOzonSettings::MODE_AUTO) {
+        if (!empty($this->map[$attribute_id]['shop_feature_id']) && $this->map[$attribute_id]['mode'] === shopMigratePluginOzonSettings::MODE_AUTO) {
             $this->bindFeatureToType($this->map[$attribute_id]['shop_feature_id'], $shop_type_id);
-            return $this->feature_model->getById((int) $this->map[$attribute_id]['shop_feature_id']);
+            return $this->normalizeSelectableFeatureType($this->feature_model->getById((int) $this->map[$attribute_id]['shop_feature_id']));
         }
 
         $feature = $this->createFeature($attribute, $shop_type_id);
         $this->map_model->saveAuto($snapshot_id, $attribute_id, array(
-            'mode'            => shopMigrateOzonSettings::MODE_AUTO,
+            'mode'            => shopMigratePluginOzonSettings::MODE_AUTO,
             'shop_feature_id' => $feature['id'],
             'shop_feature_code' => $feature['code'],
             'action'          => 'auto',
         ));
         $this->map[$attribute_id] = array(
             'shop_feature_id' => $feature['id'],
-            'mode'            => shopMigrateOzonSettings::MODE_AUTO,
+            'mode'            => shopMigratePluginOzonSettings::MODE_AUTO,
         );
 
-        return $feature;
+        return $this->normalizeSelectableFeatureType($feature);
     }
 
     private function resolveBuiltinFeature(array $attribute, $shop_type_id)
@@ -94,6 +94,10 @@ class shopMigrateOzonFeatureMapper
     {
         $data = $this->guessFeatureData($attribute);
         list($selectable, $multiple) = $this->resolveFeatureFlags($data['type'], $attribute);
+        // In Shop-Script selectable text lists are stored as varchar, not text.
+        if (!empty($selectable) && ifset($data['type']) === 'text') {
+            $data['type'] = 'varchar';
+        }
         $normalized_name = $this->normalizeAttributeText(ifset($attribute['name'], ''));
         if ($this->isForcedSingleSelectableText($normalized_name)) {
             $selectable = 1;
@@ -116,14 +120,14 @@ class shopMigrateOzonFeatureMapper
 
         if ($feature) {
             $this->bindFeatureToType($feature['id'], $shop_type_id);
-            return $feature;
+            return $this->normalizeSelectableFeatureType($feature);
         }
 
         $id = $this->feature_model->insert($data);
         $feature = $this->feature_model->getById($id);
         $this->bindFeatureToType($feature['id'], $shop_type_id);
 
-        return $feature;
+        return $this->normalizeSelectableFeatureType($feature);
     }
 
     private function resolveFeatureFlags($type, array $attribute)
@@ -167,8 +171,14 @@ class shopMigrateOzonFeatureMapper
         $unit = isset($attribute['unit']) ? trim($attribute['unit']) : '';
         $type = 'text';
 
-        if ($this->isForcedTextAttribute($normalized_name)) {
+        if ($this->isForcedTextAttribute($normalized_name) || $this->attributeIsHumidityPercent($normalized_name)) {
             $type = 'text';
+        } elseif ($this->attributeIsForcedNumericWithoutUnit($normalized_name)) {
+            $type = 'double';
+        } elseif ($this->attributeIsShelfLifeInDays($normalized_name)) {
+            $type = 'dimension.time';
+        } elseif ($this->attributeIsVolumeLiters($normalized_name, $attribute)) {
+            $type = 'dimension.volume';
         } elseif ($this->attributeIsAccumulatorCapacity($normalized_name)) {
             $type = 'dimension.electric_charge';
         } elseif ($this->attributeContainsTimeKeyword($normalized_name)) {
@@ -219,7 +229,9 @@ class shopMigrateOzonFeatureMapper
 
     private function guessUnitType($unit, $name)
     {
-        $unit = mb_strtolower($unit);
+        $unit = $this->normalizeAttributeText($unit);
+        $name = $this->normalizeAttributeText($name);
+        list(, $candidates) = $this->extractUnitCandidates($name, $unit !== '' ? array($unit) : array());
         $mapping = array(
             array('units' => array('мм', 'mm', 'см', 'cm', 'м', 'm', 'inch', 'дюйм'), 'type' => 'dimension.length'),
             array('units' => array('кг', 'kg', 'г', 'gr', 'гр', 'lb'), 'type' => 'dimension.weight'),
@@ -233,8 +245,24 @@ class shopMigrateOzonFeatureMapper
             array('units' => array('час', 'мин', 'сек', 'h', 'min', 's'), 'type' => 'dimension.time'),
         );
         foreach ($mapping as $item) {
+            foreach ($candidates as $candidate) {
+                $candidate_token = $this->normalizeUnitToken($candidate);
+                if ($candidate_token === '') {
+                    continue;
+                }
+                foreach ($item['units'] as $known) {
+                    if ($candidate_token === $this->normalizeUnitToken($known)) {
+                        return $item['type'];
+                    }
+                }
+            }
             foreach ($item['units'] as $known) {
-                if ($known !== '' && (strpos($unit, $known) !== false || strpos(mb_strtolower($name), $known) !== false)) {
+                if ($known === '') {
+                    continue;
+                }
+                if (($unit !== '' && $this->textContainsVariant($unit, array($known)))
+                    || $this->textContainsVariant($name, array($known))
+                ) {
                     return $item['type'];
                 }
             }
@@ -271,6 +299,9 @@ class shopMigrateOzonFeatureMapper
             return true;
         }
         if (strpos($name, 'для шаблона наименования') !== false) {
+            return true;
+        }
+        if ($name === 'объединить в похожие товары' || strpos($name, 'объединить в похожие товары') !== false) {
             return true;
         }
         if ($name === 'название' || $name === 'код продавца') {
@@ -312,6 +343,10 @@ class shopMigrateOzonFeatureMapper
 
     private function detectDefaultUnit(array $attribute, $feature_type)
     {
+        $normalized_name = $this->normalizeAttributeText(ifset($attribute['name'], ''));
+        if ($feature_type === 'dimension.time' && $this->attributeIsShelfLifeInDays($normalized_name)) {
+            return 'day';
+        }
         return $this->detectUnitFromAttribute($attribute, $feature_type);
     }
 
@@ -407,7 +442,7 @@ class shopMigrateOzonFeatureMapper
                     'sec'  => array('с', 'сек', 'секунд', 'sec'),
                     'min'  => array('мин', 'minute', 'минут'),
                     'hr'   => array('ч', 'час', 'часов', 'hr', 'h'),
-                    'day'  => array('д', 'дн', 'день', 'сут', 'day'),
+                    'day'  => array('д', 'дн', 'день', 'дня', 'дней', 'днях', 'сут', 'сутки', 'суток', 'day'),
                     'week' => array('нед', 'недел', 'week'),
                     'month'=> array('мес', 'месяц', 'month'),
                     'year' => array('г', 'г.', 'год', 'лет', 'year'),
@@ -642,6 +677,55 @@ class shopMigrateOzonFeatureMapper
             && mb_strpos($normalized_name, 'аккумулятор') !== false;
     }
 
+    private function attributeIsVolumeLiters($normalized_name, array $attribute)
+    {
+        if ($normalized_name === '') {
+            return false;
+        }
+
+        $raw_unit = $this->normalizeAttributeText($this->extractRawUnit($attribute));
+        if (in_array($raw_unit, array('л', 'l', 'литр', 'liter', 'мл', 'ml', 'миллилитр'), true)
+            && (mb_strpos($normalized_name, 'объем') !== false || mb_strpos($normalized_name, 'volume') !== false)
+        ) {
+            return true;
+        }
+
+        if (preg_match('/об[ъь]?ем/u', $normalized_name)
+            && preg_match('/(?:,\s*(?:л|мл)$|\((?:л|мл)\)$|\b(?:л|мл)$)/u', $normalized_name)
+        ) {
+            return true;
+        }
+
+        if (mb_strpos($normalized_name, 'volume') !== false
+            && preg_match('/(?:,\s*(?:l|ml)$|\((?:l|ml)\)$|\b(?:l|ml)$)/u', $normalized_name)
+        ) {
+            return true;
+        }
+
+        return false;
+    }
+
+    private function attributeIsHumidityPercent($normalized_name)
+    {
+        return $normalized_name !== ''
+            && mb_strpos($normalized_name, 'влажност') !== false
+            && mb_strpos($normalized_name, '%') !== false;
+    }
+
+    private function attributeIsShelfLifeInDays($normalized_name)
+    {
+        return $normalized_name !== ''
+            && mb_strpos($normalized_name, 'срок годности') !== false
+            && $this->containsAny($normalized_name, array('дн', 'день', 'дня', 'дней', 'днях'));
+    }
+
+    private function attributeIsForcedNumericWithoutUnit($normalized_name)
+    {
+        return $normalized_name !== ''
+            && mb_strpos($normalized_name, 'количество в упаковке') !== false
+            && mb_strpos($normalized_name, 'шт') !== false;
+    }
+
     private function isForcedTextAttribute($normalized_name)
     {
         static $forced = array(
@@ -676,6 +760,18 @@ class shopMigrateOzonFeatureMapper
         ));
     }
 
+    private function normalizeSelectableFeatureType($feature)
+    {
+        if (!$feature || !is_array($feature)) {
+            return $feature;
+        }
+        if (!empty($feature['selectable']) && ifset($feature['type']) === 'text' && !empty($feature['id'])) {
+            $this->feature_model->updateById((int) $feature['id'], array('type' => 'varchar'));
+            $feature['type'] = 'varchar';
+        }
+        return $feature;
+    }
+
     public function updateFeatureFlags($feature_id, array $data)
     {
         $allowed = array('selectable', 'multiple', 'status');
@@ -683,6 +779,8 @@ class shopMigrateOzonFeatureMapper
         foreach ($data as $key => $value) {
             if (in_array($key, $allowed, true)) {
                 $update[$key] = (int) $value;
+            } elseif ($key === 'type' && is_string($value) && $value !== '') {
+                $update[$key] = $value;
             }
         }
         if ($update) {

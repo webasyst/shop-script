@@ -44,6 +44,12 @@
             this.$modeSwitchLabel = null;
             this.$modeSwitchTooltip = null;
             this.$mainButtonWrapper = null;
+            this.importDialog = null;
+            this.$importDialog = null;
+            this.importDialogFinishing = false;
+            this.importDialogConvergeTimer = null;
+            this.importDialogShopMoveTimer = null;
+            this.importDialogRevealTimer = null;
             this.initModeSwitch();
             this.initFeatureSwitch();
             this.bind();
@@ -69,13 +75,24 @@
                     client_id: $.trim(self.$root.find('[name="ozon_client_id"]').val()),
                     api_key: $.trim(self.$root.find('[name="ozon_api_key"]').val())
                 };
-                self.post(self.$root.data('test-url'), data, function () {
-                    self.status('js-ozon-status', '<i class="icon16 yes text-green"></i> '+$_('Connection successful'), true);
+                self.post(self.$root.data('test-url'), data, function (response) {
+                    var message = response && response.message ? response.message : $_('Connection successful');
+                    self.status('js-ozon-status', '<i class="icon16 yes text-green"></i> '+message, true);
                 });
             });
 
             this.$root.on('change', '.js-ozon-feature-mode', function () {
                 self.updateFeatureMode();
+            });
+
+            this.$root.on('change', '.js-ozon-tag-mode', function () {
+                var $input = $(this);
+                if (!$input.is(':checked')) {
+                    return;
+                }
+                self.post($input.data('url'), {
+                    mode: $input.val()
+                });
             });
 
             this.$root.on('change', '.js-ozon-type-map', function () {
@@ -110,6 +127,50 @@
                 e.preventDefault();
                 self.openCleanupDialog();
             });
+
+            this.$root.on('click', '.js-ozon-preview-types-toggle', function (e) {
+                e.preventDefault();
+                var $link = $(this);
+                var $container = $link.closest('.s-ozon-preview-lists__col');
+                var $items = $container.find('.js-ozon-preview-type-extra');
+                var showLabel = $.trim(String($link.data('label-show') || 'Show more'));
+                var hideLabel = $.trim(String($link.data('label-hide') || 'Hide extra'));
+                if (!$items.length) {
+                    return;
+                }
+                var is_expanded = !!$link.data('expanded');
+                if (is_expanded) {
+                    $items.hide();
+                    $link.data('expanded', 0);
+                    $link.text(showLabel);
+                } else {
+                    $items.show();
+                    $link.data('expanded', 1);
+                    $link.text(hideLabel);
+                }
+            });
+
+            this.$root.on('click', '.js-ozon-preview-warehouses-toggle', function (e) {
+                e.preventDefault();
+                var $link = $(this);
+                var $container = $link.closest('.s-ozon-preview-lists__col');
+                var $items = $container.find('.js-ozon-preview-warehouse-extra');
+                var showLabel = $.trim(String($link.data('label-show') || 'Show more'));
+                var hideLabel = $.trim(String($link.data('label-hide') || 'Hide'));
+                if (!$items.length) {
+                    return;
+                }
+                var is_expanded = !!$link.data('expanded');
+                if (is_expanded) {
+                    $items.hide();
+                    $link.data('expanded', 0);
+                    $link.text(showLabel);
+                } else {
+                    $items.show();
+                    $link.data('expanded', 1);
+                    $link.text(hideLabel);
+                }
+            });
         },
 
         updateFeatureMode: function () {
@@ -120,6 +181,7 @@
             if (!$select.length) {
                 return;
             }
+            this.updateFeatureSwitchVisibility($select.val());
             var url = $select.data('url');
             if (!url) {
                 return;
@@ -166,6 +228,7 @@
         initModeSwitch: function () {
             var self = this;
             var $switch = this.$root.find('.js-ozon-mode-switch');
+            var $checkbox = $switch.find('input[type="checkbox"]').first();
             var $modeLabel = $switch.closest('.switch-with-text').find('.js-ozon-mode-switch-label').first();
             var $modeLabelText = $modeLabel.find('.js-ozon-mode-switch-label-text').first();
             var $modeTooltip = $modeLabel.find('.js-ozon-mode-switch-tooltip').first();
@@ -175,16 +238,16 @@
                 $modeTooltip.waTooltip();
             }
             if (!$switch.length || typeof $switch.waSwitch !== 'function') {
-                this.toggleManual(true, true);
-                this.updateModeSwitchTooltip(true);
+                var fallbackActive = !$checkbox.length || $checkbox.is(':checked');
+                this.toggleManual(fallbackActive, true);
+                this.updateModeSwitchTooltip(fallbackActive);
                 return;
             }
-            var $checkbox = $switch.find('input[type="checkbox"]').first();
             var $label = $switch.closest('.switch-with-text').find('label').first();
             $switch.waSwitch({
                 ready: function (wa_switch) {
-                    var active = true;
-                    $checkbox.prop('checked', true);
+                    var active = !$checkbox.length || $checkbox.is(':checked');
+                    $checkbox.prop('checked', active);
                     wa_switch.set(active);
                     wa_switch.$label = $modeLabelText.length ? $modeLabelText : $label;
                     wa_switch.active_text = $label.data('active-text');
@@ -282,6 +345,22 @@
                 this.updateFeatureSwitchLabelVisual(this.featureSwitchActive);
             }
             this.updateFeatureSwitchTooltip(this.featureSwitchActive);
+            this.updateFeatureSwitchVisibility();
+        },
+
+        updateFeatureSwitchVisibility: function (mode) {
+            if (!this.$root || !this.$root.length) {
+                return;
+            }
+            var $switchWrap = this.$root.find('.s-ozon-feature-switch').first();
+            if (!$switchWrap.length) {
+                return;
+            }
+            if (typeof mode === 'undefined') {
+                var $select = this.$root.find('.js-ozon-feature-mode').first();
+                mode = $select.length ? $select.val() : 'auto';
+            }
+            $switchWrap.css('display', mode === 'auto' ? '' : 'none');
         },
 
         toggleManual: function (is_auto, silent) {
@@ -378,6 +457,9 @@
             if (!url) { return; }
             var $btn = $button || this.$mainButton;
             if (!$btn || !$btn.length) { return; }
+            if (state === 'import') {
+                this.openImportDialog();
+            }
             var loading_html = '<i class="icon16 loading"></i>';
             if (state === 'load') {
                 this.toggleMainButtonLoader(true);
@@ -423,7 +505,7 @@
 
         showImportSuccess: function () {
             var $btn = this.$mainButton;
-            var message = this.$root.data('import-success') || 'Импорт успешно завершен';
+            var message = this.$root.data('import-success') || $_('Import completed successfully');
             if ($btn && $btn.length) {
                 this.toggleMainButtonLoader(false);
                 var $wrapper = $btn.parent('.s-ozon-button-wrapper');
@@ -436,6 +518,210 @@
                 this.$mainButton = null;
             }
             this.status('js-ozon-progress', message, true);
+            this.showImportDialogFooter(message);
+        },
+
+        openImportDialog: function () {
+            if (typeof $.waDialog !== 'function') {
+                return;
+            }
+            this.clearImportDialogTimers();
+            this.importDialogFinishing = false;
+            if (this.importDialog) {
+                this.importDialog.close();
+            }
+            var self = this;
+            this.importDialog = $.waDialog({
+                html: this.getImportDialogHtml(),
+                onOpen: function ($dialog, dialog_instance) {
+                    self.$importDialog = $dialog;
+                    self.bindImportDialog($dialog, dialog_instance);
+                },
+                onClose: function () {
+                    self.clearImportDialogTimers();
+                    self.importDialogFinishing = false;
+                    self.$importDialog = null;
+                    self.importDialog = null;
+                }
+            });
+        },
+
+        bindImportDialog: function ($dialog, dialog_instance) {
+            $dialog.on('click', '.js-ozon-import-close, .js-ozon-import-dialog-close', function (e) {
+                e.preventDefault();
+                dialog_instance.close();
+            });
+        },
+
+        showImportDialogFooter: function (message) {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length) {
+                return;
+            }
+            if (message) {
+                $dialog.find('.js-ozon-import-dialog-status').text(message);
+            }
+            if (this.importDialogFinishing) {
+                return;
+            }
+            this.importDialogFinishing = true;
+            this.clearImportDialogTimers();
+
+            var self = this;
+            var $flow = $dialog.find('.s-ozon-import-flow').first();
+            if (!$flow.length) {
+                this.finishImportDialogTransition();
+                return;
+            }
+            $flow.addClass('is-finishing');
+
+            var firstArrowFadeDuration = 600;
+            var ozonMoveDelayAfterFirstArrow = 0;
+            var ozonMoveDuration = 1250;
+            var shopMoveDuration = 1250;
+
+            var ozonMoveStartDelay = firstArrowFadeDuration + ozonMoveDelayAfterFirstArrow;
+            var shopMoveStartDelay = ozonMoveStartDelay + ozonMoveDuration;
+            var revealDelay = shopMoveStartDelay + shopMoveDuration;
+
+            this.importDialogConvergeTimer = setTimeout(function () {
+                self.startImportDialogOzonMove(ozonMoveDuration);
+            }, ozonMoveStartDelay);
+
+            this.importDialogShopMoveTimer = setTimeout(function () {
+                self.startImportDialogShopMove(shopMoveDuration);
+            }, shopMoveStartDelay);
+
+            this.importDialogRevealTimer = setTimeout(function () {
+                self.finishImportDialogTransition();
+            }, revealDelay);
+        },
+
+        clearImportDialogTimers: function () {
+            if (this.importDialogConvergeTimer) {
+                clearTimeout(this.importDialogConvergeTimer);
+                this.importDialogConvergeTimer = null;
+            }
+            if (this.importDialogShopMoveTimer) {
+                clearTimeout(this.importDialogShopMoveTimer);
+                this.importDialogShopMoveTimer = null;
+            }
+            if (this.importDialogRevealTimer) {
+                clearTimeout(this.importDialogRevealTimer);
+                this.importDialogRevealTimer = null;
+            }
+        },
+
+        startImportDialogOzonMove: function (durationMs) {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length || !$.contains(document, $dialog[0])) {
+                return;
+            }
+            var $flow = $dialog.find('.s-ozon-import-flow').first();
+            var $ozon = $flow.find('.s-ozon-import-flow__icon--ozon').first();
+            var $shop = $flow.find('.s-ozon-import-flow__icon--shop').first();
+            if (!$flow.length || !$ozon.length || !$shop.length) {
+                return;
+            }
+            var ozonRect = $ozon[0].getBoundingClientRect();
+            var shopRect = $shop[0].getBoundingClientRect();
+            var ozonShiftX = (shopRect.left + (shopRect.width / 2)) - (ozonRect.left + (ozonRect.width / 2));
+            if (durationMs) {
+                $ozon.css('transition-duration', durationMs + 'ms');
+            }
+            $flow[0].style.setProperty('--ozon-shift-x', ozonShiftX + 'px');
+            $flow.addClass('is-ozon-moving');
+        },
+
+        startImportDialogShopMove: function (durationMs) {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length || !$.contains(document, $dialog[0])) {
+                return;
+            }
+            var $flow = $dialog.find('.s-ozon-import-flow').first();
+            var $ozon = $flow.find('.s-ozon-import-flow__icon--ozon').first();
+            var $shop = $flow.find('.s-ozon-import-flow__icon--shop').first();
+            if (!$flow.length || !$shop.length) {
+                return;
+            }
+            var flowRect = $flow[0].getBoundingClientRect();
+            var shopRect = $shop[0].getBoundingClientRect();
+            var shopLeft = shopRect.left - flowRect.left;
+            var shopTop = shopRect.top - flowRect.top;
+            $shop.css({
+                position: 'absolute',
+                left: shopLeft + 'px',
+                top: shopTop + 'px',
+                width: shopRect.width + 'px',
+                height: shopRect.height + 'px',
+                margin: 0
+            });
+            if ($ozon.length) {
+                $ozon.hide();
+            }
+            var centerX = flowRect.left + (flowRect.width / 2);
+            shopRect = $shop[0].getBoundingClientRect();
+            var shopShiftX = centerX - (shopRect.left + (shopRect.width / 2));
+            if (durationMs) {
+                $shop.css('transition-duration', durationMs + 'ms');
+            }
+            $flow[0].style.setProperty('--shop-shift-x', shopShiftX + 'px');
+            $flow.addClass('is-shop-moving');
+        },
+
+        finishImportDialogTransition: function () {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length || !$.contains(document, $dialog[0])) {
+                return;
+            }
+            $dialog.addClass('is-complete');
+            $dialog.find('.s-ozon-import-flow').hide();
+            $dialog.find('.js-ozon-import-premium').show();
+            $dialog.find('.js-ozon-import-dialog-close').show();
+            $dialog.find('.js-ozon-import-dialog-footer').show();
+        },
+
+        getImportDialogHtml: function () {
+            var premiumHtml = '';
+            var $premiumTemplate = $('#js-ozon-import-premium-template');
+            var progressMessage = (this.$root && this.$root.length) ? this.$root.data('import-progress') : '';
+            if (!progressMessage) {
+                progressMessage = 'Import in progress. Do not close this page until it is complete.';
+            }
+            if ($premiumTemplate.length) {
+                premiumHtml = $premiumTemplate.html();
+            }
+            return [
+                '<div class="dialog" id="js-ozon-import-dialog">',
+                    '<div class="dialog-background"></div>',
+                    '<div class="dialog-body">',
+                        '<a href="#" class="dialog-close js-ozon-import-dialog-close" style="display:none;"><i class="fas fa-times"></i></a>',
+                        '<header class="dialog-header">',
+                            '<h2>Импорт Ozon в Shop-Script</h2>',
+                        '</header>',
+                        '<div class="dialog-content">',
+                            '<div class="s-ozon-import-flow">',
+                                '<div class="s-ozon-import-flow__icon s-ozon-import-flow__icon--ozon">',
+                                    '<img src="/wa-apps/shop/plugins/migrate/img/ozon400x400.png" alt="Ozon">',
+                                '</div>',
+                                '<div class="s-ozon-import-flow__arrows" aria-hidden="true">',
+                                    '<span class="card__chev s-ozon-import-flow__chev s-ozon-import-flow__chev--1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M160 352C147.1 352 135.4 359.8 130.4 371.8C125.4 383.8 128.2 397.5 137.4 406.6L297.4 566.6C309.9 579.1 330.2 579.1 342.7 566.6L502.7 406.6C511.9 397.4 514.6 383.7 509.6 371.7C504.6 359.7 492.9 352 480 352L160 352z"/></svg></span>',
+                                    '<span class="card__chev s-ozon-import-flow__chev s-ozon-import-flow__chev--2"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M160 352C147.1 352 135.4 359.8 130.4 371.8C125.4 383.8 128.2 397.5 137.4 406.6L297.4 566.6C309.9 579.1 330.2 579.1 342.7 566.6L502.7 406.6C511.9 397.4 514.6 383.7 509.6 371.7C504.6 359.7 492.9 352 480 352L160 352z"/></svg></span>',
+                                    '<span class="card__chev s-ozon-import-flow__chev s-ozon-import-flow__chev--3"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M160 352C147.1 352 135.4 359.8 130.4 371.8C125.4 383.8 128.2 397.5 137.4 406.6L297.4 566.6C309.9 579.1 330.2 579.1 342.7 566.6L502.7 406.6C511.9 397.4 514.6 383.7 509.6 371.7C504.6 359.7 492.9 352 480 352L160 352z"/></svg></span>',
+                                '</div>',
+                                '<div class="s-ozon-import-flow__icon s-ozon-import-flow__icon--shop">',
+                                    '<img src="/wa-apps/shop/img/shop96.png" alt="Shop-Script">',
+                                '</div>',
+                            '</div>',
+                            premiumHtml,
+                            '<p class="s-ozon-import-dialog__status js-ozon-import-dialog-status">' + progressMessage + '</p>',
+                        '</div>',
+                        '<footer class="dialog-footer js-ozon-import-dialog-footer">',
+                            '<button class="button green js-ozon-import-close" type="button">Закрыть</button>',
+                        '</footer>',
+                    '</div>',
+                '</div>'
+            ].join('');
         },
 
         openCleanupDialog: function () {
@@ -465,6 +751,10 @@
                 e.preventDefault();
                 dialog_instance.close();
             });
+            $dialog.on('change', '.js-ozon-clean-check-all', function () {
+                var checked = $(this).is(':checked');
+                $dialog.find('input[name="tables[]"]').prop('checked', checked);
+            });
             $dialog.on('click', '.js-ozon-clean-submit', function (e) {
                 e.preventDefault();
                 var tables = [];
@@ -486,7 +776,7 @@
                         var message = 'Выбранные таблицы очищены';
                         self.status('js-ozon-progress', message, true);
                     } else if (response && response.errors) {
-                        alert(response.errors.join(', '));
+                        alert(self.formatErrors(response.errors));
                     } else if (response && response.error) {
                         alert(response.error);
                     }
@@ -508,6 +798,35 @@
             $target.html(message);
         },
 
+        formatErrors: function (errors) {
+            var messages = [];
+
+            function collect(value) {
+                if (value === null || typeof value === 'undefined') {
+                    return;
+                }
+                if ($.isArray(value)) {
+                    $.each(value, function (_, item) {
+                        collect(item);
+                    });
+                    return;
+                }
+                if (typeof value === 'object') {
+                    $.each(value, function (_, item) {
+                        collect(item);
+                    });
+                    return;
+                }
+                var text = $.trim(String(value));
+                if (text) {
+                    messages.push(text);
+                }
+            }
+
+            collect(errors);
+            return messages.join(', ');
+        },
+
         post: function (url, data, onSuccess, options) {
             var self = this;
             if (!url) { return; }
@@ -518,7 +837,7 @@
                 if (response && response.status === 'ok') {
                     if (onSuccess) { onSuccess(response); }
                 } else if (response && response.errors) {
-                    self.status(target, response.errors.join(', '), false);
+                    self.status(target, self.formatErrors(response.errors), false);
                 } else if (response && response.error) {
                     self.status(target, response.error, false);
                 }

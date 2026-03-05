@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonStockMapper
+class shopMigratePluginOzonStockMapper
 {
     private $repository;
     private $settings;
@@ -9,7 +9,7 @@ class shopMigrateOzonStockMapper
     private $map = array();
     private $warehouses = array();
 
-    public function __construct(shopMigrateOzonSnapshotRepository $repository, shopMigrateOzonSettings $settings)
+    public function __construct(shopMigratePluginOzonSnapshotRepository $repository, shopMigratePluginOzonSettings $settings)
     {
         $this->repository = $repository;
         $this->settings = $settings;
@@ -26,7 +26,7 @@ class shopMigrateOzonStockMapper
     public function resolve($snapshot_id, $warehouse_id)
     {
         $mode = $this->settings->getOperationMode();
-        if ($mode === shopMigrateOzonSettings::MODE_MANUAL && isset($this->map[$warehouse_id])) {
+        if ($mode === shopMigratePluginOzonSettings::MODE_MANUAL && isset($this->map[$warehouse_id])) {
             $option = $this->map[$warehouse_id];
             if (isset($option['action']) && $option['action'] === 'skip') {
                 return null;
@@ -36,20 +36,20 @@ class shopMigrateOzonStockMapper
             }
         }
 
-        if (!empty($this->map[$warehouse_id]['shop_stock_id']) && $this->map[$warehouse_id]['mode'] === shopMigrateOzonSettings::MODE_AUTO) {
+        if (!empty($this->map[$warehouse_id]['shop_stock_id']) && $this->map[$warehouse_id]['mode'] === shopMigratePluginOzonSettings::MODE_AUTO) {
             return (int) $this->map[$warehouse_id]['shop_stock_id'];
         }
 
         $stock_id = $this->ensureStockExists($warehouse_id);
         if ($stock_id) {
             $this->map_model->saveAuto($snapshot_id, $warehouse_id, array(
-                'mode'          => shopMigrateOzonSettings::MODE_AUTO,
+                'mode'          => shopMigratePluginOzonSettings::MODE_AUTO,
                 'shop_stock_id' => $stock_id,
                 'action'        => 'auto',
             ));
             $this->map[$warehouse_id] = array(
                 'shop_stock_id' => $stock_id,
-                'mode'          => shopMigrateOzonSettings::MODE_AUTO,
+                'mode'          => shopMigratePluginOzonSettings::MODE_AUTO,
             );
         }
 

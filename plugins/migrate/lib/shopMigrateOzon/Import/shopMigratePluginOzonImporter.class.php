@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonImporter
+class shopMigratePluginOzonImporter
 {
     private $repository;
     private $settings;
@@ -24,12 +24,12 @@ class shopMigrateOzonImporter
     private $product_default_sku = array();
 
     public function __construct(
-        shopMigrateOzonSnapshotRepository $repository,
-        shopMigrateOzonSettings $settings,
-        shopMigrateOzonTypeMapper $type_mapper,
-        shopMigrateOzonCategoryMapper $category_mapper,
-        shopMigrateOzonStockMapper $stock_mapper,
-        shopMigrateOzonFeatureMapper $feature_mapper
+        shopMigratePluginOzonSnapshotRepository $repository,
+        shopMigratePluginOzonSettings $settings,
+        shopMigratePluginOzonTypeMapper $type_mapper,
+        shopMigratePluginOzonCategoryMapper $category_mapper,
+        shopMigratePluginOzonStockMapper $stock_mapper,
+        shopMigratePluginOzonFeatureMapper $feature_mapper
     ) {
         $this->repository = $repository;
         $this->settings = $settings;
@@ -53,6 +53,10 @@ class shopMigrateOzonImporter
 
     public function import($snapshot_id)
     {
+        if (function_exists('set_time_limit')) {
+            @set_time_limit(0);
+        }
+
         $snapshot = $this->repository->getSnapshotsModel()->getByIdSafe($snapshot_id);
         if (!$snapshot || $snapshot['status'] !== 'ready') {
             throw new waException('Snapshot is not ready for import');
@@ -86,7 +90,7 @@ class shopMigrateOzonImporter
                     $result['updated']++;
                 }
             } catch (Exception $e) {
-                waLog::log('[OzonImporter] '.$e->getMessage(), shopMigrateOzonLogger::LOG_FILE);
+                waLog::log('[OzonImporter] '.$e->getMessage(), shopMigratePluginOzonLogger::LOG_FILE);
                 $result['skipped']++;
             }
         }
@@ -103,7 +107,7 @@ class shopMigrateOzonImporter
                     $result['updated']++;
                 }
             } catch (Exception $e) {
-                waLog::log('[OzonImporter] '.$e->getMessage(), shopMigrateOzonLogger::LOG_FILE);
+                waLog::log('[OzonImporter] '.$e->getMessage(), shopMigratePluginOzonLogger::LOG_FILE);
                 $result['skipped']++;
             }
         }
@@ -186,21 +190,13 @@ class shopMigrateOzonImporter
 
         $this->assignCategory($product_id, $category_id);
 
-        $primary_image_url = $this->resolvePrimaryImageUrl($details);
-        $image_map = $this->synchronizeProductImages(
-            $product_id,
-            $primary_image_url ? array($primary_image_url) : array(),
-            $this->collectImageUrls($details)
-        );
-        $sku_image_id = $this->getImageIdFromMap($product_id, $primary_image_url, $image_map);
-
-        $sku_id = $this->ensureSku($product_id, $product['offer_id'], $product, $details, array(
-            'image_id' => $sku_image_id,
-        ));
+        $sku_id = $this->ensureSku($product_id, $product['offer_id'], $product, $details);
         $this->ensureDefaultSkuAssigned($product_id, $sku_id);
 
-        if ($this->settings->getFeatureImportMode() === shopMigrateOzonSettings::FEATURE_MODE_AUTO) {
+        if ($this->settings->getFeatureImportMode() === shopMigratePluginOzonSettings::FEATURE_MODE_AUTO) {
+            $product_attributes = ifset($attribute_values[$product['product_id']], array());
             $this->assignFeatures($snapshot_id, $product_id, $type_id, $attribute_values, $product['product_id']);
+            $this->assignCollectedTags($product_id, $product_attributes);
         }
 
         $this->assignStocks($snapshot_id, $product_id, $sku_id, $product['offer_id'], $stocks_by_offer);
@@ -210,6 +206,15 @@ class shopMigrateOzonImporter
         }
 
         $this->finalizeProductCounters($product_id);
+
+        $primary_image_url = $this->resolvePrimaryImageUrl($details);
+        $image_map = $this->synchronizeProductImages(
+            $product_id,
+            $primary_image_url ? array($primary_image_url) : array(),
+            $this->collectImageUrls($details)
+        );
+        $sku_image_id = $this->getImageIdFromMap($product_id, $primary_image_url, $image_map);
+        $this->product_skus_model->updateById($sku_id, array('image_id' => $sku_image_id));
 
         return $existing_map ? false : true;
     }
@@ -281,20 +286,26 @@ class shopMigrateOzonImporter
 
         $primary_urls = array();
         $additional_urls = array();
-        foreach ($items as $item) {
+        $variant_primary_urls = array();
+        foreach ($items as $item_product_id => $item) {
             $primary = $this->resolvePrimaryImageUrl($item['details']);
             if ($primary) {
                 $primary_urls[] = $primary;
             }
+            $variant_primary_urls[$item_product_id] = $primary;
             $additional_urls = array_merge($additional_urls, $this->collectImageUrls($item['details']));
         }
-        $image_map = $this->synchronizeProductImages($product_id, $primary_urls, $additional_urls);
 
         $active_offer_ids = array();
+        $sku_ids = array();
+        $tag_mode = $this->resolveTagImportMode();
 
-        if ($this->settings->getFeatureImportMode() === shopMigrateOzonSettings::FEATURE_MODE_AUTO) {
+        if ($this->settings->getFeatureImportMode() === shopMigratePluginOzonSettings::FEATURE_MODE_AUTO) {
             list($common_attributes, $variant_attributes) = $this->splitAttributesByVariance($product_ids, $attribute_values);
             $this->applyFeatureAttributes($snapshot_id, $product_id, $type_id, $common_attributes);
+            if ($this->shouldAssignTagsToProduct($tag_mode)) {
+                $this->assignCollectedTags($product_id, $this->collectAttributesByProductIds($product_ids, $attribute_values));
+            }
         } else {
             $variant_attributes = array_fill_keys($product_ids, array());
         }
@@ -302,16 +313,17 @@ class shopMigrateOzonImporter
         foreach ($items as $item_product_id => $item) {
             $variant_product = $item['product'];
             $variant_details = $item['details'];
-            $primary_image_url = $this->resolvePrimaryImageUrl($variant_details);
-            $sku_image_id = $this->getImageIdFromMap($product_id, $primary_image_url, $image_map);
             $sku_name = $this->resolveSkuName($product_data['name'], $variant_product, $variant_details);
             $sku_id = $this->ensureSku($product_id, $variant_product['offer_id'], $variant_product, $variant_details, array(
                 'name'      => $sku_name,
-                'image_id'  => $sku_image_id,
             ));
             $this->ensureDefaultSkuAssigned($product_id, $sku_id);
-            if ($this->settings->getFeatureImportMode() === shopMigrateOzonSettings::FEATURE_MODE_AUTO) {
+            $sku_ids[$item_product_id] = $sku_id;
+            if ($this->settings->getFeatureImportMode() === shopMigratePluginOzonSettings::FEATURE_MODE_AUTO) {
                 $attributes = ifset($variant_attributes[$item_product_id], array());
+                if (!$this->shouldAssignTagsToSku($tag_mode)) {
+                    $attributes = $this->filterTagAttributes($attributes);
+                }
                 $this->assignSkuFeaturesFromAttributes($snapshot_id, $product_id, $type_id, $sku_id, $attributes);
             } else {
                 $this->product_features_model->deleteByField(array(
@@ -330,6 +342,13 @@ class shopMigrateOzonImporter
         $this->cleanupObsoleteSkus($product_id, $active_offer_ids);
         $this->finalizeProductCounters($product_id);
 
+        $image_map = $this->synchronizeProductImages($product_id, $primary_urls, $additional_urls);
+        foreach ($sku_ids as $item_product_id => $sku_id) {
+            $primary_image_url = ifset($variant_primary_urls[$item_product_id]);
+            $sku_image_id = $this->getImageIdFromMap($product_id, $primary_image_url, $image_map);
+            $this->product_skus_model->updateById($sku_id, array('image_id' => $sku_image_id));
+        }
+
         return $existing_map ? false : true;
     }
 
@@ -337,6 +356,8 @@ class shopMigrateOzonImporter
     {
         $name = ifset($details['name'], ifset($product['name'], sprintf('Ozon %s', $product['product_id'])));
         $currency = $this->resolveProductCurrency($details);
+        $price = $this->extractPrice($details);
+        $compare_price = $this->extractComparePrice($details, $price);
 
         return array(
             'type_id'        => (int) $type_id,
@@ -345,6 +366,8 @@ class shopMigrateOzonImporter
             'summary'        => ifset($details['description_short'], ''),
             'description'    => ifset($details['description'], ''),
             'sku_type'       => shopProductModel::SKU_TYPE_FLAT,
+            'price'          => $price,
+            'compare_price'  => $compare_price,
             'status'         => 1,
             'currency'       => $currency,
             'edit_datetime'  => date('Y-m-d H:i:s'),
@@ -364,6 +387,7 @@ class shopMigrateOzonImporter
     {
         $sku_name = isset($options['name']) ? $options['name'] : ifset($product['name'], 'Ozon SKU');
         $price = array_key_exists('price', $options) ? $options['price'] : $this->extractPrice($details);
+        $compare_price = array_key_exists('compare_price', $options) ? $options['compare_price'] : $this->extractComparePrice($details, $price);
         $purchase_price = array_key_exists('purchase_price', $options) ? $options['purchase_price'] : $this->extractPurchasePrice($details);
 
         $sku_data = array(
@@ -371,7 +395,7 @@ class shopMigrateOzonImporter
             'sku'           => $offer_id ?: ('ozon-'.$product['product_id']),
             'name'          => $sku_name,
             'price'         => $price,
-            'compare_price' => null,
+            'compare_price' => $compare_price,
             'purchase_price'=> $purchase_price,
             'count'         => null,
             'available'     => 1,
@@ -436,7 +460,6 @@ class shopMigrateOzonImporter
                 continue;
             }
             if ($product_id_for_side_effects !== null && $this->isTagAttribute($attribute)) {
-                $this->assignTags($product_id_for_side_effects, $attribute);
                 continue;
             }
             $feature = $this->feature_mapper->resolve($snapshot_id, $attribute['attribute_id'], $attribute['meta'], $shop_type_id);
@@ -497,6 +520,7 @@ class shopMigrateOzonImporter
             return;
         }
         $rows = array();
+        $row_index = array();
         foreach ($payload as $code => $value) {
             if (!isset($feature_refs[$code]) || empty($feature_refs[$code]['id'])) {
                 continue;
@@ -508,6 +532,11 @@ class shopMigrateOzonImporter
                 if (!$value_id) {
                     continue;
                 }
+                $row_key = implode('-', array((int) $product_id, (int) $sku_id, (int) $feature['id'], (int) $value_id));
+                if (isset($row_index[$row_key])) {
+                    continue;
+                }
+                $row_index[$row_key] = true;
                 $rows[] = array(
                     'product_id'       => $product_id,
                     'sku_id'           => $sku_id,
@@ -517,7 +546,7 @@ class shopMigrateOzonImporter
             }
         }
         if ($rows) {
-            $this->product_features_model->multipleInsert($rows);
+            $this->product_features_model->multipleInsert($rows, waModel::INSERT_IGNORE);
         }
     }
 
@@ -597,7 +626,7 @@ class shopMigrateOzonImporter
                     $map[$url] = (int) $data['id'];
                 }
             } catch (Exception $e) {
-                waLog::log('[OzonImporter] Image import failed: '.$e->getMessage(), shopMigrateOzonLogger::LOG_FILE);
+                waLog::log('[OzonImporter] Image import failed: '.$e->getMessage(), shopMigratePluginOzonLogger::LOG_FILE);
             }
             waFiles::delete($file);
         }
@@ -718,14 +747,14 @@ class shopMigrateOzonImporter
             return null;
         }
         $net = new waNet(array(
-            'timeout'            => 30,
+            'timeout'            => 10,
             'format'             => waNet::FORMAT_RAW,
             'expected_http_code' => null,
         ));
         try {
             $content = $net->query($url);
         } catch (Exception $e) {
-            waLog::log('[OzonImporter] Image download failed ('.$url.'): '.$e->getMessage(), shopMigrateOzonLogger::LOG_FILE);
+            waLog::log('[OzonImporter] Image download failed ('.$url.'): '.$e->getMessage(), shopMigratePluginOzonLogger::LOG_FILE);
             return null;
         }
         if ($content === false || $content === null) {
@@ -814,6 +843,44 @@ class shopMigrateOzonImporter
                 return $price;
             }
         }
+        return null;
+    }
+
+    private function extractComparePrice(array $details, $price = null)
+    {
+        $candidates = array();
+        if (isset($details['old_price'])) {
+            $candidates[] = $details['old_price'];
+        }
+        if (isset($details['oldPrice'])) {
+            $candidates[] = $details['oldPrice'];
+        }
+        if (isset($details['price']) && is_array($details['price'])) {
+            if (isset($details['price']['old_price'])) {
+                $candidates[] = $details['price']['old_price'];
+            }
+            if (isset($details['price']['oldPrice'])) {
+                $candidates[] = $details['price']['oldPrice'];
+            }
+        }
+
+        foreach ($candidates as $value) {
+            $compare = $this->normalizePriceValue($value);
+            if ($compare === null) {
+                continue;
+            }
+            if ($compare <= 0) {
+                return null;
+            }
+
+            $base_price = $price !== null ? (float) $price : $this->extractPrice($details);
+            if ($base_price > 0 && $compare <= $base_price) {
+                return null;
+            }
+
+            return $compare;
+        }
+
         return null;
     }
 
@@ -941,6 +1008,25 @@ class shopMigrateOzonImporter
         }
 
         foreach ($groups as $attribute_id => $data) {
+            $is_tag_attribute = false;
+            foreach ($product_ids as $product_id) {
+                $entries = ifset($data['raw'][$product_id], array());
+                if ($entries) {
+                    $is_tag_attribute = $this->isTagAttribute(reset($entries));
+                    break;
+                }
+            }
+            if ($is_tag_attribute) {
+                foreach ($product_ids as $product_id) {
+                    if (empty($data['raw'][$product_id])) {
+                        continue;
+                    }
+                    foreach ($data['raw'][$product_id] as $attribute_entry) {
+                        $per_product[$product_id][] = $attribute_entry;
+                    }
+                }
+                continue;
+            }
             $hashes = array();
             foreach ($product_ids as $product_id) {
                 $values = ifset($data['values'][$product_id], array());
@@ -1193,17 +1279,104 @@ class shopMigrateOzonImporter
         return false;
     }
 
-    private function assignTags($product_id, array $attribute)
+    private function resolveTagImportMode()
     {
-        $value = ifset($attribute['value'], '');
-        if ($value === '' || !is_string($value)) {
+        $mode = $this->settings->getEffectiveTagImportMode();
+        $allowed = array(
+            shopMigratePluginOzonSettings::TAG_MODE_PRODUCT_ONLY,
+            shopMigratePluginOzonSettings::TAG_MODE_PRODUCT_AND_SKU,
+            shopMigratePluginOzonSettings::TAG_MODE_SKU_ONLY,
+        );
+        return in_array($mode, $allowed, true) ? $mode : shopMigratePluginOzonSettings::TAG_MODE_PRODUCT_ONLY;
+    }
+
+    private function shouldAssignTagsToProduct($mode)
+    {
+        return in_array($mode, array(
+            shopMigratePluginOzonSettings::TAG_MODE_PRODUCT_ONLY,
+            shopMigratePluginOzonSettings::TAG_MODE_PRODUCT_AND_SKU,
+        ), true);
+    }
+
+    private function shouldAssignTagsToSku($mode)
+    {
+        return in_array($mode, array(
+            shopMigratePluginOzonSettings::TAG_MODE_PRODUCT_AND_SKU,
+            shopMigratePluginOzonSettings::TAG_MODE_SKU_ONLY,
+        ), true);
+    }
+
+    private function filterTagAttributes(array $attributes)
+    {
+        $result = array();
+        foreach ($attributes as $attribute) {
+            if ($this->isTagAttribute($attribute)) {
+                continue;
+            }
+            $result[] = $attribute;
+        }
+        return $result;
+    }
+
+    private function assignCollectedTags($product_id, array $attributes)
+    {
+        if (!$product_id || !$attributes) {
             return;
         }
-        $tags = $this->extractTags($value);
-        if (!$tags) {
+
+        $collected_tags = array();
+        foreach ($attributes as $attribute) {
+            if (!$this->isTagAttribute($attribute)) {
+                continue;
+            }
+            $value = ifset($attribute['value'], '');
+            if (!is_string($value) || $value === '') {
+                continue;
+            }
+            foreach ($this->extractTags($value) as $tag) {
+                $collected_tags[$tag] = $tag;
+            }
+        }
+
+        if (!$collected_tags) {
             return;
         }
-        $this->product_tags_model->addTags($product_id, $tags);
+
+        $tag_ids = $this->resolveUniqueTagIds(array_values($collected_tags));
+        if (!$tag_ids) {
+            return;
+        }
+        $this->product_tags_model->assign((int) $product_id, $tag_ids);
+    }
+
+    private function collectAttributesByProductIds(array $product_ids, array $attribute_values)
+    {
+        $result = array();
+        foreach ($product_ids as $product_id) {
+            if (empty($attribute_values[$product_id])) {
+                continue;
+            }
+            foreach ($attribute_values[$product_id] as $attribute) {
+                $result[] = $attribute;
+            }
+        }
+        return $result;
+    }
+
+    private function resolveUniqueTagIds(array $tags)
+    {
+        $tag_ids = $this->tag_model->getIds($tags);
+        if (!$tag_ids) {
+            return array();
+        }
+        $result = array();
+        foreach ($tag_ids as $tag_id) {
+            $tag_id = (int) $tag_id;
+            if ($tag_id > 0) {
+                $result[$tag_id] = $tag_id;
+            }
+        }
+        return array_values($result);
     }
 
     private function extractTags($string)
@@ -1329,6 +1502,10 @@ class shopMigrateOzonImporter
         if (!isset($feature['multiple']) || (int) $feature['multiple'] !== $desired_multiple) {
             $updates['multiple'] = $desired_multiple;
             $feature['multiple'] = $desired_multiple;
+        }
+        if (!empty($feature['selectable']) && ifset($feature['type']) === 'text') {
+            $updates['type'] = 'varchar';
+            $feature['type'] = 'varchar';
         }
         if ($updates && !empty($feature['id'])) {
             $this->feature_mapper->updateFeatureFlags($feature['id'], $updates);

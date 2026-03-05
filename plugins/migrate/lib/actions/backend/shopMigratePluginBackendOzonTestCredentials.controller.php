@@ -11,15 +11,16 @@ class shopMigratePluginBackendOzonTestCredentialsController extends waJsonContro
                 throw new waException(_wp('Fill in Client ID and API Key first.'));
             }
 
-            $settings = new shopMigrateOzonSettings();
-            $logger = new shopMigrateOzonLogger($settings->getLogMode());
-            $api = new shopMigrateOzonApiClient($client_id, $api_key, $logger);
+            $settings = new shopMigratePluginOzonSettings();
+            $logger = new shopMigratePluginOzonLogger($settings->getLogMode());
+            $api = new shopMigratePluginOzonApiClient($client_id, $api_key, $logger);
             $response = $api->listWarehouses();
             $warehouses = ifset($response['result'], array());
 
             $this->response = array(
                 'ok' => true,
                 'warehouses' => count($warehouses),
+                'message' => _wp('Connection successful'),
             );
         } catch (Exception $e) {
             $this->setError($e->getMessage());

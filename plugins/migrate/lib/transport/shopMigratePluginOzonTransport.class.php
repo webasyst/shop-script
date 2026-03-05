@@ -1,12 +1,12 @@
 <?php
 
-class shopMigrateOzonTransport extends shopMigrateTransport
+class shopMigratePluginOzonTransport extends shopMigrateTransport
 {
     public function getControls($errors = array())
     {
         $view = wa()->getView();
-        $settings = new shopMigrateOzonSettings();
-        $repository = new shopMigrateOzonSnapshotRepository();
+        $settings = new shopMigratePluginOzonSettings();
+        $repository = new shopMigratePluginOzonSnapshotRepository();
 
         $snapshot = null;
         $snapshot_id = $settings->getCurrentSnapshotId();
@@ -25,6 +25,7 @@ class shopMigrateOzonTransport extends shopMigrateTransport
             'mode'           => $settings->getOperationMode(),
             'feature_mode'   => $settings->getFeatureImportMode(),
             'force_text_features' => $settings->shouldForceTextFeatures(),
+            'tag_mode'       => $settings->getTagImportMode(),
         ));
 
         $formatted_snapshot = $snapshot ? $this->formatSnapshot($snapshot) : null;
@@ -34,7 +35,7 @@ class shopMigrateOzonTransport extends shopMigrateTransport
         $view->assign('ozon_mapping', $formatted_snapshot ? $this->buildMapping($snapshot['id'], $repository, $meta) : array());
         $view->assign('ozon_lists', $this->getShopLists());
         $view->assign('ozon_debug', wa()->getConfig()->isDebug());
-        $view->assign('ozon_tables', shopMigrateOzonHelper::getTablesMeta());
+        $view->assign('ozon_tables', shopMigratePluginOzonHelper::getTablesMeta());
 
         return $view->fetch(wa()->getAppPath('plugins/migrate/templates/actions/backend/OzonTransport.html', 'shop'));
     }
@@ -69,7 +70,7 @@ class shopMigrateOzonTransport extends shopMigrateTransport
         );
     }
 
-    private function buildMapping($snapshot_id, shopMigrateOzonSnapshotRepository $repository, array $snapshot_meta = array())
+    private function buildMapping($snapshot_id, shopMigratePluginOzonSnapshotRepository $repository, array $snapshot_meta = array())
     {
         $categories_model = $repository->getCategoriesModel();
         $products_model = $repository->getProductsModel();

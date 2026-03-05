@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonTypeMapper
+class shopMigratePluginOzonTypeMapper
 {
     private $repository;
     private $settings;
@@ -9,7 +9,7 @@ class shopMigrateOzonTypeMapper
     private $map = array();
     private $paths = array();
 
-    public function __construct(shopMigrateOzonSnapshotRepository $repository, shopMigrateOzonSettings $settings)
+    public function __construct(shopMigratePluginOzonSnapshotRepository $repository, shopMigratePluginOzonSettings $settings)
     {
         $this->repository = $repository;
         $this->settings = $settings;
@@ -27,23 +27,23 @@ class shopMigrateOzonTypeMapper
     {
         $key = sprintf('%d:%d', $description_category_id, $ozon_type_id);
         $mode = $this->settings->getOperationMode();
-        if ($mode === shopMigrateOzonSettings::MODE_MANUAL && !empty($this->map[$key]) && !empty($this->map[$key]['shop_type_id'])) {
+        if ($mode === shopMigratePluginOzonSettings::MODE_MANUAL && !empty($this->map[$key]) && !empty($this->map[$key]['shop_type_id'])) {
             return (int) $this->map[$key]['shop_type_id'];
         }
 
-        if (!empty($this->map[$key]) && $this->map[$key]['mode'] === shopMigrateOzonSettings::MODE_AUTO && !empty($this->map[$key]['shop_type_id'])) {
+        if (!empty($this->map[$key]) && $this->map[$key]['mode'] === shopMigratePluginOzonSettings::MODE_AUTO && !empty($this->map[$key]['shop_type_id'])) {
             return (int) $this->map[$key]['shop_type_id'];
         }
 
         $type = $this->ensureTypeExists($description_category_id);
         $this->map_model->saveAuto($snapshot_id, $description_category_id, $ozon_type_id, array(
-            'mode'           => shopMigrateOzonSettings::MODE_AUTO,
+            'mode'           => shopMigratePluginOzonSettings::MODE_AUTO,
             'shop_type_id'   => $type['id'],
             'shop_type_name' => $type['name'],
         ));
         $this->map[$key] = array(
             'shop_type_id' => $type['id'],
-            'mode'         => shopMigrateOzonSettings::MODE_AUTO,
+            'mode'         => shopMigratePluginOzonSettings::MODE_AUTO,
         );
 
         return (int) $type['id'];

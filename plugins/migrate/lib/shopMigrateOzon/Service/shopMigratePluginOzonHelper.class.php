@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonHelper
+class shopMigratePluginOzonHelper
 {
     public static function getTablesMeta()
     {

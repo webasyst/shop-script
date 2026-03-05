@@ -168,8 +168,19 @@ abstract class shopMigrateTransport implements Serializable
      */
     public static function getTransport($id, $options = array(), $process_id = null)
     {
-        $class = 'shopMigrate'.ucfirst($id).'Transport';
-        if ($id && class_exists($class)) {
+        $class = null;
+        $class_candidates = array(
+            'shopMigratePlugin'.ucfirst($id).'Transport',
+            'shopMigrate'.ucfirst($id).'Transport',
+        );
+        foreach ($class_candidates as $candidate) {
+            if ($id && class_exists($candidate)) {
+                $class = $candidate;
+                break;
+            }
+        }
+
+        if ($id && $class) {
 
             if (isset($options['transport'])) {
                 unset($options['transport']);
@@ -535,7 +546,7 @@ abstract class shopMigrateTransport implements Serializable
 
     private function getStorageKey()
     {
-        return 'shop.migrate.'.preg_replace('@(^shopMigrate|Transport$)@', '', get_class($this));
+        return 'shop.migrate.'.preg_replace('@(^shopMigrate(?:Plugin)?|Transport$)@', '', get_class($this));
     }
 
     public function getControls($errors = array())
@@ -1167,14 +1178,14 @@ HTML;
         $description = '';
         $dir = dirname(__FILE__);
         foreach (waFiles::listdir($dir) as $file) {
-            if (($file != __FILE__) && preg_match('@^shopMigrate(\w+)Transport\.class\.php@', $file, $matches)) {
+            if (($file != __FILE__) && preg_match('@^shopMigrate(?:Plugin)?(\w+)Transport\.class\.php$@', $file, $matches)) {
 
 
                 $value = strtolower($matches[1]);
                 if (preg_match('@^webasyst(\w*)$@', $value, $matches)) {
                     $group = empty($matches[1]) ? null : 'Webasyst';
                 } else {
-                    $group = '3rdParty';
+                    $group = 'CMS';
                 }
 
                 if ($group) {

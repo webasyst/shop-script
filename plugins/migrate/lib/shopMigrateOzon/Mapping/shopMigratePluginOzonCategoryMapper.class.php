@@ -1,6 +1,6 @@
 <?php
 
-class shopMigrateOzonCategoryMapper
+class shopMigratePluginOzonCategoryMapper
 {
     private $repository;
     private $settings;
@@ -10,7 +10,7 @@ class shopMigrateOzonCategoryMapper
     private $paths = array();
     private $category_tree_checked = false;
 
-    public function __construct(shopMigrateOzonSnapshotRepository $repository, shopMigrateOzonSettings $settings)
+    public function __construct(shopMigratePluginOzonSnapshotRepository $repository, shopMigratePluginOzonSettings $settings)
     {
         $this->repository = $repository;
         $this->settings = $settings;
@@ -27,7 +27,7 @@ class shopMigrateOzonCategoryMapper
     public function resolve($snapshot_id, $description_category_id)
     {
         $mode = $this->settings->getOperationMode();
-        if ($mode === shopMigrateOzonSettings::MODE_MANUAL && isset($this->map[$description_category_id])) {
+        if ($mode === shopMigratePluginOzonSettings::MODE_MANUAL && isset($this->map[$description_category_id])) {
             $option = $this->map[$description_category_id];
             if (isset($option['action']) && $option['action'] === 'skip') {
                 return null;
@@ -37,20 +37,20 @@ class shopMigrateOzonCategoryMapper
             }
         }
 
-        if (!empty($this->map[$description_category_id]['shop_category_id']) && $this->map[$description_category_id]['mode'] === shopMigrateOzonSettings::MODE_AUTO) {
+        if (!empty($this->map[$description_category_id]['shop_category_id']) && $this->map[$description_category_id]['mode'] === shopMigratePluginOzonSettings::MODE_AUTO) {
             return (int) $this->map[$description_category_id]['shop_category_id'];
         }
 
         $category_id = $this->ensureCategoryExists($description_category_id);
         if ($category_id) {
             $this->map_model->saveAuto($snapshot_id, $description_category_id, array(
-                'mode'             => shopMigrateOzonSettings::MODE_AUTO,
+                'mode'             => shopMigratePluginOzonSettings::MODE_AUTO,
                 'shop_category_id' => $category_id,
                 'action'           => 'auto',
             ));
             $this->map[$description_category_id] = array(
                 'shop_category_id' => $category_id,
-                'mode'             => shopMigrateOzonSettings::MODE_AUTO,
+                'mode'             => shopMigratePluginOzonSettings::MODE_AUTO,
             );
         }
 

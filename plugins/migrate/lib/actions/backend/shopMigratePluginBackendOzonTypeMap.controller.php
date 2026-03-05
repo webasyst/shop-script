@@ -5,7 +5,7 @@ class shopMigratePluginBackendOzonTypeMapController extends waJsonController
     public function execute()
     {
         try {
-            $settings = new shopMigrateOzonSettings();
+            $settings = new shopMigratePluginOzonSettings();
             $snapshot_id = $settings->getCurrentSnapshotId();
             if (!$snapshot_id) {
                 throw new waException(_wp('Snapshot is missing.'));
@@ -19,7 +19,7 @@ class shopMigratePluginBackendOzonTypeMapController extends waJsonController
                 throw new waException(_wp('Invalid parameters.'));
             }
 
-            $model = new shopMigrateOzonTypeMapModel();
+            $model = new shopMigratePluginOzonTypeMapModel();
             if ($shop_type_id === '') {
                 $model->deleteByField(array(
                     'snapshot_id' => $snapshot_id,
@@ -33,7 +33,7 @@ class shopMigratePluginBackendOzonTypeMapController extends waJsonController
                     throw new waException(_wp('Type not found.'));
                 }
                 $model->saveAuto($snapshot_id, $description_category_id, $type_id, array(
-                    'mode'           => shopMigrateOzonSettings::MODE_MANUAL,
+                    'mode'           => shopMigratePluginOzonSettings::MODE_MANUAL,
                     'shop_type_id'   => $type['id'],
                     'shop_type_name' => $type['name'],
                 ));

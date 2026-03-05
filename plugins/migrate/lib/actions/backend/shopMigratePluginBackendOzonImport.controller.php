@@ -5,19 +5,19 @@ class shopMigratePluginBackendOzonImportController extends waJsonController
     public function execute()
     {
         try {
-            $settings = new shopMigrateOzonSettings();
+            $settings = new shopMigratePluginOzonSettings();
             $snapshot_id = $settings->getCurrentSnapshotId();
             if (!$snapshot_id) {
                 throw new waException(_wp('No snapshot available for import.'));
             }
 
-            $repository = new shopMigrateOzonSnapshotRepository();
-            $type_mapper = new shopMigrateOzonTypeMapper($repository, $settings);
-            $category_mapper = new shopMigrateOzonCategoryMapper($repository, $settings);
-            $stock_mapper = new shopMigrateOzonStockMapper($repository, $settings);
-            $feature_mapper = new shopMigrateOzonFeatureMapper($repository, $settings);
+            $repository = new shopMigratePluginOzonSnapshotRepository();
+            $type_mapper = new shopMigratePluginOzonTypeMapper($repository, $settings);
+            $category_mapper = new shopMigratePluginOzonCategoryMapper($repository, $settings);
+            $stock_mapper = new shopMigratePluginOzonStockMapper($repository, $settings);
+            $feature_mapper = new shopMigratePluginOzonFeatureMapper($repository, $settings);
 
-            $importer = new shopMigrateOzonImporter(
+            $importer = new shopMigratePluginOzonImporter(
                 $repository,
                 $settings,
                 $type_mapper,

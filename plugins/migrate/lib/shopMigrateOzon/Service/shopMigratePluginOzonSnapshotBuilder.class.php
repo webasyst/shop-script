@@ -1,13 +1,13 @@
 <?php
 
-class shopMigrateOzonSnapshotBuilder
+class shopMigratePluginOzonSnapshotBuilder
 {
     private $api;
     private $repository;
     private $settings;
     private $category_type_paths = array();
 
-    public function __construct(shopMigrateOzonApiClient $api, shopMigrateOzonSnapshotRepository $repository, shopMigrateOzonSettings $settings)
+    public function __construct(shopMigratePluginOzonApiClient $api, shopMigratePluginOzonSnapshotRepository $repository, shopMigratePluginOzonSettings $settings)
     {
         $this->api = $api;
         $this->repository = $repository;
@@ -77,7 +77,8 @@ class shopMigrateOzonSnapshotBuilder
         $products_model = $this->repository->getProductsModel();
         $last_id = '';
         do {
-            $response = $this->api->listProducts($last_id);
+            $request_last_id = $last_id;
+            $response = $this->api->listProducts($request_last_id);
             $result = ifset($response['result'], array());
             $items = ifset($result['items'], array());
             $formatted = array();
@@ -111,8 +112,16 @@ class shopMigrateOzonSnapshotBuilder
             }
             $products_model->addBatch($snapshot_id, $formatted);
             $has_next = !empty($result['has_next']);
-            $last_id = ifset($result['last_id'], '');
-        } while ($has_next && $last_id !== '');
+            $next_last_id = (string) ifset($result['last_id'], '');
+            $should_continue = $has_next || $next_last_id !== '';
+
+            // Defensive stop for unstable API pagination: avoid endless loop on repeated cursor.
+            if ($should_continue && $next_last_id === $request_last_id) {
+                break;
+            }
+
+            $last_id = $next_last_id;
+        } while ($should_continue);
 
         return $products;
     }
