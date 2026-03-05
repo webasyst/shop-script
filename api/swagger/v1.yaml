@@ -4628,9 +4628,11 @@ paths:
                     Статус:
                     + **0**: выключен
                     + **1**: включен
+                  default: 0
                 sort:
                   type: integer
                   description: Значение сортировки
+                  default: 0
                 params:
                   type: object
                   additionalProperties: true
@@ -4719,8 +4721,9 @@ paths:
                   description: |
                     Режим сохранения значения параметра `params`:
 
-                    + **set**: (*по умолчанию*) все ключи, не указанные в `params`, удаляются
-                    + **update**: ключи, не указанные в `params`, не затрагиваются
+                    + **set**: значения, ключи для которых не указаны в `params`, удаляются из свойств канала
+                    + **update**: значения, ключи которых не указаны в `params`, остаются без изменений в свойствах канала
+                  default: set
       responses:
         200:
           description: Информация о созданном канале продаж
@@ -7874,6 +7877,9 @@ components:
         menu_icon:
           type: string
           description: HTML-код иконки
+        available:
+          type: boolean
+          description: Признак доступности типа для создания каналов продаж
   parameters:
     requestFormat:
       name: format

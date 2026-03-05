@@ -1147,6 +1147,9 @@
 {* Payment block *}
 {function payment_block settings=[]}
 <div class="s-checkout-field-group fields custom-my-4">
+    <p class="s-notice-success small custom-mt-12" style="display: none;"><i class="fas fa-check-circle text-green"></i> [`<b>Great!</b> Payment options will be offered <em>after</em> an order is placed. The fewer questions, the higher the conversion!`]</p>
+    <p class="s-notice-warning small custom-mt-12" style="display: none;"><i class="fas fa-exclamation-triangle text-orange"></i> <b>[`Recommended to be off!`]</b> [`When off, payment options will be offered <b>after</b> the order is saved, and not during the checkout. The customer will first get an order ID, and the prompt for payment will follow right after. The fewer questions, the higher the conversion!`]</p>
+
     {* Block name *}
     <div class="field js-block-content"{if !$settings.used} style="display: none;"{/if}>
         <div class="name for-input">
@@ -1156,36 +1159,30 @@
             <input id="payment_block_name" type="text" class="long bold" name="data[payment][block_name]" autocomplete="off" value="{$settings.block_name|escape}" />
         </div>
     </div>
-    <p class="s-notice-success small custom-mt-12" style="display: none;"><i class="fas fa-check-circle text-green"></i> [`<b>Great!</b> Payment options will be offered <em>after</em> an order is placed. The fewer questions, the higher the conversion!`]</p>
-    <p class="s-notice-warning small custom-mt-12" style="display: none;"><i class="fas fa-exclamation-triangle text-orange"></i> <b>[`Recommended to be off!`]</b> [`When off, payment options will be offered <b>after</b> the order is saved, and not during the checkout. The customer will first get an order ID, and the prompt for payment will follow right after. The fewer questions, the higher the conversion!`]</p>
+
+    {* Auto submit *}
+    <div class="field custom-mt-12">
+        <label>
+            <input type="hidden" name="data[confirmation][auto_submit]" value="0" />
+            <span class="wa-checkbox">
+                <input id="confirmation_auto_submit" type="checkbox" name="data[confirmation][auto_submit]"{if $checkout_config.confirmation.auto_submit} checked{/if} />
+                    <span>
+                        <span class="icon">
+                            <i class="fas fa-check"></i>
+                        </span>
+                    </span>
+                </span>
+            [`Instant payment after the order is placed`] <i class="fas fa-thumbs-up text-green small"></i>
+            <p class="hint custom-mt-4">[`Immediate prompt to select a preferable payment option and automated redirect to the payment gateway.`]</p>
+            <p class="hint custom-mt-4"><b>[`Better to be on in most cases.`]</b> [`Disabling instant payment may be required in some rare cases when manual order confirmation is necessary before a payment can be made.`]
+        </label>
+    </div>
 </div>
 {/function}
 
 {* Confirmation block *}
 {function confirmation_block settings=[]}
 <div class="s-checkout-field-group fields custom-my-12">
-    {* Auto submit *}
-    <div class="field">
-        <div class="name for-checkbox">
-            <label for="confirmation_auto_submit">[`Payment`]</label>
-        </div>
-        <div class="value">
-            <label>
-                <input type="hidden" name="data[confirmation][auto_submit]" value="0" />
-                <span class="wa-checkbox">
-                    <input id="confirmation_auto_submit" type="checkbox" name="data[confirmation][auto_submit]"{if $settings.auto_submit} checked{/if} />
-                        <span>
-                            <span class="icon">
-                                <i class="fas fa-check"></i>
-                            </span>
-                        </span>
-                    </span>
-                [`Instant payment after the order is placed`] <i class="fas fa-thumbs-up text-gray small"></i>
-                <p class="hint">[`Immediate prompt to select a preferable payment option and automated redirect to the payment gateway.`]</p>
-            </label>
-        </div>
-    </div>
-
     {* Order comment *}
     <div class="field">
         <div class="name for-checkbox">

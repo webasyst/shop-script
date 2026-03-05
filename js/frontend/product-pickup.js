@@ -42,6 +42,7 @@ window.ProductPickup = class {
     initEvents() {
         const that = this;
         const $step_2_block = $('[data-step="2"]', this.$wrapper);
+        const $step_3_block = $('[data-step="3"]', this.$wrapper);
 
         // step 2: select pos
         that.$form.on('click', '[data-pickup-id]', function() {
@@ -64,9 +65,11 @@ window.ProductPickup = class {
         });
         // step 3: confirm order
         that.$form.on('click', '.js-preorder-button', () => {
-            if (that.selectedPickup.params.checkout === '1') {
-                that.slideToStep(3);
-            }
+            if (that.selectedPickup.params.checkout !== '1') return
+
+            const $submit = $step_3_block.find('[type="submit"]');
+            $submit.text($submit.data(that.selectedPickup.params.payment === '1' ? 'payment-text' : 'confirm-text'));
+            that.slideToStep(3);
         });
         // back to previous step
         that.$form.on('click', '.js-back', () => {

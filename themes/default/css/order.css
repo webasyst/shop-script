@@ -927,19 +927,6 @@ body:has(.wa-order-layout) {
 .wa-order-form-wrapper .wa-form-footer .wa-line {
   margin-top: 1.5em !important;
 }
-.wa-channel-confirmation-dialog .wa-dialog-body .wa-field-wrapper.with-content .wa-input {
-  border: .0625em solid var(--input-border-color);
-  color: var(--text-color-secondary);
-  background-color: transparent;
-  width: 100% !important;
-}
-.wa-channel-confirmation-dialog .wa-dialog-body .wa-dialog-footer .wa-button {
-  font-size: revert-layer !important;
-  line-height: revert-layer !important;
-  padding: revert-layer !important;
-  font-weight: normal;
-  text-shadow: none;
-}
 @media screen and (min-width: 841px) {
 .s-order-page {
 display: table;

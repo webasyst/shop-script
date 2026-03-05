@@ -36,7 +36,7 @@ abstract class shopFrontApiJsonController extends waJsonController
         $request_method = strtolower(waRequest::method());
         try {
             if (!method_exists($this, $request_method)) {
-                throw new waAPIException('method_not_supported', 'Method '.$request_method.' is not supported.');
+                throw new waAPIException('method_not_supported', 'Method '.$request_method.' is not supported.', 405);
             }
             $this->$request_method();
         } catch (Throwable $e) {

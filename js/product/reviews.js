@@ -428,16 +428,22 @@
                 $.product_reviews.form.serialize(),
                 function (r) {
                     if (r.status == 'fail') {
-                        const $error = $('<em class="errormsg"></em>').text(r.errors);
-                        self.after($error);
-                        setTimeout(() => {
-                            $error.remove();
-                        }, 5000);
+                        r.errors.forEach(({ error, error_description }) => {
+                            if (error ==='payment_required') {
+                                error_description = error_description.replace('%s', 'href="javascript:void(0)"');
+                            }
+                            if(self.next().hasClass('state-error-hint')) {
+                                self.next().remove();
+                            }
+                            const $error = $('<span class="state-error-hint" />').html(error_description);
+                            self.after($error);
+                            setTimeout(() => $error.remove(), 5000);
+                        });
                         return;
                     }
 
                     const $textarea = $('textarea', $.product_reviews.form);
-                    $textarea.val($textarea.val() ? $textarea.val() + '\n' + r.data : r.data);
+                    $textarea.val($textarea.val() ? $textarea.val() + '\n' + r.data.text : r.data.text);
 
                 },
             'json')

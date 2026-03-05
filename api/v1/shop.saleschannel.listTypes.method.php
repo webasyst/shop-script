@@ -25,6 +25,7 @@ class shopSaleschannelListTypesMethod extends shopApiMethod
             'id' => 'string',
             'name' => 'string',
             'menu_icon' => 'string',
+            'available' => 'boolean',
             //'class' => 'string',
         ];
         $type = shopFrontApiFormatter::formatFieldsToType($type, $schema);

@@ -502,7 +502,7 @@
                                 const form = self.review.form;
                                 button.disabled = true;
                                 button.querySelector('.webasyst-magic-wand-ai').classList.add('shimmer');
-                                   
+
                                 if (!form.is_locked) {
                                     form.is_locked = true;
 
@@ -514,16 +514,26 @@
                                         })
                                         .done( function(r) {
                                             if (r.status == 'fail') {
-                                                const $error = $('<span class="state-error-hint"></span>').text(r.errors);
-                                                $(button).after($error);
-                                                setTimeout(() => $error.remove(), 5000);
+                                                r.errors.forEach(({ error, error_description }) => {
+                                                    if (error ==='payment_required') {
+                                                        error_description = error_description.replace('%s', 'href="javascript:void(0)"');
+                                                    }
+                                                    if($(button).next().hasClass('state-error-hint')) {
+                                                        $(button).next().remove();
+                                                    }
+                                                    const $error = $('<span class="state-error-hint" />').html(error_description);
+                                                    $(button).after($error);
+                                                    setTimeout(() => $error.remove(), 5000);
+                                                });
                                                 return;
                                             }
-                        
+
                                             self.formToggle(true);
                                             self.$nextTick(() => {
                                                 const $textarea = $(self.$el.querySelector('.s-form-description')).find('textarea');
-                                                $textarea.val($textarea.val() ? $textarea.val() + '\n' + r.data : r.data);
+                                                const form_description = $textarea.val() ? $textarea.val() + '\n' + r.data.text : r.data.text;
+                                                self.review.form.description = form_description;
+                                                $textarea.val(form_description);
                                             });
                                         })
                                         .catch(function(r) {

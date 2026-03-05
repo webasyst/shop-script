@@ -19,7 +19,8 @@ class shopFrontendApiCategoriesController extends shopFrontApiJsonController
         }
 
         $this->model = new shopCategoryModel();
-        $cats = $this->model->getTree($parent_id, $depth);
+        $route = wa()->getRouting()->getDomain(null, true).'/'.wa()->getRouting()->getRoute('url');
+        $cats = $this->model->getTree($parent_id, $depth, false, $route);
         $cats = $this->removeHidden($cats);
         if ($filters) {
             $cats = $this->fillFilters($cats);
@@ -339,9 +340,14 @@ class shopFrontendApiCategoriesController extends shopFrontApiJsonController
 
     private function removeHidden($cats)
     {
-        $hidden_ids = [];
+        $hidden_ids = $this->model->query('SELECT id FROM shop_category WHERE status = 0 ORDER BY left_key')->fetchAll('id');
+        $hidden_ids = array_keys($hidden_ids);
         foreach ($cats as $cat_id => $_cat) {
-            if (empty($_cat['status']) || in_array($_cat['parent_id'], $hidden_ids)) {
+            if (
+                empty($_cat['status'])
+                || in_array($_cat['parent_id'], $hidden_ids)
+                || ($_cat['parent_id'] && !isset($cats[$_cat['parent_id']]))
+            ) {
                 $hidden_ids[] = $cat_id;
                 unset($cats[$cat_id]);
             }

@@ -1749,7 +1749,7 @@ SQL;
     public static function getPickupChannels()
     {
         $routing = wa()->getRouting();
-        $current_storefront = $routing->getDomain().'/'.rtrim((string) $routing->getRoute('url'), '/*');
+        $current_storefront = rtrim($routing->getDomain().'/'.(string) $routing->getRoute('url'), '/*');
 
         $channels = (new shopSalesChannelModel())->getAllWithParams();
 

@@ -153,7 +153,8 @@ abstract class shopSalesChannelType
     protected function getFormFields(array $channel): array
     {
         $result = [];
-        if (empty($channel['id'])) {
+        $is_new = empty($channel['id']);
+        if ($is_new) {
             $channel['name'] = $this->get('name');
         }
 
@@ -165,7 +166,8 @@ abstract class shopSalesChannelType
         $field_params['namespace'] = 'data[params]';
         foreach ($this->getFormFieldsConfig($channel['params']) as $name => $row) {
             try {
-                $result[$name] = $this->getControl($name, ifset($channel['params'], $name, ifset($row, 'value', '')), $field_params + $row);
+                $val = ifset($channel['params'], $name, (!$is_new && $row['control_type'] == waHtmlControl::CHECKBOX ? '' : ifset($row, 'value', '')));
+                $result[$name] = $this->getControl($name, $val, $field_params + $row);
             } catch (waException $e) {
                 continue;
             }

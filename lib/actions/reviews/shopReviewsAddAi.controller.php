@@ -31,7 +31,13 @@ class shopReviewsAddAiController extends waJsonController {
                 ])
                 ->generate();
 
-            $this->response = trim(strip_tags($result['text'] ?? ''));
+            if (!empty($result['text'])) {
+                $this->response['text'] = trim(strip_tags($result['text']));
+            } else if (!empty($result['error_description']) || !empty($result['error'])) {
+                $this->errors[] = $result;
+            } else {
+                throw new waException("Unable to contact AI API", 500);
+            }
         } catch (Exception $e) {
             $this->setError($e->getMessage());
         }

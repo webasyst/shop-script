@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.8\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -13746,6 +13746,12 @@ msgstr "Моментальный выбор способа оплаты сраз
 
 msgid "Recommended to be off!"
 msgstr "Рекомендуем выключить!"
+
+msgid "Better to be on in most cases."
+msgstr "В большинстве случаев лучше включить."
+
+msgid "Disabling instant payment may be required in some rare cases when manual order confirmation is necessary before a payment can be made."
+msgstr "Выключение мгновенной оплаты может потребоваться только в редких случаях, когда заказ необходимо подтвердить вручную, прежде чем дать его оплатить."
 
 msgid "When off, payment options will be offered <b>after</b> the order is saved, and not during the checkout. The customer will first get an order ID, and the prompt for payment will follow right after. The fewer questions, the higher the conversion!"
 msgstr "Если выключить, то выбор способа оплаты будет предложен не во время, а <b>после</b> оформления и сохранения заказа. Покупатель сначала оформит заказ, а уже затем подберет подходящий способ оплаты. Меньше вопросов — выше конверсия!"
