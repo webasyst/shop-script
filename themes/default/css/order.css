@@ -170,14 +170,14 @@ html.is-order-page .container {
 .s-styled-select select {
   position: relative;
   display: inline-block;
-  padding-right: 2rem;
-  padding-left: 0.25em;
+  padding: 0.6rem 0.75rem;
   margin: 0 !important;
+  line-height: 1.5;
   font-size: inherit;
   color: var(--header-menu-pages-link-color);
   appearance: none;
   outline: 0;
-  background-color: transparent;
+  background: none;
   box-sizing: border-box;
   cursor: pointer;
   transition: border-color 200ms linear;
@@ -194,7 +194,7 @@ html.is-order-page .container {
   opacity: 0.5;
 }
 .s-styled-select select option {
-  color: #333;
+
 }
 .s-styled-select select option:disabled {
   color: #888;
@@ -712,12 +712,13 @@ html.is-order-page .container {
   border: 1px solid var(--input-border-color) !important;
   border-radius: var(--element-border-radius) !important;
   vertical-align: middle;
-  padding: 0.392em 2.25em 0.392em 0.57em !important;
+  padding: 0.6rem 2.25rem 0.6rem 0.75rem !important;
   font-weight: 400;
-  line-height: 1.15;
+  line-height: 1.5;
   background-image: var(--chevron-svg) !important;
   background-position: right 0.525em center !important;
   background-size: 16px !important;
+  font-size: 13px;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body select + .s-icon {
   display: none;
@@ -971,4 +972,9 @@ text-align: right;
 max-height: 300px;
 z-index: 998;
 }
+}
+.wa-field-date input.datetime {
+  background-color: transparent;
+  line-height: 1.5;
+  padding: 0.6rem 0.75rem;
 }

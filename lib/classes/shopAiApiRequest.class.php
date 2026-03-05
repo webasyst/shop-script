@@ -168,11 +168,10 @@ class shopAiApiRequest
      */
     public function loadFieldValuesFromProduct($p): shopAiApiRequest
     {
-        $api = new waServicesApi();
-        if (!$api->isConnected()) {
-            return $this;
-        }
         if (!$this->fields) {
+            if (!(new waServicesApi())->isConnected()) {
+                return $this;
+            }
             throw new waException('Fields are not loaded');
         }
 

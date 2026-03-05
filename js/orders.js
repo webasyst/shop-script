@@ -221,7 +221,7 @@
                         $.wa.setHash('#/orders/' + that.search_item_param + '/');
                         break;
                     case 'item_code':
-                        that.search_item_param = 'item_code=' + autocomplete_item.value;
+                        that.search_item_param = 'item_code=' + encodeURIComponent(autocomplete_item.value);
                         $.wa.setHash('#/orders/' + that.search_item_param + '/');
                         break;
                     default:

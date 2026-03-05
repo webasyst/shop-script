@@ -698,8 +698,8 @@ table.rating-distribution td .bar .filling { background: var(--orange); height: 
 .review-form-fields p.review-field a .icon16 { transform: scale(1.35); margin-right: .5rem; }
 .review-form-fields label { width: 160px; display: block; float: left; margin: 0 10px 0 0; color: #aaa;}
 .review-form-fields input[type="text"] { width: 20em;}
-.review-form-fields #review-title { min-width: 70%; }
-.review-form textarea { min-width: 70%; min-height: 160px; box-sizing: border-box; }
+.review-form-fields #review-title { min-width: 70%; padding: 0.6rem 0.75rem; background-color: transparent; font-size: 0.875rem; line-height: 1.5;}
+.review-form textarea { min-width: 70%; min-height: 160px; box-sizing: border-box; background-color: transparent; font-size: 0.875rem; }
 .review-form .review-submit { padding: 0 0 20px 170px;}
 .review-form .userpic { width: 20px; height: 20px; float: left; margin-right: 5px; border-radius: 50%; }
 .review-form ul.menu-h.auth-type { padding-bottom: 1.25rem; align-items: center; gap: 1rem; }
@@ -848,8 +848,9 @@ input.error, textarea.error { border: 2px solid var(--red); }
 .wa-signup-form-wrapper .wa-field .wa-value p input[type="radio"], .wa-signup-form-wrapper .wa-field .wa-value p input[type="checkbox"] { display: inline-block !important; }
 .wa-signup-form-wrapper .wa-field .wa-value label:not(:first-child) { margin-top: 4px; }
 
-.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button { vertical-align: baseline; }
-.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"] { background: var(--link-color); }
+.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button { display: block;
+    margin-top: 1rem; }
+.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"] { background: var(--link-color); color: var(--white); }
 .wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"]:hover { opacity: 0.75; }
 
 /* Dialogs

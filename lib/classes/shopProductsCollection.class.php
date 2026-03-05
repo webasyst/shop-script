@@ -3499,104 +3499,142 @@ SQL;
                         }
                     };
 
-                    $shop_product_services = $this->getModel()->query("
+                    // Services overriden for specific products:
+                    // whole services or their variants may be enabled or disabled per product,
+                    // or service variant prices overriden
+                    $rows = $this->getModel()->query("
                         SELECT * FROM shop_product_services
-                        WHERE product_id IN (?) AND status <> ?
-                    ", [array_keys($products), shopProductServicesModel::STATUS_FORBIDDEN])->fetchAll();
+                        WHERE product_id IN (?)
+                    ", [array_keys($products)]);
 
-                    $where = [];
+                    $service_ids = [];
+                    $sku_custom_variant_price = [];
+                    $product_custom_service_status = [];
+                    $product_custom_variant_status = [];
+                    foreach ($rows as $row) {
+                        if (!$row['sku_id']) {
+                            if ($row['status'] != shopProductServicesModel::STATUS_FORBIDDEN || !isset($product_custom_service_status[$row['product_id']][$row['service_id']])) {
+                                $product_custom_service_status[$row['product_id']][$row['service_id']] = $row['status'];
+                            }
+                            $product_custom_variant_status[$row['product_id']][$row['service_variant_id']] = $row['status'];
+                        }
+                        if ($row['status'] != shopProductServicesModel::STATUS_FORBIDDEN) {
+                            $service_ids[$row['service_id']] = $row['service_id'];
+                            if ($row['sku_id']) {
+                                $sku_custom_variant_price[$row['sku_id']][$row['service_variant_id']] = $row['price'];
+                            }
+                        }
+                    }
+                    unset($rows, $row);
+
+                    // Services set up for types of products
+                    $services_by_type = [];
+                    $product_type_ids = array_filter(array_column($products, 'type_id'));
+                    if ($product_type_ids) {
+                        $rows = $this->getModel()->query("
+                            SELECT *
+                            FROM shop_type_services
+                            WHERE type_id IN (?)
+                        ", [$product_type_ids]);
+                        foreach ($rows as $row) {
+                            $services_by_type[$row['type_id']][] = $row['service_id'];
+                            $service_ids[$row['service_id']] = $row['service_id'];
+                        }
+                        unset($rows, $row);
+                    }
+                    unset($product_type_ids);
+
+                    // Get service info by service_ids collected earlier
                     $shop_services = [];
-                    if ($service_ids = array_unique(array_column($shop_product_services, 'service_id'))) {
-                        $where[] = 'ss.id IN (i:service_ids)';
-                    }
-                    if ($product_type_ids = array_column($products, 'type_id')) {
-                        $where[] = 'sts.type_id IN (i:type_ids)';
-                    }
-                    if ($where) {
+                    if ($service_ids) {
                         $shop_services = $this->getModel()->query("
-                            SELECT ss.*, sts.type_id AS product_type_id FROM shop_type_services sts 
-                            JOIN shop_service ss ON ss.id = sts.service_id
-                            WHERE ".implode(' OR ', $where)."
+                            SELECT ss.*
+                            FROM shop_service ss
+                            WHERE ss.id IN (i:service_ids)
                             ORDER BY ss.sort
-                        ", ['service_ids' => $service_ids, 'type_ids' => $product_type_ids])->fetchAll();
+                        ", ['service_ids' => array_keys($service_ids)])->fetchAll('id');
                     }
+                    unset($service_ids);
 
+                    // Get service variant info
                     $variants = (array) (new shopServiceVariantsModel())->getByField('service_id', array_column($shop_services, 'id'), 'id');
-                    foreach ($shop_services as &$_shop_service) {
-                        $_shop_service['variants'] = array_filter($variants, function ($_v) use ($_shop_service) {return $_v['service_id'] == $_shop_service['id'];});
+                    foreach ($shop_services as &$shop_service) {
+                        $shop_service['variants'] = array_filter($variants, function ($_v) use ($shop_service) {return $_v['service_id'] == $shop_service['id'];});
                     }
-                    unset($_shop_service, $variants);
+                    unset($shop_service, $variants);
 
+                    // Apply rounding to service and service variant prices
                     if (wa()->getSetting('round_services')) {
                         shopRounding::roundServices($shop_services);
                     }
 
                     $services = [];
                     $skus_services = [];
-                    $product_ids_additional_service = array_unique(array_column($shop_product_services, 'product_id'));
-                    foreach ($products as $_product_id => $_product) {
-                        foreach ($shop_services as $_shop_service) {
-                            // Convert service.price from default currency to service.currency
-                            $_shop_service['price'] = shop_currency($_shop_service['price'], null, $_shop_service['currency'], false);
-                            if ($_product['type_id'] == $_shop_service['product_type_id']) {
-                                $services[$_product_id][$_shop_service['id']] = $_shop_service;
+                    foreach ($products as $product_id => $product) {
+
+                        $product_service_ids = [];
+
+                        // Services enabled at type level
+                        foreach (ifset($services_by_type, $product['type_id'], []) as $sid) {
+                            if (!empty($shop_services[$sid])) {
+                                $product_service_ids[$sid] = $sid;
                             }
-                            if (in_array($_product_id, $product_ids_additional_service)) {
-                                foreach ($shop_product_services as $_key => $_additional_service) {
-                                    if (
-                                        $_product_id == $_additional_service['product_id']
-                                        && $_shop_service['id'] == $_additional_service['service_id']
-                                        && is_null($_additional_service['sku_id'])
-                                    ) {
-                                        $services[$_product_id][$_shop_service['id']] = $_shop_service;
-                                        unset($shop_product_services[$_key]);
+                        }
+                        // Services at product level
+                        foreach (ifset($product_custom_service_status, $product_id, []) as $sid => $status) {
+                            if ($status != shopProductServicesModel::STATUS_FORBIDDEN && !empty($shop_services[$sid])) {
+                                // enabled at product level
+                                $product_service_ids[$sid] = $sid;
+                            } else if ($status == shopProductServicesModel::STATUS_FORBIDDEN) {
+                                // disabled at product level
+                                unset($product_service_ids[$sid]);
+                            }
+                        }
+                        $services[$product_id] = array_intersect_key($shop_services, $product_service_ids);
+
+                        foreach ($services[$product_id] as $sid => &$service) {
+                            if (!empty($service['variants'])) {
+                                // Service variants disabled at product level
+                                foreach ($service['variants'] as $var_id => $variant) {
+                                    if (ifset($product_custom_variant_status, $product_id, $var_id, -1) == shopProductServicesModel::STATUS_FORBIDDEN) {
+                                        unset($service['variants'][$var_id]);
                                     }
                                 }
                             }
+                            if (empty($service['variants'])) {
+                                unset($services[$product_id][$sid]);
+                                continue;
+                            }
 
-                            if (isset($_product['skus'])) {
-                                foreach ($_product['skus'] as $_sku_id => $_sku) {
-                                    if ($_product['type_id'] == $_shop_service['product_type_id']) {
-                                        if (isset($_shop_service['variants'])) {
-                                            foreach ($_shop_service['variants'] as $_var_id => $_variant) {
-                                                $skus_services[$_product['id']][$_sku_id][$_shop_service['id']][$_var_id] = [
-                                                    'name' => $_variant['name'],
-                                                    'price' => $get_price($_variant['price'], $_shop_service['currency'], $_sku['price'], $_product['currency'])
-                                                ];
-                                            }
-                                        }
-                                    }
-
-                                    if (in_array($_product_id, $product_ids_additional_service)) {
-                                        foreach ($shop_product_services as $_key => $_additional_service) {
-                                            if (
-                                                $_product_id == $_additional_service['product_id']
-                                                && $_shop_service['id'] == $_additional_service['service_id']
-                                                && $_sku_id == $_additional_service['sku_id']
-                                            ) {
-                                                $_additional_variant = ifset($_shop_service, 'variants', $_additional_service['service_variant_id'], []);
-                                                $skus_services[$_product['id']][$_sku_id][$_shop_service['id']][$_additional_service['service_variant_id']] = [
-                                                    'name' => $_additional_variant['name'],
-                                                    'price' => $get_price($_additional_variant['price'], $_shop_service['currency'], $_sku['price'], $_product['currency'])
-                                                ];
-                                                unset($shop_product_services[$_key]);
-                                            }
-                                        }
+                            // Overriden service variant prices
+                            if (isset($product['skus']) && isset($product['currency'])) {
+                                foreach ($product['skus'] as $sku_id => $sku) {
+                                    foreach ($service['variants'] as $var_id => $variant) {
+                                        $price = ifset($sku_custom_variant_price, $sku_id, $var_id, $variant['price']);
+                                        $skus_services[$sku_id][$sid][$var_id] = [
+                                            'name' => $variant['name'],
+                                            'price' => $get_price($price, $service['currency'], $sku['price'], $product['currency']),
+                                        ];
                                     }
                                 }
                             }
                         }
+                        unset($service);
                     }
 
+                    // Write everything to products and skus
                     foreach ($products as &$prod) {
                         $prod['services'] = ifset($services, $prod['id'], []);
                         if (isset($prod['skus'])) {
-                            foreach ($prod['skus'] as $_sku_id => &$_sku) {
-                                $_sku['services'] = ifset($skus_services, $prod['id'], $_sku_id, []);
+                            foreach ($prod['skus'] as $sku_id => &$sku) {
+                                $sku['services'] = ifset($skus_services, $sku_id, []);
                             }
                         }
                     }
-                    unset($prod, $_sku);
+                    unset(
+                        $prod, $sku, $shop_services, $skus_services, $services, $services_by_type, 
+                        $product_custom_service_status, $sku_custom_variant_price, $product_custom_variant_status
+                    );
                 }
 
                 if (isset($fields['sales_30days'])) {

@@ -55,7 +55,7 @@ class shopFrontendApiCartController extends shopFrontApiJsonController
             'overwrite_product_prices' => true,
             'frontend' => true,
         ]);
-        $products = $collection->getProducts($formatter_product->getCollectionFields());
+        $products = $collection->getProducts($formatter_product->getCollectionFields(), 0, count($product_ids), false);
         $products = $formatter_product->format($products);
 
         $variant_ids = array_column(array_filter($items, function ($item) {

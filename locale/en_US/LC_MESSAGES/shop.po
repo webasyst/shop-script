@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=n == 1 ? 0 : 1;\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.3.2\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -60,3 +60,119 @@ msgstr "Campaigns"
 
 msgid "Install Webasyst Shop-Script mobile app on your phone today:"
 msgstr "Install Webasyst Shop-Script mobile app on your phone."
+
+msgid "Applied discount coupon"
+msgstr "Applied promo code"
+
+msgid "The coupon will be applied to products and services and will not affect the shipping cost."
+msgstr "The promo code will be applied to products and services and will not affect the shipping cost."
+
+msgid "The coupon will be applied only to products and will not affect the cost of services or the shipping cost."
+msgstr "The promo code will be applied only to products and will not affect the cost of services or the shipping cost."
+
+msgid "Coupons"
+msgstr "Promo codes"
+
+msgid "New coupon"
+msgstr "New promo code"
+
+msgid "Coupons search"
+msgstr "Promo code search"
+
+msgid "Discount coupons"
+msgstr "Promo codes"
+
+msgid "This will permanently delete discount coupon %s. Are you sure?"
+msgstr "This will permanently delete promo code %s. Are you sure?"
+
+msgid "Operation of all tools enabled for this promo will be discontinued—special product prices will be replaced by their ordinary prices, UTM tags will no longer be used to register incoming customer traffic, orders will not be counted by applied coupons, etc."
+msgstr "Operation of all tools enabled for this promo will be discontinued—special product prices will be replaced by their ordinary prices, UTM tags will no longer be used to register incoming customer traffic, orders will not be counted by applied promo codes, etc."
+
+msgid "Coupons can be created on the <a href=\"%s\">Discount coupons</a> screen."
+msgstr "Coupons can be created in the <a href=\"%s\">Promo codes</a> screen."
+
+msgid "Import coupons"
+msgstr "Import promo codes"
+
+msgid "Coupons can be either created manually on the <a href=\"%s\">Discount coupons</a> screen, or imported from a CSV file using the button above."
+msgstr "Promo codes can be either created manually in the <a href=\"%s\">Promo codes</a> screen, or imported from a CSV file using the button above."
+
+msgid "Discounts by coupons are turned off. Enable discounts in your <a href=\"%s\">store settings</a>."
+msgstr "Discounts by promo codes are turned off. Enable discounts in your <a href=\"%s\">store settings</a>."
+
+msgid "Coupon code"
+msgstr "Promo code"
+
+msgid "Coupon type"
+msgstr "Promo code type"
+
+msgid "Enter the maximum number of times this coupon can be used. Leave empty for no limits."
+msgstr "Enter the maximum number of times this promo code can be used. Leave empty for no limits."
+
+msgid "Delete this coupon"
+msgstr "Delete this promo code"
+
+msgid "This coupon was not used for any orders yet."
+msgstr "This promo code has not been used for any orders yet."
+
+msgid "This coupon was used for <strong>%d order</strong>."
+msgid_plural "This coupon was used for <strong>%d orders</strong>."
+msgstr[0] "This promo code has been used for <strong>%d order</strong>."
+msgstr[1] "This promo code has been used for <strong>%d orders</strong>."
+
+msgid "Coupon discount"
+msgstr "Promo code discount"
+
+msgid "Coupon settings"
+msgstr "Promo code settings"
+
+msgid "Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo."
+msgstr "Select promo codes for this promo. Orders with selected promo codes will be automatically associated with this promo."
+
+msgid "Find coupon & add to promo"
+msgstr "Find promo code & add to promo"
+
+msgid "Add a new coupon"
+msgstr "Add a new promo code"
+
+msgid "Enter coupon code"
+msgstr "Enter promo code"
+
+msgid "No coupon"
+msgstr "No promo code"
+
+msgid "Invalid coupon code"
+msgstr "Invalid promo code"
+
+msgid "Coupon applied"
+msgstr "Promo code applied"
+
+msgid "Coupon code is empty"
+msgstr "Promo code is empty"
+
+msgid "To set up <em>discount coupons</em>, please open “%s” section."
+msgstr "To set up <em>promo codes</em>, please open “%s” section."
+
+msgid "No coupons."
+msgstr "No promo codes."
+
+msgid "Any discount coupon"
+msgstr "Any promo code"
+
+msgid "Coupon"
+msgstr "Promo code"
+
+msgid "Coupon not found."
+msgstr "Promo code not found."
+
+msgid "Please select at least one coupon."
+msgstr "Please select at least one promo code."
+
+msgid "Sales by coupon"
+msgstr "Sales by promo code"
+
+msgid "Any coupon"
+msgstr "Any promo code"
+
+msgid "Extra information about discounts by coupons and bonus points"
+msgstr "Extra information about discounts by promo codes and bonus points"

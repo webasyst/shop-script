@@ -1,10 +1,343 @@
-<h1>Магазин в MAX</h1>
+{$bot_url = 'https://app.shop-script.ru/s/%s/'}
+<style>
+    @media screen and (min-width: 761px) {
+        .s-channels-content { container-type: inline-size; }
+        .s-channels-content .s-mini-app-preview { height: 100%; position: sticky; top: 10.55rem; }
+        .s-channels-content .s-mini-app-preview iframe { border-radius: 1rem; }
+        .s-channels-content > .content:has(.s-mini-app-preview) .article { display: flex; gap: 0.5rem; max-width: calc(960px + var(--iframe-width, 0px)); }
+        .s-channels-content > .content:has(.s-mini-app-preview) .article-body { padding-right: 1rem; }
+        @container (width < 1024px) {
+            .s-mini-app-preview { display: none; }
+        }
+    }
+</style>
 
-<p><em>[`Coming soon.`]</em></p>
+<p class="small">
+    {sprintf('[`Set up a mini-app online store within the %s messaging app. Your store seamlessly integrates with %s via a custom bot or a public channel and supports an in-mini-app checkout.`]', '[`MAX`]', '[`MAX`]')}
+</p>
+<p class="small">
+    <a href="https://support.webasyst.ru/shop-script/48536/shop-max/" class="bold" target="_blank">{sprintf('[`%s mini-app setup guide ›`]', '[`MAX`]')}</a>
+</p>
 
-<div class="box contentbox blank rounded">
-    <p class="small italic">
-        Магазин в мессенджере MAX. Подключение в виде бота с мини-приложением
-        <a href="https://business.max.ru/" target="_blank">business.max.ru</a>
-    </p>
+<div class="fields form js-max-settings-form">
+    <form action="{$wa_app_url}?module=channels&action=save" id="js-sales-channel-form">
+        <div class="fields-group custom-mt-16">
+
+            {if !empty($channel.id)}
+            <input type="hidden" name="id" value="{$channel.id|escape}">
+            {else}
+            <input type="hidden" name="is_new" value="1">
+            {/if}
+            <input type="hidden" name="data[type]" value="{$channel.type|escape}">
+
+            <div class="field">
+                <div class="name">
+                    [`Enabled`]
+                </div>
+                <div class="value">
+                    <label>
+                        <input type="checkbox" name="data[status]" value="1"{if !empty($channel.status)} checked{/if}>
+                    </label>
+                </div>
+            </div>
+
+            {foreach $form_fields as $name => $control_html}
+            <div class="field{if $name == 'background_color_light'} light-mark{/if}{if $name == 'background_color_dark'} dark-mark{/if}">
+                {$control_html}
+            </div>
+            {/foreach}
+
+            <h3>{sprintf('[`Your %s channel`]','[`MAX`]')}</h3>
+
+            <p class="small">
+                {sprintf('[`Use Shop-Script bot for posting products’ <b>BUY buttons</b> to your public %s channel so that your subscribers can buy & check out right within the messenger.`]', '[`MAX`]')}
+            </p>
+            <p class="small">
+                [`<b>It’s free!</b> There are no platform commissions for selling online via Shop-Script bot.`]
+            </p>
+
+            <div class="field">
+                <div class="name">{sprintf('[`Your %s channel`]','[`MAX`]')}</div>
+                <div class="value">
+                    <input type="text" name="data[params][channel_username]" value="{$channel.params.channel_username|default:''|escape}" class="longer">
+                    <p class="hint">[`Optional.`]
+                        Если у вас есть MAX-канал, <b>введите его полный адрес (URL) вида <code>https://max.ru/...</code></b>, чтобы бот Shop-Script, предварительно <a href="https://support.webasyst.ru/shop-script/48536/shop-max/" target="_blank">добавленный в администраторы канала</a>, мог публиковать в нем посты с кнопками «Купить».
+                    </p>
+                </div>
+            </div>
+
+            {* link to Shop-Script master MAX bot *}
+            <div class="field">
+                <div class="name">[`Shop-Script bot`]</div>
+                <div class="value js-public-url">
+                    <a href="https://max.ru/id7706505623_1_bot" class="bold" target="_blank">https://max.ru/id7706505623_1_bot <i class="fas fa-external-link-alt fa-xs opacity-50 custom-ml-4"></i></a>
+                    <p class="hint">
+                        [`Use this bot to publish posts with BUY buttons leading directly to your mini-app shopping experience.`]
+                    </p>
+                    <p class="hint">
+                        <i class="fas fa-info-circle text-gray"></i>
+                        {sprintf('[`To start posting, make sure %s is added as an admin to your %s public channel.`]', 'Shop-Script', '[`MAX`]')}
+                        <a href="https://support.webasyst.ru/shop-script/48536/shop-max/" class="bold" target="_blank">{sprintf('[`%s mini-app setup guide ›`]', '[`MAX`]')}</a>
+                    </p>
+                </div>
+            </div>
+
+            <h3>{sprintf('[`Your %s custom bot`]','[`MAX`]')}</h3>
+            <p class="small">
+                {sprintf_wp(
+                    '<b>An advanced option</b> with a custom bot and your branding. In this mode, you will need to create your own %s bot using <code><a %s>%s</a></code> and link your store to that bot as a mini-app.',
+                    '[`MAX`]',
+                    'href="https://business.max.ru" target="_blank"',
+                    '[`MAX for business`]'
+                )}
+            </p>
+            <p class="small">
+                [`If your custom bot token is connected, Shop-Script bot will automatically redirect all BUY buttons to your custom bot mini-app.`]
+            </p>
+            <p class="small">
+                {if shopLicensing::isPremium()}{$_c = 0.75}{else}{$_c = 1.5}{/if}
+                {sprintf_wp(
+                    '<b>%s%% commission</b> for orders processed via a custom bot. <a %s>How it works ›</a>',
+                    $_c|wa_format_number:2,
+                    sprintf(
+                        'href="%s" target="_blank"',
+                        '[`https://www.shop-script.com/pricing/`]'
+                    )
+                )}
+            </p>
+
+            <div class="field">
+                <div class="name for-input">[`Your custom bot token`]</div>
+                <div class="value js-bot-token">
+                    <div class="state-with-inner-icon right">
+                        <input type="password" name="data[params][bot_token]" class="input" value="{$channel.params.bot_token|default:''|escape}" autocomplete="off">
+                    </div>
+                    <button class="{if empty($channel.params.bot_username)}blue{else}light-gray{/if} js-connect-bot">[`Connect`]</button>
+                    <span class="text-light-gray js-bot-username-block{if empty($channel.params.bot_username)} hidden{/if}">
+                        <span class="js-bot-username state-success">@{$channel.params.bot_username|default:''|escape}</span>
+                    </span>
+                    <span class="hidden js-bot-not-found state-error"></span>
+                    <input type="hidden" name="data[params][bot_username]" value="{if !empty($channel.params.bot_token)}{$channel.params.bot_username|default:''|escape}{/if}">
+
+                    {$bot_state = ''}
+                    {if !empty($channel.params.bot_token)}
+                        {if empty($channel.params.bot_username)}
+                            {$bot_state = ' state-error-hint'}
+                        {else}
+                            {$bot_state = ' state-success-hint'}
+                        {/if}
+                    {/if}
+                    <p class="hint">
+                        {sprintf_wp(
+                            'Create your custom MAX bot and obtain its token via <a %s>MAX for business</a>.',
+                            'href="https://business.max.ru" target="_blank"'
+                        )}
+                    </p>
+                </div>
+            </div>
+
+            {* custom bot mode mini-app URL *}
+            <div class="field">
+                <div class="name">[`Mini-app URL`]</div>
+                <div class="value js-bot-url">
+                    {if !$is_waid}
+                        <p class="state-caution small">
+                            <i class="fas fa-exclamation-triangle text-orange"></i>
+                            {sprintf('[`For the mini-app to work, enable Webasyst ID and services in the <a %s>Settings app</a>.`]', 'href="'|cat:$wa_backend_url|cat:'webasyst/settings/"')}
+                        </p>
+                    {elseif empty($channel.wa_channel_id)}
+                    <em class="small">[`Save this channel to get a link for your bot’s mini-app.`]</em>
+                    {else}
+                    <code>{sprintf($bot_url, $channel.wa_channel_id|default:''|escape)}</code>
+                    <a class="js-copy text-gray custom-mx-2" href="javascript:void(0)"><i class="fas fa-copy"></i></a>
+                    <span class="js-copy-success state-success-hint lowercase valign-top" style="display: none;">[`Copied`]</span>
+                    <script>
+                        $(function() {
+                            "use strict";
+                            const $bot_url = $('.js-bot-url');
+                            $bot_url.find('.js-copy').on('click', function() {
+                                const url = $bot_url.find('code').text().trim();
+                                if (!url) return;
+
+                                try {
+                                    $.wa.copyToClipboard(url);
+                                    $bot_url.find('.js-copy-success').stop(true, true).fadeIn(150).delay(1000).fadeOut(200);
+                                } catch {}
+                            });
+                        });
+                    </script>
+                    <p class="hint">
+                        [`Save this URL to <em>MAX for business › select your bot › Mini-app › URL</em>.`]
+                        <br> [`The URL will never change unless the channel is deleted.`]
+                    </p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Payment`]</div>
+                <div class="value small">
+                    <i class="fas fa-check-circle text-green"></i>
+                    {sprintf_wp(
+                        '%s mini-app checkout payment is based on <a %s>Webasyst Pay</a>.',
+                        '[`MAX`]',
+                        'href="'|cat:$wa_app_url|cat:'?action=settings#/payment/" class="nowrap"'
+                    )}
+                </div>
+            </div>
+
+            <script>
+                $(function () {
+                    let $p_state = $('.js-bot-token').find('p.hint');
+                    let $bot_username = $('.js-bot-username-block');
+
+                    $('[name="data[params][bot_token]"]').on('input', function () {
+                        $('[name="data[params][bot_username]"]').val('');
+                        $bot_username.addClass('hidden');
+                        $('.js-connect-bot').removeClass('light-gray').addClass('blue');
+                        $p_state.removeClass('state-error-hint state-success-hint');
+                    });
+
+                    $('.js-connect-bot').on('click', function (e) {
+                        e.preventDefault();
+                        let $token_input = $('[name="data[params][bot_token]"]');
+                        let token = $token_input.val();
+
+                        if (token) {
+                            let bot_not_found = function () {
+                                $('[name="data[params][bot_username]"]').val('');
+                                $('.js-bot-not-found').removeClass('hidden').html('[s`Bot MAX not found`]');
+                                console.warn('BOT MAX NOT FOUND');
+                            };
+                            $token_input.removeClass('state-caution');
+                            $('.js-bot-not-found').addClass('hidden');
+
+                            $.ajax({
+                                url: '?module=channels&action=otherRequests',
+                                method: 'POST',
+                                data: { method: 'getMaxBot', token: token },
+                                dataType: 'json',
+                                global: false,
+                                success: function (response) {
+                                    if (response.status === 'ok') {
+                                        if (response.data.bot.username) {
+                                            $bot_username.removeClass('hidden');
+                                            $('.js-connect-bot').removeClass('blue').addClass('light-gray');
+                                            $('.js-bot-username').html('@'+ response.data.bot.username);
+                                            $('[name="data[params][bot_username]"]').val(response.data.bot.username);
+                                        } else {
+                                            bot_not_found();
+                                        }
+                                    } else {
+                                        $('[name="data[params][bot_username]"]').val('');
+                                        if(response.errors) {
+                                            let err = response.errors.shift();
+                                            $('.js-bot-not-found').removeClass('hidden').html(err);
+                                        }
+                                        console.warn('error API MAX response', response);
+                                    }
+                                },
+                                statusCode: {
+                                    401: bot_not_found,
+                                    404: bot_not_found
+                                }
+                            });
+                        } else {
+                            $token_input.addClass('state-caution');
+                        }
+                    });
+
+                    $('[name="data[params][channel_username]"]').on('input', function () {
+                        let channel_username = $(this).val().trim();
+                        const regex = /^https:\/\/max\.ru\/join\/\S+\/?$/gm;
+                        if (channel_username.match(regex)) {
+                            $(this).removeClass('state-error');
+                        } else {
+                            $(this).addClass('state-error');
+                        }
+                    });
+                });
+            </script>
+
+
+            <div class="field">
+                <div class="name"></div>
+                <div class="value">
+                    <div class="flexbox middle">
+                        <div class="wide">
+                            <input type="submit" class="button green" value="[`Save`]">
+                        </div>
+                        {if !empty($channel.id)}
+                        <div class="nowrap">
+                            <button class="button red outlined js-delete-button" type="button">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                        {/if}
+                    </div>
+                    <div class="js-place-for-errors custom-mt-4"></div>
+                </div>
+            </div>
+        </div>
+    </form>
 </div>
+
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/channels/channels.js?{$wa->version()}"></script>
+<script>
+    $(function () {
+        "use strict";
+        const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
+        const spinner_html = '<span class="spinner" />';
+        const $form = $('#js-sales-channel-form');
+        const $place_for_errors = $form.find('.js-place-for-errors');
+        const $submit_button = $form.find(':submit').last();
+
+        const controller = new SalesChannelForm({
+            $place_for_errors,
+            $form,
+        });
+
+        $form.on('save_request', function () {
+            $place_for_errors.empty();
+            $submit_button.prop('disabled', true).after(spinner_html);
+        });
+        $form.on('save_success save_fail', function (evt, data) {
+            if (data.result?.error_description) {
+                $place_for_errors.append('<span class="state-caution-hint">'+ data.result.error_description +'</span>');
+            } else if (data.result?.wa_channel_id) {
+                $(this).find('.js-bot-url span').html('{$bot_url}'.replace('%s', data.result.wa_channel_id));
+            }
+            $submit_button.prop('disabled', false).siblings('.spinner').remove();
+        });
+
+        $form.on('save_success', function (evt, data) {
+            {if empty($channel.id)}
+                // After successfull save of a new channel, redirect to its proper URL containing id
+                window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
+            {/if}
+        });
+
+
+        {if !empty($channel.id)}
+            const channel_id = {$channel.id|json_encode};
+            const $delete_button = $form.find('.js-delete-button');
+            $delete_button.on('click', function (e) {
+                e.preventDefault();
+                $.waDialog.confirm({
+                    title: {_w("Delete this channel and all its settings?")|json_encode},
+                    success_button_title: {_w("Delete permanently")|json_encode},
+                    success_button_class: 'danger',
+                    cancel_button_title: {_w("Cancel")|json_encode},
+                    cancel_button_class: 'light-gray',
+                    onSuccess: function () {
+                        $delete_button.prop('disabled', true).after(spinner_html);
+                        $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
+                            $submit_button.prop('disabled', false).siblings('.spinner').remove();
+                            window.location = {$wa_app_url|json_encode} + '?action=plugins#/';
+                        });
+                    }
+                });
+            });
+        {/if}
+    });
+</script>

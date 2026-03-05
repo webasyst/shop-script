@@ -225,4 +225,9 @@ abstract class shopSalesChannelType
     {
         return ifset($this->type_data[$name]);
     }
+
+    protected function isWaid()
+    {
+        return (new waWebasystIDClientManager)->isConnected();
+    }
 }

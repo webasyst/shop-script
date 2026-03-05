@@ -14,10 +14,10 @@
 </style>
 
 <p class="small">
-    [`Set up a mini-app online store within the Telegram messaging app. Your store seamlessly integrates with Telegram via a custom bot or a public channel and supports an in-mini-app checkout.`]
+    {sprintf('[`Set up a mini-app online store within the %s messaging app. Your store seamlessly integrates with %s via a custom bot or a public channel and supports an in-mini-app checkout.`]', '[`Telegram`]', '[`Telegram`]')}
 </p>
 <p class="small">
-    <a href="[`https://support.webasyst.com/shop-script/48485/shop-telegram/`]" class="bold" target="_blank">[`Telegram mini-app setup guide ›`]</a>
+    <a href="[`https://support.webasyst.com/shop-script/48485/shop-telegram/`]" class="bold" target="_blank">{sprintf('[`%s mini-app setup guide ›`]', '[`Telegram`]')}</a>
 </p>
 
 <div class="fields form js-telegram-settings-form">
@@ -50,17 +50,17 @@
             {/foreach}
 
 
-            <h3>[`Your public Telegram channel`]</h3>
+            <h3>{sprintf('[`Your %s channel`]','[`Telegram`]')}</h3>
 
             <p class="small">
-                [`Use Shop-Script bot for posting products’ <b>BUY buttons</b> to your public Telegram channel so that your subscribers can buy & check out right within the Telegram messenger.`]
+                {sprintf('[`Use Shop-Script bot for posting products’ <b>BUY buttons</b> to your public %s channel so that your subscribers can buy & check out right within the messenger.`]', '[`Telegram`]')}
             </p>
             <p class="small">
                 [`<b>It’s free!</b> There are no platform commissions for selling online via Shop-Script bot.`]
             </p>
 
             <div class="field">
-                <div class="name">[`Your public Telegram channel`]</div>
+                <div class="name">{sprintf('[`Your %s channel`]','[`Telegram`]')}</div>
                 <div class="value">
                     <input type="text" name="data[params][channel_username]" value="{$channel.params.channel_username|default:''|escape}">
                     <p class="hint">[`Optional.`] [`If you have a public Telegram channel, enter its @username here to allow the main Shop-Script bot to post BUY buttons to this channel.`]</p>
@@ -77,27 +77,30 @@
                     </p>
                     <p class="hint">
                         <i class="fas fa-info-circle text-gray"></i>
-                        [`To start posting, make sure @WebasystShopScript_bot is added as an admin to your Telegram public channel.`]
-                        <a href="[`https://support.webasyst.com/shop-script/48485/shop-telegram/`]" class="bold" target="_blank">[`Telegram mini-app setup guide ›`]</a>
+                        {sprintf('[`To start posting, make sure %s is added as an admin to your %s public channel.`]', '@WebasystShopScript_bot', '[`Telegram`]')}
+                        <a href="[`https://support.webasyst.com/shop-script/48485/shop-telegram/`]" class="bold" target="_blank">{sprintf('[`%s mini-app setup guide ›`]', '[`Telegram`]')}</a>
                     </p>
                 </div>
             </div>
 
 
-            <h3>[`Your Telegram custom bot`]</h3>
+            <h3>{sprintf('[`Your %s custom bot`]','[`Telegram`]')}</h3>
             <p class="small">
                 {sprintf_wp(
-                    '<b>An advanced option</b> with a custom bot and your branding. In this mode, you will need to create your own Telegram bot using <code><a %s>@BotFather</a></code> and link your store to that bot as a mini-app.',
-                    'href="https://t.me/BotFather" target="_blank"'
+                    '<b>An advanced option</b> with a custom bot and your branding. In this mode, you will need to create your own %s bot using <code><a %s>%s</a></code> and link your store to that bot as a mini-app.',
+                    '[`MAX`]',
+                    'href="https://t.me/BotFather" target="_blank"',
+                    '@BotFather'
                 )}
             </p>
             <p class="small">
                 [`If your custom bot token is connected, Shop-Script bot will automatically redirect all BUY buttons to your custom bot mini-app.`]
             </p>
             <p class="small">
+                {if shopLicensing::isPremium()}{$_c = 0.75}{else}{$_c = 1.5}{/if}
                 {sprintf_wp(
                     '<b>%s%% commission</b> for orders processed via a custom bot. <a %s>How it works ›</a>',
-                    1.5|wa_format_number:1,
+                    $_c|wa_format_number:2,
                     sprintf(
                         'href="%s" target="_blank"',
                         '[`https://www.shop-script.com/pricing/`]'
@@ -139,10 +142,32 @@
             <div class="field">
                 <div class="name">[`Mini-app URL`]</div>
                 <div class="value js-bot-url">
-                    {if empty($channel.wa_channel_id)}
+                    {if !$is_waid}
+                        <p class="state-caution small">
+                            <i class="fas fa-exclamation-triangle text-orange"></i>
+                            {sprintf('[`For the mini-app to work, enable Webasyst ID and services in the <a %s>Settings app</a>.`]', 'href="'|cat:$wa_backend_url|cat:'webasyst/settings/"')}
+                        </p>
+                    {elseif empty($channel.wa_channel_id)}
                         <em class="small">[`Save this channel to get a link for your bot’s mini-app.`]</em>
                     {else}
                         <code>{sprintf($bot_url, $channel.wa_channel_id|default:''|escape)}</code>
+                        <a class="js-copy text-gray custom-mx-2" href="javascript:void(0)"><i class="fas fa-copy"></i></a>
+                        <span class="js-copy-success state-success-hint lowercase valign-top" style="display: none;">[`Copied`]</span>
+                        <script>
+                            $(function() {
+                                "use strict";
+                                const $bot_url = $('.js-bot-url');
+                                $bot_url.find('.js-copy').on('click', function() {
+                                    const url = $bot_url.find('code').text().trim();
+                                    if (!url) return;
+
+                                    try {
+                                        $.wa.copyToClipboard(url);
+                                        $bot_url.find('.js-copy-success').stop(true, true).fadeIn(150).delay(1000).fadeOut(200);
+                                    } catch {}
+                                });
+                            });
+                        </script>
                         <p class="hint">
                             [`Save this URL to <em>Telegram › @BotFather › your bot › Mini-app › URL</em>.`]
                             <br> [`The URL will never change unless the channel is deleted.`]
@@ -156,7 +181,8 @@
                 <div class="value small">
                     <i class="fas fa-check-circle text-green"></i>
                     {sprintf_wp(
-                        'Telegram mini-app checkout payment is based on <a %s>Webasyst Pay</a>.',
+                        '%s mini-app checkout payment is based on <a %s>Webasyst Pay</a>.',
+                        '[`Telegram`]',
                         'href="'|cat:$wa_app_url|cat:'?action=settings#/payment/" class="nowrap"'
                     )}
                 </div>

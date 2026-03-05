@@ -270,6 +270,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
     {
         $view = wa('shop')->getView();
         $view->assign([
+            'is_waid' => $this->isWaid(),
             'channel' => $channel,
             'form_fields' => $this->getFormFields($channel),
         ]);

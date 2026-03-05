@@ -90,7 +90,7 @@ class shopMainMenu
                 "placement" => "body",
                 "submenu" => [
                     [
-                        "name" => _w("Promos on website"),
+                        "name" => _w("Promos"),
                         "url" => "{$wa_app_url}marketing/"
                     ],
                     [
