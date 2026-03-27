@@ -158,20 +158,13 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
         }
         unset($field_info);
 
-        // Ask shipping plugin for custom fields required for exact rate calculation
-
-        /**
-         * добавляем дату и время, когда магазин приготовит заказ и учитываем
-         * время ($assembly_time) на комплектацию заказа указанным способом доставки
-         */
+        // calculate $departure_datetime: when order is ready for shipping plugin to pick up
         $assembly_time  = $this->getCheckoutConfig()->getAssemblyTimeByRate($selected_variant);
         $departure_date = shopDepartureDateTimeFacade::getDeparture($this->getCheckoutConfig()['schedule']);
         $departure_date->setExtraProcessingTime((int) $assembly_time * 3600);
         $departure_datetime = (string) $departure_date->getDepartureDateTime();
 
-        /** отправляем в плагин временную зону магазина */
-        $shop_config = wa('shop')->getConfig()->getSchedule();
-
+        // Ask shipping plugin for custom fields required for exact rate calculation
         $custom_input_values = ifset($data, 'input', 'details', 'custom', []);
         $plugin_custom_field_settings = $plugin->customFieldsForService(new waOrder([
             'contact_id'       => ifempty($contact, 'id', null),
@@ -181,7 +174,7 @@ class shopCheckoutDetailsStep extends shopCheckoutStep
             'shipping_params'  => $custom_input_values,
             'params'          => [
                 'departure_datetime' => $departure_datetime,
-                'shop_time_zone'     => ifset($shop_config['timezone'], date_default_timezone_get())
+                'shop_time_zone'     => ifset(ref(wa('shop')->getConfig()->getSchedule()), 'timezone', date_default_timezone_get()),
             ],
         ]), $selected_variant);
 

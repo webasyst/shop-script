@@ -10,6 +10,11 @@ class shopCheckoutConfirmStep extends shopCheckoutStep
     {
         $order = $data['order'];
 
+        // Put address into order. It may affect tax calculation as it depends on address ZIP code
+        if (!empty($data['shipping']['address'])) {
+            $order['shipping_address'] = $data['shipping']['address'];
+        }
+
         // Make sure waOrder recalculates discount instead of using cached value.
         // Discounts were calculated once in 'shipping' step code
         // so that all shipping plugins get proper discounted prices.

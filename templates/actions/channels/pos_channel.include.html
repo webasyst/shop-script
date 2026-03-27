@@ -42,7 +42,7 @@
                     {/if}
                     <p class="hint">[`Human readable physical address of the point of sale. Displayed publicly in the list of available in-store pickup locations.`]</p>
                     {if empty($channel.params.map_adapter_disabled)}
-                        <p class="state-caution-hint">[`Configure an online map engine in the <em>Settings</em> app to be able to set a location on a map.`]</p>
+                        <p class="alert smaller info">[`Configure an online map engine in the <em>Settings</em> app to be able to set a location on a map.`]</p>
                     {/if}
                     <div class="js-map-point">{ifempty($channel, 'params', 'map_html', '')}</div>
                 </div>

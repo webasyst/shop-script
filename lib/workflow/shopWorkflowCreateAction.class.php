@@ -336,6 +336,51 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         );
         $order['contact_id'] = $contact->getId();
 
+        if (wa()->getEnv() === 'frontend' || shopRights::isAssistant()) {
+            // Assistant or customer may not assign order to roles
+            unset(
+                $data['params']['cashier_contact_id'],
+                $data['params']['manager_contact_id'],
+                $data['params']['courier_contact_id'],
+                $data['params']['fulfillment_contact_id']
+            );
+        }
+
+        if (wa()->getEnv() !== 'frontend') {
+            if (shopRights::isAssistant()) {
+                // Automatically assign order to assistant who created it
+                switch (wa()->getUser()->getRights('shop', 'orders')) {
+                    case shopRightConfig::RIGHT_ORDERS_CASHIER:
+                        $data['params']['cashier_contact_id'] = $order['cashier_contact_id'] = wa()->getUser()->getId();
+                        break;
+                    case shopRightConfig::RIGHT_ORDERS_MANAGER:
+                        $data['params']['manager_contact_id'] = $order['manager_contact_id'] = wa()->getUser()->getId();
+                        break;
+                }
+            } else {
+                // Allow non-assistant backend user to assign order to any backend user
+                foreach (['cashier_contact_id', 'manager_contact_id', 'courier_contact_id', 'fulfillment_contact_id'] as $role_field) {
+                    $contact_id = ifset($data, 'params', $role_field, null);
+                    if (!$contact_id) {
+                        $contact_id = ifset($data, $role_field, null);
+                    }
+                    $c = null;
+                    if ($contact_id && wa_is_int($contact_id) && $contact_id > 0) {
+                        if (!isset($contact_model)) {
+                            $contact_model = new waContactModel();
+                        }
+                        $c = $contact_model->getByField(['id' => $contact_id, 'is_user' => 1]);
+                        if ($c) {
+                            $data['params'][$role_field] = $order[$role_field] = $contact_id;
+                        }
+                    }
+                    if (!$c) {
+                        unset($data['params'][$role_field], $data[$role_field]);
+                    }
+                }
+            }
+        }
+
         // Add contact to 'shop' category
         try {
             $contact->addToCategory('shop');
@@ -622,6 +667,7 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         $this->setPackageState(waShipping::STATE_DRAFT, $order_id, array('log' => true));
+        $this->assignmentAutomation($order, true);
 
         return $order_id;
     }

@@ -34,7 +34,10 @@ class shopOrderListAction extends waViewAction
         $this->model = new shopOrderModel();
         $this->collection = new shopOrdersCollection($this->getHash());
         $sort = $this->getSort();
-        $order_by = array($sort[0] => $sort[1]);
+        $order_by = [
+            'assigned_to:'.wa()->getUser()->getId() => 'DESC',
+            $sort[0] => $sort[1],
+        ];
         if ($sort[0] !== 'id') {
             if ($sort[0] !== 'create_datetime') {
                 $order_by['create_datetime'] = 'desc';
@@ -61,7 +64,7 @@ class shopOrderListAction extends waViewAction
             if ($search) {
                 $search = preg_replace('/([<>]=?)([^=]+)/', '$1"$2"', $search);
                 $this->collection->addWhere($search);
-                $this->updated_orders = $this->collection->getOrders("*,products,contact,params,courier");
+                $this->updated_orders = $this->collection->getOrders("*,products,contact,assigned_contact,params,courier");
                 self::extendContacts($this->updated_orders);
                 shopHelper::workupOrders($this->updated_orders);
             }
@@ -194,7 +197,7 @@ class shopOrderListAction extends waViewAction
         if ($this->filter_params === null) {
             $params = array();
             $state_id = waRequest::get('state_id');
-            if ($state_id && wa()->getUser()->getRights('shop', 'orders') != shopRightConfig::RIGHT_ORDERS_COURIER) {
+            if ($state_id && (!shopRights::isAssistant() || wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_MANAGER)) {
                 if (strstr($state_id, '|') !== false) {
                     $params['state_id'] = explode('|', $state_id);
                 } else {
@@ -291,49 +294,67 @@ class shopOrderListAction extends waViewAction
         return substr($params_str, 1);
     }
 
+    protected static function extendContact($contact, $order)
+    {
+        static $emails = [];
+        static $gravatar_default = [];
+        static $use_gravatar;
+
+        if (empty($use_gravatar)) {
+            $config = wa('shop')->getConfig();
+            /** @var shopConfig $config */
+            $use_gravatar = $config->getGeneralSettings('use_gravatar');
+            $gravatar_default = $config->getGeneralSettings('gravatar_default');
+        }
+
+        if (isset($contact)) {
+            if (!$contact['photo'] && $use_gravatar) {
+                if (!isset($emails[$contact['id']])) {
+                    $c = new waContact($contact['id']);
+                    $emails[$contact['id']] = $c->get('email', 'default');
+                }
+
+                $email = $emails[$contact['id']];
+                $contact['photo_50x50'] = shopHelper::getGravatarPic($email, array(
+                    'size'       => 50,
+                    'default'    => $gravatar_default,
+                    'is_company' => !empty($contact['is_company'])
+                ));
+            } else {
+                $type = !empty($contact['is_company']) ? 'company' : 'person';
+                $contact['photo_50x50'] = waContact::getPhotoUrl($contact['id'], $contact['photo'], 50, 50, $type);
+            }
+        } else {
+            // contact deleted
+            $contact['name'] = ifset($order, 'params', 'contact_name', '');
+            $contact['email'] = ifset($order, 'params', 'contact_email', '');
+            $contact['phone'] = ifset($order, 'params', 'contact_phone', '');
+            $contact['name'] = htmlspecialchars($contact['name']);
+            if ($use_gravatar) {
+                $contact['id']['photo_50x50'] = shopHelper::getGravatarPic($contact['email'], array(
+                    'size' => 50,
+                    'default' => $gravatar_default,
+                    'is_company' => !empty($contact['is_company'])
+                ));
+            } else {
+                $contact['photo_50x50'] = waContact::getPhotoUrl(null, null, 50, 50);
+            }
+        }
+
+        return $contact;
+    }
+
     public static function extendContacts(&$orders)
     {
-        $config = wa('shop')->getConfig();
-        /**
-         * @var shopConfig $config
-         */
-        $use_gravatar = $config->getGeneralSettings('use_gravatar');
-        $gravatar_default = $config->getGeneralSettings('gravatar_default');
-
-        $emails = array();
-
+        $roles = shopRightConfig::getOrdersAccessOptions();
+        unset($roles[shopRightConfig::RIGHT_ORDERS_NONE], $roles[shopRightConfig::RIGHT_ORDERS_FULL]);
         foreach ($orders as &$o) {
-            if (isset($o['contact'])) {
-                if (!$o['contact']['photo'] && $use_gravatar) {
-
-                    if (!isset($emails[$o['contact']['id']])) {
-                        $c = new waContact($o['contact']['id']);
-                        $emails[$o['contact']['id']] = $c->get('email', 'default');
-                    }
-
-                    $email = $emails[$o['contact']['id']];
-                    $o['contact']['photo_50x50'] = shopHelper::getGravatarPic($email, array(
-                        'size' => 50,
-                        'default' => $gravatar_default,
-                        'is_company' => !empty($o['contact']['is_company'])
-                    ));
-                } else {
-                    $type = !empty($o['contact']['is_company']) ? 'company' : 'person';
-                    $o['contact']['photo_50x50'] = waContact::getPhotoUrl($o['contact']['id'], $o['contact']['photo'], 50, 50, $type);
-                }
-            } else { // contact deleted
-                $o['contact']['name'] = isset($o['params']['contact_name']) ? $o['params']['contact_name'] : '';
-                $o['contact']['name'] = htmlspecialchars($o['contact']['name']);
-                $o['contact']['email'] = isset($o['params']['contact_email']) ? $o['params']['contact_email'] : '';
-                $o['contact']['phone'] = isset($o['params']['contact_phone']) ? $o['params']['contact_phone'] : '';
-                if ($use_gravatar) {
-                    $o['contact']['photo_50x50'] = shopHelper::getGravatarPic($o['contact']['email'], array(
-                        'size' => 50,
-                        'default' => $gravatar_default,
-                        'is_company' => !empty($o['contact']['is_company'])
-                    ));
-                } else {
-                    $o['contact']['photo_50x50'] = waContact::getPhotoUrl(null, null, 50, 50);
+            $o['contact'] = self::extendContact($o['contact'], $o);
+            if (!empty($o['assigned_contact'])) {
+                try {
+                    $o['assigned_contact'] = self::extendContact($o['assigned_contact'], $o);
+                    $o['assigned_contact'] += (array) shopRights::getUserRole($o['assigned_contact']);
+                } catch (Throwable $e) {
                 }
             }
         }
@@ -386,5 +407,42 @@ class shopOrderListAction extends waViewAction
         }
 
         return null;
+    }
+
+    protected function getAssignedUsers()
+    {
+        $roles = waRequest::get('role', ['all'], waRequest::TYPE_ARRAY);
+
+        $role_ids = [];
+        foreach ($roles as $_role) {
+            switch ($_role) {
+                case 'couriers':
+                    $role_ids[shopRightConfig::RIGHT_ORDERS_COURIER] = shopRightConfig::RIGHT_ORDERS_COURIER;
+                    break;
+                case 'fulfillments':
+                    $role_ids[shopRightConfig::RIGHT_ORDERS_FULFILLMENT] = shopRightConfig::RIGHT_ORDERS_FULFILLMENT;
+                    break;
+                case 'cashiers':
+                    $role_ids[shopRightConfig::RIGHT_ORDERS_CASHIER] = shopRightConfig::RIGHT_ORDERS_CASHIER;
+                    break;
+                case 'managers':
+                    $role_ids[shopRightConfig::RIGHT_ORDERS_MANAGER] = shopRightConfig::RIGHT_ORDERS_MANAGER;
+                    break;
+            }
+        }
+
+        $assigned_contacts_dis = [];
+        if ($roles === ['all']) {
+            $values = shopRightConfig::getOrdersAccessOptions();
+            unset($values[shopRightConfig::RIGHT_ORDERS_NONE]);
+            $role_ids = array_keys($values);
+            $assigned_contacts_dis = $this->model->query('
+                SELECT DISTINCT assigned_contact_id FROM shop_order
+                WHERE assigned_contact_id > 0
+            ')->fetchAll('assigned_contact_id');
+        }
+        $assigned_contacts = shopRights::getContactIds('shop', 'orders', $role_ids);
+
+        return array_unique(array_merge(array_keys($assigned_contacts), array_keys($assigned_contacts_dis)));
     }
 }

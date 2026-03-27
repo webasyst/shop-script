@@ -1,24 +1,26 @@
 <?php
 
-class shopOrdersAction extends shopOrderListAction {
-    public function execute() {
+class shopOrdersAction extends shopOrderListAction
+{
+    public function execute()
+    {
         /** @var shopConfig $config */
         $config = $this->getConfig();
 
         $view = $this->getOrdersView();
 
         $orders = [];
-
+        $assigned_users = [];
         $forbidden = array_fill_keys(['edit', 'message', 'comment', 'editshippingdetails', 'editcode'], true);
 
         $workflow = new shopWorkflow();
 
         $count = $this->getCount();
-        $counters = ['state_counters' => []];
+        $counters = ['state_counters' => [], 'assignment_counters' => []];
         $available_states = $workflow->getAvailableStates();
         $filter_state_id = $this->getStateId();
         if ($view == 'kanban') {
-            if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+            if (shopRights::isAssistant()) {
                 throw new waException(_w('Access denied'), 403);
             }
             if ($filter_state_id) {
@@ -30,6 +32,26 @@ class shopOrdersAction extends shopOrderListAction {
                 $orders += $this->getOrders(0, $count);
                 $counters['state_counters'][$state_id] = $this->collection->count(true);
                 $this->collection->deleteTempWhere($temp_where);
+            }
+        } elseif ($view == 'kanban-users') {
+            if (shopRights::isAssistant()) {
+                throw new waException(_w('Access denied'), 403);
+            }
+            foreach ($this->getAssignedUsers() as $_assigned_user_id) {
+                $temp_where = "o.assigned_contact_id = '$_assigned_user_id'";
+                $this->collection->addWhere($temp_where);
+                $_ords = $this->getOrders(0, $count);
+                $orders += $_ords;
+                $counters['assignment_counters'][$_assigned_user_id] = $this->collection->count(true);
+                $this->collection->deleteTempWhere($temp_where);
+                if (!count($_ords)) {
+                    $_assigned_user = new waContact($_assigned_user_id);
+                    $assigned_users[$_assigned_user_id] = [
+                        'id' => $_assigned_user->getId(),
+                        'name' => $_assigned_user->getName(),
+                        'photo_50x50' => waContact::getPhotoUrl($_assigned_user_id, $_assigned_user['photo'], 50, 50, shopCheckoutConfig::CUSTOMER_TYPE_PERSON),
+                    ];
+                }
             }
         } else {
             $orders = $this->getOrders(0, $count);
@@ -79,7 +101,7 @@ class shopOrdersAction extends shopOrderListAction {
         }
 
         $filter_params = $this->getFilterParams();
-        if ($view != 'kanban') {
+        if (!in_array($view, ['kanban', 'kanban-users'])) {
             $counters['state_counters']['new'] = $this->model->getStateCounters('new');
             if ($filter_state_id) {
                 $filter_params['state_id'] = $filter_state_id;
@@ -113,26 +135,31 @@ class shopOrdersAction extends shopOrderListAction {
                 $orders_sales_html = $sales_stats_action->display();
             }
         }
+        $counters['common_counters']['app_badge'] = wa('shop')->getConfig()->getAppBadgeCount();
 
         // for define which actions available for whole order list
         // need for apply action on order list in table view (see $.order_list)
         // if not used, not query it and must be NULL (not empty array) for distinguish cases
+        $state_counters = null;
+        $state_transitions = null;
         $all_order_state_ids = null;
         if ($view === 'table') {
             $all_order_state_ids = $this->getDistinctOrderFieldValues('state_id');
-        }
-
-        $state_counters = null;
-        $state_transitions = null;
-        if ($view === 'kanban') {
+        } elseif ($view === 'kanban') {
             $state_counters = $this->model->getStateCounters();
             $state_transitions = $this->getStateTransitions($workflow, array_keys($state_counters));
+        } elseif ($view === 'kanban-users') {
+            foreach ($orders as $_order) {
+                $assigned_users[$_order['assigned_contact_id']] = ifset($_order, 'assigned_contact', []);
+            }
         }
 
         list($show_mobile_ad, $show_premium_ad, $show_wa_pay_ad) = $this->shouldShowAds();
 
         $currency =  $config->getCurrency();
-        $total_processing = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
+        if (wa()->whichUI() != '1.3' && !shopRights::isAssistant()) {
+            $total_processing = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
+        }
         $this->assign([
             'orders'               => array_values($orders),
             'total_count'          => $this->getTotalCount(),
@@ -140,6 +167,7 @@ class shopOrdersAction extends shopOrderListAction {
             'order'                => $this->getOrder($orders),
             'currency'             => $currency,
             'state_names'          => $state_names,
+            'assigned_users'       => $assigned_users,
             'plugin_hash'          => waRequest::get('hash', '', waRequest::TYPE_STRING_TRIM),
             'params'               => $filter_params,
             'params_str'           => $this->getFilterParams(true),
@@ -153,7 +181,7 @@ class shopOrdersAction extends shopOrderListAction {
             'state_counters'       => $state_counters,
             'state_transitions'    => $state_transitions,
             'last_update_datetime' => $this->getLastUpdateDatetime($orders),
-            'total_processing'     => $total_processing,
+            'total_processing'     => ifset($total_processing),
             'show_mobile_ad'       => $show_mobile_ad,
             'show_premium_ad'      => $show_premium_ad,
             'show_wa_pay_ad'       => $show_wa_pay_ad,
@@ -278,7 +306,7 @@ class shopOrdersAction extends shopOrderListAction {
     }
 
     public function getOrders($offset, $limit) {
-        return $this->collection->getOrders("*,products,contact,params,courier,order_icon", $offset, $limit);
+        return $this->collection->getOrders("*,products,contact,assigned_contact,params,courier,order_icon", $offset, $limit);
     }
 
     protected function formatOrders(&$orders) {
@@ -388,7 +416,7 @@ class shopOrdersAction extends shopOrderListAction {
     {
         $default_view = wa('shop')->getConfig()->getOption('orders_default_view');
         $view = waRequest::get('view', $default_view, waRequest::TYPE_STRING_TRIM);
-        if (!in_array($view, ['split','table','kanban'])) {
+        if (!in_array($view, ['split','table','kanban', 'kanban-users'])) {
             return $default_view;
         }
         return $view;

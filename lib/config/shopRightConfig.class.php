@@ -8,16 +8,27 @@ class shopRightConfig extends waRightConfig
 
     const RIGHT_ORDERS_NONE = 0;
     const RIGHT_ORDERS_COURIER = 1;
+    const RIGHT_ORDERS_FULFILLMENT = 2;
+    const RIGHT_ORDERS_CASHIER = 3;
+    const RIGHT_ORDERS_MANAGER = 10;
     const RIGHT_ORDERS_FULL = 100;
+
+    public static function getOrdersAccessOptions()
+    {
+        return [
+            self::RIGHT_ORDERS_NONE => _w('No access'),
+            self::RIGHT_ORDERS_COURIER => _w('Courier'),
+            self::RIGHT_ORDERS_FULFILLMENT => _w('Fulfillment'),
+            self::RIGHT_ORDERS_CASHIER => _w('Cashier'),
+            self::RIGHT_ORDERS_MANAGER => _w('Manager'),
+            self::RIGHT_ORDERS_FULL => _w('Full access'),
+        ];
+    }
 
     public function init()
     {
         $this->addItem('orders', _w('Can manage orders'), 'select', [
-            'options' => [
-                self::RIGHT_ORDERS_NONE => _w('No access'),
-                self::RIGHT_ORDERS_COURIER => _w('Courier'),
-                self::RIGHT_ORDERS_FULL => _w('Full access'),
-            ],
+            'options' => self::getOrdersAccessOptions(),
         ]);
         $this->addItem('customers', _w('Can manage customers'));
         $this->addItem('products', _w('Can manage products'));

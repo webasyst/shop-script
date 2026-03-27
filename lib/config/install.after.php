@@ -87,7 +87,7 @@ if ($notifications_model->countAll() == 0) {
         $params = ['to' => 'customer'] + array_diff_key($n, ['sms' => 1]);
         $params_model->save($id, $params);
 
-        if ($event == 'order.process' || $event == 'order.ship') {
+        if ($event == 'order.process' || $event == 'order.ship' || $event == 'order.sendpin') {
 
             /*$data = [
                 'transport' => 'sms',

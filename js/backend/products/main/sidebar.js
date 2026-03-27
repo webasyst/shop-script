@@ -159,6 +159,9 @@ let initMainWaSidebar;
                 case pathname + '?action=storefronts#/design/pages/':
                     result = search === '?action=storefronts' && hashTest('\\/pages\\/');
                     break;
+                case pathname + '?action=storefronts#/design/themes/':
+                    result = search === '?action=storefronts' && hashTest('\\/design\\/');
+                    break;
                 default:
                     break;
             }

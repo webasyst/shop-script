@@ -24,7 +24,7 @@
     {/if}
 {/foreach}
 
-{if empty($config["payment"]["used"])}
+{if empty($config["payment"]["used"]) && $config["confirmation"]["auto_submit"]}
     {$_button_text = _w("To payment")|cat:" ›"}
 {else}
     {$_button_text = _w("Confirm order")}

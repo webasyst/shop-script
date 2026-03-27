@@ -1,3 +1,4 @@
+{if !empty($promocards)}
 <section class="s-slider-section is-promocards">
 
     {* PROMOCARDS *}
@@ -21,8 +22,14 @@
                         <p class="s-description wa-mt-16" itemprop="description">{$_slide.body|escape}</p>
                     {/if}
 
+                    {if !empty($_slide.button_text)}
+                        <a class="s-slide-button button small" href="{$_slide.link}" title="ert">{$_slide.button_text|escape}</a>
+                    {/if}
+
                 </div>
+                {if empty($_slide.button_text)}
                 <a class="s-slide-link" href="{$_slide.link}"></a>
+                {/if}
             </li>
         {/foreach}
     </ul>
@@ -78,3 +85,4 @@
         })(jQuery);
     </script>
 </section>
+{/if}

@@ -156,8 +156,17 @@ class shopConfig extends waAppConfig
         if (!wa()->getUser()->getRights('shop', 'orders')) {
             return null;
         }
+        return $this->getAppBadgeCount();
+    }
+
+    public function getAppBadgeCount()
+    {
         $order_model = new shopOrderModel();
-        return $order_model->getStateCounters('new');
+        if (shopRights::isAssistant()) {
+            return $order_model->countOpenAssignedTo(wa()->getUser()->getId());
+        } else {
+            return $order_model->countAwaitingAssignment(wa()->getUser()->getId());
+        }
     }
 
     public function getRouting($route = array(), $dispatch = false)

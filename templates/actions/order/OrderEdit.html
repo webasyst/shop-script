@@ -441,7 +441,7 @@
                             {if $storefront['contact_type'][shopCustomer::TYPE_PERSON]['enabled']}data-{shopCustomer::TYPE_PERSON}="1"{/if}
                             {if $storefront['contact_type'][shopCustomer::TYPE_COMPANY]['enabled']}data-{shopCustomer::TYPE_COMPANY}="1"{/if}
                             {if $storefront['url'] == $order_storefront}selected="selected" data-order-storefront="1"{/if}>
-                        {$storefront['url_decoded']|truncate:64}
+                        {$storefront['url_decoded']|truncate:42}
                     </option>
                 {/foreach}
             </select>

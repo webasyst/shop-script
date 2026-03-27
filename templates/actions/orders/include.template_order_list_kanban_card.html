@@ -1,5 +1,5 @@
 {literal}
-<div data-order-id="{%#o.order.id%}" data-state-id="{%#o.state%}" class="order_ s-kanban__list__body__item custom-p-12 custom-mb-8 blank">
+<div data-order-id="{%#o.order.id%}" data-state-id="{%#o.state%}" class="order_ s-kanban__list__body__item custom-p-12 custom-mb-8 blank {% if (o.order.assigned_to_me) { %} highlighted{% } %}">
     <div class="flexbox">
         <div class="s-kanban-item-title custom-mr-8">
             <span class="userpic userpic48{% if (o.order.state_id == 'new') { %} highlighted {% } %} bold" title="">
@@ -20,7 +20,7 @@
                             <i class="fas fa-check-circle"></i>
                         </span>
                     {% } %}
-                    <span class="{%=(o.order.state_id == 'new' ? 'highlighted orange' : '') %}">{%#o.order.total_str%}</span>
+                    <span>{%#o.order.total_str%}</span>
                 </div>
             </div>
             <div class="flexbox space-4">
@@ -36,6 +36,15 @@
                         <br>[`Paid`] {%=o.order.paid_datetime_str %}
                         {% } %}
                         </span>
+                        {% if (o.order.assigned_contact) { %}
+                        <span class="flexbox middle space-4 wrap">
+                            <span>{% if (o.order.assigned_contact.role) { %}{%#o.order.assigned_contact.role%}{% } else { %}[`Manager`]{% } %}</span>
+                            <span class="flexbox middle space-4">
+                                <i class="icon userpic size-20" style="background-image: url('{%#o.order.assigned_contact.photo_50x50%}');"></i>
+                                <span class="bold black nowrap">{%#o.order.assigned_contact.name%}</span>
+                            </span>
+                        </span>
+                        {% } %}
                     </p>
                 </div>
                 <span class="align-right">

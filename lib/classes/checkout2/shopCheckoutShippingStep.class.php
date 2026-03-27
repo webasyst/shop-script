@@ -353,6 +353,9 @@ class shopCheckoutShippingStep extends shopCheckoutStep
                 'text'    => _w('Please select shipping option.'),
                 'section' => $this->getId(),
             ];
+
+            // May be used by ConfirmStep to calculate taxes
+            $data['shipping']['address'] = $address;
         } else {
             // This is used by Details step later
             $selected_plugin_id = explode('.', $selected_variant_id)[0];

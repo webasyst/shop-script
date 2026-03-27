@@ -117,7 +117,10 @@ class shopFrontendApiOrderCalculateController extends shopFrontApiJsonController
         }
 
         $required_address_fields = $plugin->requestedAddressFieldsForService($shipping_variant_id);
-        $required_address_fields = ifempty($required_address_fields, []);
+        $required_address_fields = array_filter(ifempty($required_address_fields, []), function($f){
+            // Make sure plugin marked fields as required, not merely asking them as optional
+            return !empty($f['required']);
+        });
         $missing_field_ids = array_keys(array_diff_key($required_address_fields, $address));
         if ($missing_field_ids) {
             throw new waAPIException(

@@ -36,10 +36,9 @@
 
                                 <span class="s-state-with-time smallest" data-state-id="{$order.state_id}">
                                     {if $order.state}
-                                        <span class="text-ellipsis custom-mr-8" style="{$order.state->getStyle()}">
-                                            <i class="{$wa->shop->convertIcon($order.state->getOption('icon'))} custom-mr-2"></i>
-                                            <span title="{$order.state->getName()|escape}">{$order.state->getName()|escape}</span>
-                                        </span>
+                                        <strong class="s-order-status-badge badge uppercase custom-mr-4" style="{$order.state->getStyle(true)}" title="{$order.state->getName()|escape}">
+                                            <span class="text-ellipsis">{$order.state->getName()|escape}</span>
+                                        </strong>
                                         {if $last_action_datetime}
                                             <em class="hint nowrap">{$last_action_datetime|wa_datetime:'humandatetime'}</em>
                                             <em class="hint nowrap s-print-only">{$last_action_datetime|wa_datetime:'datetime'}</em>
@@ -92,7 +91,7 @@
                                         {$customer_essentials.name|default:'[`(no name)`]'|escape}
                                     </a>
                                 {else}
-                                    <span class="gray">{$customer_essentials.name|default:'[`(no customer information)`]'|escape}</span>
+                                    <span>{$customer_essentials.name|default:'[`(no customer information)`]'|escape}</span>
                                 {/if}
                                 {if $customer_essentials.registered|default:false}
                                     <i class="fas fa-user-check fa-xs text-green" title="[`Registered customer`]"></i>
@@ -128,6 +127,14 @@
                         </div>
                     </div>
                     </div>
+
+                    <!-- Manager -->
+                    {if !empty($assistants.manager)}
+                        <h6 class="custom-mt-16">
+                            <span class="gray">[`Manager`] —</span>
+                            <a href="#/orders/hash=search/{'&manager_contact_id='|urlencode|cat:$assistants.manager.id}/"{if $order.assigned_to_me && $assistants.manager.id == $wa->user()->getId()} class="highlighted" title="[`Assigned to me`]"{/if}>{$assistants.manager.name|escape}</a>
+                        </h6>
+                    {/if}
 
                     {if $order.comment}
                         <blockquote class="alert info s-order-comment break-words"><i class="fas fa-comment custom-mr-8 opacity-30"></i>{$order.comment|escape}</blockquote>
@@ -189,11 +196,11 @@
                                 {/if}
 
                                 {if $shipping_address}
-                                    {if !empty($courier)}
+                                    {if !empty($assistants.courier)}
                                         <!-- Courier -->
                                         <h6 class="custom-mt-16">
                                             <span class="gray">[`Courier`] —</span>
-                                            <a href="#/orders/{if isset($courier.enabled)}hash={'search/&params.courier_id='|urlencode|cat:$courier.id}{else}courier_contact_id={$courier.id}{/if}">{$courier.name|escape}</a>
+                                            <a href="#/orders/hash=search/{'&courier_contact_id='|urlencode|cat:$assistants.courier.id}/"{if $order.assigned_to_me && $assistants.courier.id == $wa->user()->getId()} class="highlighted" title="[`Assigned to me`]"{/if}>{$assistants.courier.name|escape}</a>
                                         </h6>
                                     {/if}
 
@@ -275,6 +282,14 @@
                                         <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]" style="height:29px;">[`Copy link`]</button>
                                         <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
                                     {/if}
+                                {/if}
+
+                                {if !empty($assistants.cashier)}
+                                    <!-- POS order -->
+                                    <h6 class="custom-mt-16">
+                                        <span class="gray">[`Cashier`] —</span>
+                                        <a href="#/orders/hash=search/{'&cashier_contact_id='|urlencode|cat:$assistants.cashier.id}/"{if $order.assigned_to_me && $assistants.cashier.id == $wa->user()->getId()} class="highlighted" title="[`Assigned to me`]"{/if}>{$assistants.cashier.name|escape}</a>
+                                    </h6>
                                 {/if}
 
                             </div>
@@ -480,7 +495,15 @@
                             {$_colspan = (empty($visible_fulfilment_mode)) ? 2 : 3}
                             {if !empty($subtotal)}
                                 <tr>
-                                    <td colspan="{$_colspan}" class="width-100-mobile"></td>
+                                    <td colspan="{$_colspan}" class="width-100-mobile">
+                                        <!-- Fulfillment -->
+                                        {if !empty($assistants.fulfillment)}
+                                            <h6 class="custom-mt-16">
+                                                <span class="gray">[`Fulfillment`] —</span>
+                                                <a href="#/orders/hash=search/{'&fulfillment_contact_id='|urlencode|cat:$assistants.fulfillment.id}/"{if $order.assigned_to_me && $assistants.fulfillment.id == $wa->user()->getId()} class="highlighted" title="[`Assigned to me`]"{/if}>{$assistants.fulfillment.name|escape}</a>
+                                            </h6>
+                                        {/if}
+                                    </td>
                                     <td class="align-right"><br>[`Subtotal`]</td>
                                     <td class="align-right nowrap"><br>{wa_currency_html($subtotal, $order.currency)}</td>
                                 </tr>
@@ -518,14 +541,14 @@
                             <tr class="bold larger">
                                 <td colspan="{$_colspan}" class="width-100-mobile custom-p-0-mobile"></td>
                                 <td class="align-right custom-pl-0-mobile">[`Total`]</td>
-                                <td class="align-right nowrap">
+                                <td class="align-right nowrap custom-pr-12">
                                     <div>{wa_currency_html($order.total, $order.currency)}</div>
                                     {if $_has_granted_calc_profit && $_sum_purchase_price}
                                         {$_total_profit = $_total_items_profit + $_total_service_items_profit - $order.discount}
 
                                         {$_total_percent_profit = (($_total_profit / $_sum_purchase_price) * 100)|round}
 
-                                        <div class="bold smaller text-{if $_total_profit > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Profit by all products`] &plus; [`Services`] &minus; [`Discount`]">{if $_total_profit > 0}+{/if}{wa_currency_html($_total_profit, $order.currency)} ({$_total_percent_profit}%)</div>
+                                        <div class="bold smallest text-{if $_total_profit > 0}green{else}red{/if}" title="[`Estimated profit`] = [`Profit by all products`] &plus; [`Services`] &minus; [`Discount`]">{if $_total_profit > 0}+{/if}{wa_currency_html($_total_profit, $order.currency)} ({$_total_percent_profit}%)</div>
                                     {/if}
                                 </td>
                             </tr>
@@ -667,6 +690,101 @@
                         {foreach $top_buttons as $b}
                             <li>{$b}</li>
                         {/foreach}
+                        {if $wa->user()->getRights('shop', 'orders') >= shopRightConfig::RIGHT_ORDERS_FULL}
+                        {$selected = false}
+                        <li>
+                            <div class="s-block custom-mt-12">
+                                <h5 class="hint custom-mb-8 js-assign-contact-title">[`Manager`]</h5>
+                                <div class="wa-select">
+                                    <select class="js-assign-contact" autocomplete="off">
+                                        <option value="" selected></option>
+
+                                        {if $_users = ifset($assign_contacts, shopRightConfig::RIGHT_ORDERS_MANAGER, [])}
+                                        <optgroup label="[`Managers`]">
+                                            {foreach $_users as $_a}
+                                            <option value="{$_a.id}"{if $_a.selected} selected{/if}>{$_a.name|escape}{if $_a.id == $wa->user()->getId()} ([`me`]){/if}</option>
+                                            {/foreach}
+                                        </optgroup>
+                                        {/if}
+
+                                        {if $_users = ifset($assign_contacts, shopRightConfig::RIGHT_ORDERS_CASHIER, [])}
+                                        <optgroup label="[`Cashiers`]" data-label="[`Cashier`]">
+                                            {foreach $_users as $_a}
+                                            <option value="{$_a.id}"{if $_a.selected} selected{/if}>{$_a.name|escape}{if $_a.id == $wa->user()->getId()} ([`me`]){/if}</option>
+                                            {/foreach}
+                                        </optgroup>
+                                        {/if}
+
+                                        {if $_users = ifset($assign_contacts, shopRightConfig::RIGHT_ORDERS_FULFILLMENT, [])}
+                                        <optgroup label="[`Fulfillments`]" data-label="[`Fulfillment`]">
+                                            {foreach $_users as $_a}
+                                            <option value="{$_a.id}"{if $_a.selected} selected{/if}>{$_a.name|escape}{if $_a.id == $wa->user()->getId()} ([`me`]){/if}</option>
+                                            {/foreach}
+                                        </optgroup>
+                                        {/if}
+
+                                        {if $_users = ifset($assign_contacts, shopRightConfig::RIGHT_ORDERS_COURIER, [])}
+                                        <optgroup label="[`Couriers`]" data-label="[`Courier`]">
+                                            {foreach $_users as $_a}
+                                            <option value="{$_a.id}"{if $_a.selected} selected{/if}>{$_a.name|escape}{if $_a.id == $wa->user()->getId()} ([`me`]){/if}</option>
+                                            {/foreach}
+                                        </optgroup>
+                                        {/if}
+
+                                        {if $_users = ifset($assign_contacts, shopRightConfig::RIGHT_ORDERS_FULL, [])}
+                                        <optgroup label="[`All users`]">
+                                            {foreach $_users as $_a}
+                                            <option value="{$_a.id}"{if $_a.selected} selected{/if}>{$_a.name|escape}{if $_a.id == $wa->user()->getId()} ([`me`]){/if}</option>
+                                            {/foreach}
+                                        </optgroup>
+                                        {/if}
+                                        {if $wa->userRights('settings')}
+                                        <option value="__configure__" data-url="?action=settings#/orderAssignments/">[`Configure...`]</option>
+                                        {/if}
+                                    </select>
+                                </div>
+                                <script>
+                                    (function ($) {
+                                        var $assign_contact = $('.js-assign-contact');
+                                        var $assign_contact_title = $('.js-assign-contact-title');
+                                        var default_title = $assign_contact_title.text();
+                                        var title_groups = {
+                                            '[`Cashier`]': true,
+                                            '[`Fulfillment`]': true,
+                                            '[`Courier`]': true
+                                        };
+
+                                        var updateAssignContactTitle = function ($select) {
+                                            var group_label = $select.find('option:selected').parent('optgroup').data('label');
+                                            $assign_contact_title.text(title_groups[group_label] ? group_label : default_title);
+                                        };
+
+                                        updateAssignContactTitle($assign_contact);
+
+                                        $assign_contact.on('change', function () {
+                                            var $select = $(this);
+                                            var $selected_option = $select.find('option:selected');
+                                            var selected_value = $selected_option.val();
+                                            var redirect_url = $selected_option.data('url');
+
+                                            updateAssignContactTitle($select);
+
+                                            if (redirect_url) {
+                                                window.location.href = redirect_url;
+                                                return;
+                                            }
+
+                                            $.post('{$wa_app_url}?module=order&action=assignContact', { order_id:{$order.id}, assigned_contact_id: selected_value }, function () {
+                                                if ($.order_list) {
+                                                    $.order_list.loadOrder({$order.id});
+                                                }
+                                            });
+                                        });
+                                    })(jQuery);
+                                </script>
+                            </div>
+                        </li>
+                        {/if}
 
                         <!-- plugin hook: 'backend_order.action_link' -->
                         {* @event backend_order.%plugin_id%.action_link *}

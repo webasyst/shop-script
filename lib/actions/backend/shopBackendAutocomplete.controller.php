@@ -22,6 +22,8 @@ class shopBackendAutocompleteController extends waController
                 $data = $this->customersAutocomplete($q);
             } elseif ($type == 'contact') {
                 $data = $this->contactsAutocomplete($q);
+            } elseif ($type == 'user') {
+                $data = $this->contactsAutocomplete($q, null, true);
             } elseif ($type == 'feature') {
                 $data = $this->featuresAutocomplete($q);
             } elseif ($type == 'filter') {
@@ -440,7 +442,7 @@ class shopBackendAutocompleteController extends waController
         return $m[1];
     }
 
-    public function contactsAutocomplete($q, $limit = null)
+    public function contactsAutocomplete($q, $limit = null, $is_user = false)
     {
         $q = trim($q);
 
@@ -454,7 +456,7 @@ class shopBackendAutocompleteController extends waController
         // Name starts with requested string
         $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
-                   WHERE c.name LIKE '".$m->escape($q, 'like')."%'
+                   WHERE ".($is_user ? 'c.is_user = 1 AND ' : '')."c.name LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
         $search_terms[] = $q;
 
@@ -463,7 +465,7 @@ class shopBackendAutocompleteController extends waController
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
-                   WHERE e.email LIKE '".$m->escape($q, 'like')."%'
+                   WHERE ".($is_user ? 'c.is_user = 1 AND ' : '')."e.email LIKE '".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
         $search_terms[] = $q;
 
@@ -477,7 +479,7 @@ class shopBackendAutocompleteController extends waController
                        FROM wa_contact AS c
                            JOIN wa_contact_data AS d
                                ON d.contact_id=c.id AND d.field='phone'
-                       WHERE {CONDITION}
+                       WHERE ".($is_user ? 'c.is_user = 1 AND ' : '')."{CONDITION}
                        LIMIT {LIMIT}";
 
             // search as prefix
@@ -528,7 +530,7 @@ class shopBackendAutocompleteController extends waController
         // Name contains requested string
         $sqls[] = "SELECT c.id, c.name, c.firstname, c.middlename, c.lastname, c.photo
                    FROM wa_contact AS c
-                   WHERE c.name LIKE '_%".$m->escape($q, 'like')."%'
+                   WHERE ".($is_user ? 'c.is_user = 1 AND ' : '')."c.name LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
         $search_terms[] = $q;
 
@@ -537,7 +539,7 @@ class shopBackendAutocompleteController extends waController
                    FROM wa_contact AS c
                        JOIN wa_contact_emails AS e
                            ON e.contact_id=c.id
-                   WHERE e.email LIKE '_%".$m->escape($q, 'like')."%'
+                   WHERE ".($is_user ? 'c.is_user = 1 AND ' : '')."e.email LIKE '_%".$m->escape($q, 'like')."%'
                    LIMIT {LIMIT}";
         $search_terms[] = $q;
 

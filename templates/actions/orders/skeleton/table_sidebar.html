@@ -2,7 +2,7 @@
     <div class="flexbox box middle custom-pt-16">
         <span class="skeleton-custom-circle custom-m-0 custom-mr-16" style="width: 16px;height: 16px;"></span>
 
-        {if !empty($select) && $select == 'kanban'}
+        {if !empty($select) && in_array($select, ['kanban', 'kanban-users'])}
         <span class="skeleton-line custom-m-0 custom-ml-8 custom-mr-16" style="width: 15px;height: 15px;"></span>
         <span class="button light-gray rounded" style="width: 38px;height: 30px;"></span>
         {else}

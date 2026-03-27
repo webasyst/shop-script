@@ -83,9 +83,9 @@ class shopOrdersCollection
 
     protected function prepare($add = false, $auto_title = true)
     {
-        // Filter orders allowed for the courier
         if (!$this->prepared) {
-            $is_courier = false;
+            // Filter orders allowed for the courier
+            $limit_access_finished_orders = false;
             // orders assigned to courier...
             if (!empty($this->options['courier_id'])) {
                 $this->options['courier_id'] = (int) $this->options['courier_id'];
@@ -95,13 +95,30 @@ class shopOrdersCollection
                     'on' => "o.id = :table.order_id AND :table.name = 'courier_id'",
                     'where' => ":table.value = '".$this->options['courier_id']."'",
                 ));
-                $is_courier = true;
+                $limit_access_finished_orders = true;
             } elseif (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
-                $this->addWhere('o.courier_contact_id = ' . wa()->getUser()->getId());
-                $is_courier = true;
+                $this->addWhere('o.courier_contact_id = '.wa()->getUser()->getId());
+                $limit_access_finished_orders = true;
             }
 
-            if ($is_courier) {
+            // Filter orders allowed for the fulfillment
+            if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_FULFILLMENT) {
+                $this->addWhere('o.fulfillment_contact_id = '.wa()->getUser()->getId());
+                $limit_access_finished_orders = true;
+            }
+
+            // Filter orders allowed for the cashier
+            if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_CASHIER) {
+                $this->addWhere('o.cashier_contact_id = '.wa()->getUser()->getId());
+                $limit_access_finished_orders = true;
+            }
+
+            // Filter orders allowed for the manager
+            if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_MANAGER) {
+                $this->addWhere('o.manager_contact_id = '.wa()->getUser()->getId());
+            }
+
+            if ($limit_access_finished_orders) {
                 // ...either not completed at all or completed in last 24 hours
                 $this->addJoin(array(
                     'type' => 'LEFT',
@@ -928,13 +945,16 @@ class shopOrdersCollection
             }
         }
 
-        if (isset($postprocess_fields['contact']) || isset($postprocess_fields['contact_full'])) {
+        if (isset($postprocess_fields['contact']) || isset($postprocess_fields['contact_full']) || isset($postprocess_fields['assigned_contact'])) {
             unset($default_values['contact_full']);
             $contact_ids = array();
             foreach ($data as $o) {
                 $contact_ids[$o['contact_id']] = $o['contact_id'];
             }
-            $contact_ids = array_values($contact_ids);
+            if (isset($postprocess_fields['assigned_contact'])) {
+                $contact_ids = array_merge($contact_ids, array_column($data, 'assigned_contact_id'));
+            }
+            $contact_ids = array_unique(array_values($contact_ids));
             $contact_fields = 'id,name,photo,firstname,middlename,lastname,is_user';
             if (isset($postprocess_fields['contact_full'])) {
                 $contact_fields .= ',phone,email,address,photo_url_40,photo_url_96,company,is_company';
@@ -972,6 +992,18 @@ class shopOrdersCollection
                         'name'  => empty($o['contact_id']) ? '' : sprintf_wp('(deleted contact %s)', $o['contact_id']),
                         'photo' => '',
                     );
+                }
+                if (!empty($o['assigned_contact_id'])) {
+                    if (isset($contacts[$o['assigned_contact_id']])) {
+                        $o['assigned_contact'] = $contacts[$o['assigned_contact_id']];
+                    } else {
+                        $o['assigned_contact'] = [
+                            'id'    => $o['assigned_contact_id'],
+                            'name'  => sprintf_wp('(deleted contact %s)', $o['assigned_contact_id']),
+                            'is_deleted' => 1,
+                            'photo' => '',
+                        ];
+                    }
                 }
             }
             unset($o);
@@ -1172,7 +1204,6 @@ class shopOrdersCollection
 
     protected function searchPrepare($query, $auto_title = true)
     {
-        $query = urldecode($query);
         $i = $offset = 0;
         $query_parts = array();
         while (($j = strpos($query, '&', $offset)) !== false) {
@@ -1184,6 +1215,9 @@ class shopOrdersCollection
             $offset = $j + 1;
         }
         $query_parts[] = substr($query, $i);
+        $query_parts = array_map(function($v) {
+            return str_replace('\\&', '&', $v);
+        }, $query_parts);
 
         $model = self::getModel();
         $title = array();
@@ -1442,6 +1476,13 @@ class shopOrdersCollection
                     if ($state_ids) {
                         $state_ids = "'".join("','", self::getModel()->escape($state_ids))."'";
                         $this->order_by = "FIELD(o.state_id, {$state_ids}) {$order}";
+                    }
+                    break;
+                case 'assigned_to':
+                    if ($param !== null) {
+                        $this->order_by = sprintf("(IFNULL(o.assigned_contact_id, 0)=%d AND state_id NOT IN ('completed', 'refunded', 'deleted')) %s", (int)$param, $order);
+                    } else {
+                        $this->order_by = "o.assigned_contact_id ".$order;
                     }
                     break;
                 default:

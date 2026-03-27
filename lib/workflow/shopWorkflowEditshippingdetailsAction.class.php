@@ -118,8 +118,8 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
         list($customer_delivery_date, $customer_delivery_time) = shopHelper::getOrderCustomerDeliveryTime($params);
         list($shipping_date, $shipping_time_start, $shipping_time_end) = shopHelper::getOrderShippingInterval($params);
 
-        $contacts_as_courier = shopBackendOrdersAction::getContactsAsCourier('`id`, `name`');
-        usort($contacts_as_courier['full_access'], function($c1, $c2) {
+        $assistants = shopRights::getAssistants();
+        usort($assistants['admins'], function($c1, $c2) {
             return strnatcasecmp(mb_strtolower(trim($c1['name'])), mb_strtolower(trim($c2['name'])));
         });
         $order = $this->order_model->getById($order_id);
@@ -136,8 +136,8 @@ class shopWorkflowEditshippingdetailsAction extends shopWorkflowAction
             'storefront'           => $storefront,
             'couriers'             => $couriers,
             'selected_courier_id'  => $selected_courier_id,
-            'contacts_as_courier'  => $contacts_as_courier['courier_access'],
-            'contacts'             => $contacts_as_courier['full_access'],
+            'contacts_as_courier'  => $assistants['couriers'],
+            'contacts'             => $assistants['admins'],
             'tracking_number'      => ifset($params['tracking_number']),
             'customer_delivery_date' => $customer_delivery_date,
             'customer_delivery_time' => $customer_delivery_time,

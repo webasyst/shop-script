@@ -4,49 +4,116 @@
 
 <!-- description -->
 {if $category.description}
-    <p class="category-description">{$category.description}</p>
+    <div class="category-description">{$category.description}</div>
 {/if}
 
 <!-- plugin hook: 'frontend_category' -->
 {* @event frontend_category.%plugin_id% *}
 {foreach $frontend_category as $_}{$_}{/foreach}
 
+{if $category.subcategories || !empty($category.params.enable_sorting) || !empty($filters)}
+<div class="wa-flex wa-flex-column space-2">
 <!-- subcategories -->
 {if $category.subcategories}
-    <ul class="sub-links row">
+    <ul class="sub-links row wa-mb-0 wa-mt-0">
         {foreach $category.subcategories as $sc}
             <li><a class="button bg-tr-10 fw-normal" href="{$sc.url}">{$sc.name|escape}</a></li>
         {/foreach}
     </ul>
 {/if}
+    <div class="wa-flex align-items-center justify-content-between space-2 w-100">
+        {if !empty($filters)}
+            {* Проверка применения фильтров *}
+            {$filters_applied = false}
+            {if $wa->get('price_min') || $wa->get('price_max')}
+                {$filters_applied = true}
+            {/if}
+            {foreach $filters as $fid => $filter}
+                {if $fid != 'price' && $wa->get($filter.code)}
+                    {$filters_applied = true}
+                    {break}
+                {/if}
+            {/foreach}
 
-{if !empty($category.params.enable_sorting)}
-    <!-- sorting -->
-    {$sort_fields = [
-    'name' => _w('Name'),
-    'price' => _w('Price'),
-    'total_sales' => _w('Bestsellers'),
-    'rating' => _w('Customer rating'),
-    'create_datetime'=>_w('Date added'),
-    'stock' => _w('In stock')]}
-
-    {if !isset($active_sort)}
-        {$active_sort = $wa->get('sort', 'create_datetime')}
-    {/if}
-    <ul class="sorting row gap8">
-        <li>[`Sort by`]:</li>
-        {if !empty($category) && !$category.sort_products}
-            <li {if !$active_sort}class="selected"{/if}>
-                {$wa->shop->sortUrl("new", "[`New & Popular`]", $active_sort)}
-            </li>
+            <button class="small{if !$filters_applied} gray{/if}" type="button" id="filters-toggle-link">
+                <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 512 512"><!--!Font Awesome Free v5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M496 384H160v-16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h80v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h336c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm0-160h-80v-16c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16c-8.8 0-16 7.2-16 16v32c0 8.8 7.2 16 16 16h336v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h80c8.8 0 16-7.2 16-16v-32c0-8.8-7.2-16-16-16zm0-160H288V48c0-8.8-7.2-16-16-16h-32c-8.8 0-16 7.2-16 16v16H16C7.2 64 0 71.2 0 80v32c0 8.8 7.2 16 16 16h208v16c0 8.8 7.2 16 16 16h32c8.8 0 16-7.2 16-16v-16h208c8.8 0 16-7.2 16-16V80c0-8.8-7.2-16-16-16z" fill="currentColor"/></svg>
+                <span class="wa-ml-8">[`Filters`]</span>
+            </button>
         {/if}
-        {foreach $sort_fields as $sort => $name}
-            <li{if $active_sort == $sort} class="selected"{/if}>{$wa->shop->sortUrl($sort, $name, $active_sort)}</li>
-            {if $wa->get('sort') == $sort}{$wa->title( $wa->title()|cat:' — '|cat:$name)}{/if}
-        {/foreach}
-    </ul>
-{/if}
 
+        {if !empty($category.params.enable_sorting)}
+            <!-- sorting -->
+            {$sort_fields = [
+            'name' => _w('Name'),
+            'price' => _w('Price'),
+            'total_sales' => _w('Bestsellers'),
+            'rating' => _w('Customer rating'),
+            'create_datetime'=>_w('Date added'),
+            'stock' => _w('In stock')]}
+            {$inverted_sort_fields = [
+            'rating' => true,
+            'create_datetime' => true,
+            'total_sales' => true,
+            'count' => true,
+            'stock' => true]}
+
+            {if !isset($active_sort)}
+                {$active_sort = $wa->get('sort', 'create_datetime')}
+            {/if}
+            {$current_sort = $wa->get('sort', '', 'string')}
+            {$current_order = $wa->get('order', '', 'string')}
+            {$is_new_popular_active = $current_sort == 'new' || (empty($current_sort) && !empty($category) && !$category.sort_products)}
+            {$sorting_active_name = ''}
+
+            {if isset($sort_fields[$active_sort])}
+                {$sorting_active_name = $sort_fields[$active_sort]}
+            {/if}
+
+            {if $is_new_popular_active}
+                {$sorting_active_name = _w('New & Popular')}
+            {/if}
+
+            {if $current_order}
+                {$sorting_active_order = $current_order}
+            {elseif (empty($current_sort) && !empty($category) && !$category.sort_products) || isset($inverted_sort_fields[$active_sort])}
+                {$sorting_active_order = 'desc'}
+            {else}
+                {$sorting_active_order = 'asc'}
+            {/if}
+            {$sorting_active_order_symbol = '↑'}
+
+            {if $sorting_active_order == 'desc'}
+                {$sorting_active_order_symbol = '↓'}
+            {/if}
+
+            {if !$is_new_popular_active && !empty($current_sort) && isset($sort_fields[$current_sort])}
+                {$wa->title($wa->title()|cat:' — '|cat:$sort_fields[$current_sort])}
+            {/if}
+
+            <div class="sorting wa-ml-auto wa-mb-32">
+                <div class="sorting-dropdown" data-sorting-dropdown>
+                    <button class="sorting-dropdown__toggle _chevron _down" type="button" data-sorting-toggle aria-expanded="false">
+                        <span class="sorting-dropdown__label">{$sorting_active_name|escape}</span>
+                        <span class="sorting-dropdown__current-order">{$sorting_active_order_symbol}</span>
+                    </button>
+                    <ul class="sorting-dropdown__menu{if !empty($filters)} left{/if}" data-sorting-menu>
+                        {if !empty($category) && !$category.sort_products}
+                            <li class="sorting-dropdown__item{if $is_new_popular_active} is-selected{/if}">
+                                {$wa->shop->sortUrl("new", "[`New & Popular`]", $current_sort)}
+                            </li>
+                        {/if}
+                        {foreach $sort_fields as $sort => $name}
+                            <li class="sorting-dropdown__item{if !$is_new_popular_active && $active_sort == $sort} is-selected{/if}">
+                                {$wa->shop->sortUrl($sort, $name, $active_sort)}
+                            </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </div>
+        {/if}
+    </div>
+</div>
+{/if}
 {function filters_form_skeleton_items count=2 height='370px'}
     {for $i=1 to $count}
     <li class="wa-flex wa-flex-column col w3" style="height: {$height};">
@@ -95,9 +162,16 @@
             {/if}
             <div class="filters{if !empty($theme_settings.ajax_filters)} ajax{/if}">
                 <div class="filters-toggle-wrapper">
-                    <a class="filters-toggle-link" id="filters-toggle-link" href="javascript:void(0);" data-show-text="[`Show Filters`]" data-hide-text="[`Hide Filters`]">[`Show Filters`]</a>
+                    <a class="filters-toggle-link" id="filters-toggle-link1" href="javascript:void(0);" data-show-text="[`Show Filters`]" data-hide-text="[`Hide Filters`]">[`Show Filters`]</a>
                 </div>
                 <form class="filters-form-wrapper" method="get" action="{$wa->currentUrl(0,1)}" data-loading='{$_filters_form_skeleton|strip}'>
+                    <div class="filters-mobile-header">
+                        <div class="filters-mobile-header__title">[`Filters`]</div>
+                        <button class="filters-mobile-close" type="button" data-filters-close aria-label="[`Close`]">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 352 512" aria-hidden="true"><!--!Font Awesome Free v5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.19 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.19 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z" fill="currentColor"/></svg>
+                        </button>
+                    </div>
+                    <div class="filters-mobile-body">
                     {foreach $filters as $fid => $filter}
                         <div class="filter-param {if $fid == 'price'}-price{/if}">
                             {if $fid == 'price'}
@@ -212,20 +286,12 @@
                     {/foreach}
                     {if $wa->get('sort')}<input type="hidden" name="sort" value="{$wa->get('sort')|escape}">{/if}
                     {if $wa->get('order')}<input type="hidden" name="order" value="{$wa->get('order')|escape}">{/if}
-
-                    {* Проверка применения фильтров *}
-                    {$filters_applied = false}
-                    {if $wa->get('price_min') || $wa->get('price_max')}
-                        {$filters_applied = true}
-                    {/if}
-                    {foreach $filters as $fid => $filter}
-                        {if $fid != 'price' && $wa->get($filter.code)}
-                            {$filters_applied = true}
-                            {break}
-                        {/if}
-                    {/foreach}
-
-                    <input class="gray" type="reset" value="[`Reset`]" id="filters-reset-btn"{if !$filters_applied} style="display: none;"{/if}>
+                    </div>
+                    <div class="filters-mobile-footer">
+                        <button class="filters-mobile-done" type="button" data-filters-close>[`Готово`]</button>
+                        <input class="gray js-filters-reset-btn" type="reset" value="[`Reset`]"{if !$filters_applied} style="display: none;"{/if}>
+                    </div>
+                    <input class="gray js-filters-reset-btn filters-reset-btn-desktop" type="reset" value="[`Reset`]"{if !$filters_applied} style="display: none;"{/if}>
                 </form>
             </div>
         </div>

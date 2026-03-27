@@ -1,4 +1,5 @@
 {$is_view_split_pos = $view === 'split' && !empty($params.viewpos)}
+{$is_kanban_type = in_array($view, ['kanban', 'kanban-users'])}
 {function name="dummy_no_orders" target=body}
 <i class="fas fa-shopping-cart text-light-gray opacity-80" style="font-size: {if $target === 'body'}10{else}6{/if}rem; margin-right: 1.5rem;"></i>
     {if $is_orders_empty}
@@ -30,7 +31,7 @@
     </div>
 </div>
 {/capture}
-{capture assign="_dummy_kanban_premium"}
+{function name="_dummy_kanban_premium"}
     <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
         <div class="flexbox fixed space-12 width-100">
             {for $i=1 to 4}
@@ -43,29 +44,19 @@
             {/for}
         </div>
         <div class="s-kanban-premium">
-            {include file="templates/includes/availableWithPremiumAlert.html" title="[`Kanban`]" inline}
+            {if empty($title)}{$title = '[`Kanban`]'}{/if}
+            {include file="templates/includes/availableWithPremiumAlert.html" title=$title inline}
         </div>
     </div>
-{/capture}
+{/function}
 
 {if empty($orders)}
-    {if $view !== 'kanban'}
-        {if $view == 'split'}
-        <div class="sidebar blank width-adaptive-widest wide-mobile overflow-visible" id="s-orders">
-            <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
-            <div class="sidebar-body">
-                <div class="width-100 align-center custom-mt-32">
-                    {dummy_no_orders target=sidebar}
-                </div>
-            </div>
-        </div>
-        {/if}
-        {$_dummy_no_orders_body}
-    {else}
+    {if $is_kanban_type}
         <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
         {if shopLicensing::isPremium()}
         <div class="s-kanban flexbox js-fix-max-width" style="max-width: calc(100vw - 18rem);">
             <div class="flexbox fixed space-12 width-100">
+            {if $view == 'kanban'}
                 {foreach $state_names as $state}
                 <div class="s-kanban__list">
                     <div class="flexbox middle custom-p-12">
@@ -86,18 +77,53 @@
                     <div class="s-kanban__list__fade"></div>
                 </div>
                 {/foreach}
+            {elseif $view == 'kanban-users'}
+                {foreach $assigned_users as $_assigned_user}
+                <div class="s-kanban__list">
+                    <div class="flexbox middle custom-p-12">
+                        <div class="wide text-ellipsis" style="color:green;" data-wa-tooltip-content="">
+                            <span class="s-status-wrapper large nowrap">
+                                <img src="{$_assigned_user.photo_50x50}" class="userpic userpic-32">
+                                {$_assigned_user.name|escape}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="s-kanban__list__count gray bold" data-user-id="$_assigned_user.id">0</span>
+                        </div>
+                    </div>
+                    <div data-kanban-list-user-id="{$_assigned_user.id}" data-kanban-list-total="0" class="s-kanban__list__body hide-scrollbar custom-px-12">
+                        <div class="s-kanban__list__body__footer">
+                            <div class="spinner custom-p-8 js-kanban-spinner" style="display: none;"></div>
+                        </div>
+                    </div>
+                    <div class="s-kanban__list__fade"></div>
+                </div>
+                {/foreach}
+            {/if}
             </div>
         </div>
         {else}
-            {$_dummy_kanban_premium}
+            {_dummy_kanban_premium}
         {/if}
+    {else}
+        {if $view == 'split'}
+        <div class="sidebar blank width-adaptive-widest wide-mobile overflow-visible" id="s-orders">
+            <div class="sidebar-header" style="position: sticky; top: 0; z-index: 1;"></div>
+            <div class="sidebar-body">
+                <div class="width-100 align-center custom-mt-32">
+                    {dummy_no_orders target=sidebar}
+                </div>
+            </div>
+        </div>
+        {/if}
+        {$_dummy_no_orders_body}
     {/if}
 {else}
-<div class="{if $view != 'table' && $view != 'kanban'}sidebar flexbox vertical blank width-adaptive-widest wide-mobile {else}width-100{/if} overflow-visible" id="s-orders">
+<div class="{if $view != 'table' && !$is_kanban_type}sidebar flexbox vertical blank width-adaptive-widest wide-mobile {else}width-100{/if} overflow-visible" id="s-orders">
     {if $view == 'split'}
         <div class="sidebar-header"></div>
     {/if}
-    <div{if $view != 'table' && $view != 'kanban'} class="s-orders-body wide" style="min-height: 0;"{/if}>
+    <div{if $view != 'table' && !$is_kanban_type} class="s-orders-body wide" style="min-height: 0;"{/if}>
         {if $view == 'split'}
             <ul class="list s-orders" id="order-list">
             </ul>
@@ -106,10 +132,10 @@
                 {% var orders = o.orders; %}
                 {% for (var i = 0, n = orders.length; i < n; i += 1) { %}
                     {% var order = orders[i]; %}
-                    <li class="item order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %} width-100-mobile" data-order-id="{%#order.id%}" data-state-id="{%#order.state_id%}">
+                    <li class="item order s-order-status-pending{% if (order.unsettled==='1') { %} s-unsettled{% } %} width-100-mobile {% if (order.assigned_to_me) { %} highlighted{% } %}" data-order-id="{%#order.id%}" data-state-id="{%#order.state_id%}">
 
                         {% if (!$.isEmptyObject(order.contact)) { %}
-                            <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                            <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str|escape}&{/if}{literal}id={%#order.id%}/">
                                 <img src="{%#order.contact.photo_50x50%}" class="userpic userpic-48">
                             </a>
                             {% var state_color = '#ccc'; %}
@@ -120,7 +146,7 @@
                                 {% state_name = o.states[order.state_id].name; %}
                                 {% paid_state_name = o.states.paid.name; %}
                             {% } %}
-                            <a class="details" href="#/orders/{/literal}{if $params_str}{$params_str}&{/if}{literal}id={%#order.id%}/">
+                            <a class="details" href="#/orders/{/literal}{if $params_str}{$params_str|escape}&{/if}{literal}id={%#order.id%}/">
                                 {% include('template-order-list-split-details', { order: order, state_color: state_color, state_name: state_name, paid_state_name: paid_state_name }); %}
                             </a>
                         {% } %}
@@ -150,7 +176,24 @@
                                 <i class="fas fa-check-circle"></i>
                             </span>
                             {% } %}
-                            <strong class="black semibold {%=(o.order.state_id == 'new') ? 'highlighted orange' : '' %}">{%#o.order.total_str%}</strong>
+                            <strong class="black semibold">{%#o.order.total_str%}</strong>
+                            {/literal}{if !shopRights::isAssistant()}{literal}
+                                {% if ({'new':1,'auth':1,'paid':1,'pickup':1}[o.order.state_id] && (!o.order.assigned_contact || o.order.assigned_to_me)) { %}
+                                    <i class="fas fa-circle text-red small custom-ml-2" title="[`New`]"></i>
+                                {% } %}
+                            {/literal}{elseif $wa->userRights('orders') == shopRightConfig::RIGHT_ORDERS_MANAGER}{literal}
+                                {% if ({'new':1,'auth':1,'paid':1,'pickup':1}[o.order.state_id]) { %}
+                                    <i class="fas fa-circle text-red small custom-ml-2" title="[`New`]"></i>
+                                {% } %}
+                            {/literal}{elseif $wa->userRights('orders') == shopRightConfig::RIGHT_ORDERS_COURIER}{literal}
+                                {% if (o.order.state_id == 'shipped') { %}
+                                    <i class="fas fa-circle text-red small custom-ml-2" title="[`New`]"></i>
+                                {% } %}
+                            {/literal}{elseif $wa->userRights('orders') == shopRightConfig::RIGHT_ORDERS_FULFILLMENT}{literal}
+                                {% if (o.order.state_id == 'fulfilling') { %}
+                                    <i class="fas fa-circle text-red small custom-ml-2" title="[`New`]"></i>
+                                {% } %}
+                            {/literal}{/if}{literal}
                         </span>
                     </div>
 
@@ -164,6 +207,13 @@
                         <span class="gray">[`Created`] {%#o.order.create_datetime_str%}</span>
                         {% if (o.order.paid_date) { %}
                             <br><span class="gray">[`Paid`] {% if (o.order.paid_datetime_str) { %}{%#o.order.paid_datetime_str%}{% } else { %}{%#o.order.paid_date_str%}{% } %}</span>
+                        {% } %}
+                        {% if (o.order.assigned_contact) { %}
+                        <span class="flexbox middle space-4" title="[`Assigned now`]">
+                            <span>{% if (o.order.assigned_contact.role) { %}{%#o.order.assigned_contact.role%}{% } else { %}[`Manager`]{% } %}</span>
+                            <span><i class="icon userpic size-20" style="background-image: url('{%#o.order.assigned_contact.photo_50x50%}');"></i></span>
+                            <span class="bold black">{%#o.order.assigned_contact.name%}</span>
+                        </span>
                         {% } %}
                     </p>
                 {/literal}
@@ -219,7 +269,7 @@
                 <script>
                     Kanban.init({
                         filter_params: {json_encode($params)},
-                        filter_params_str: '{$params_str}',
+                        filter_params_str: {$params_str|json_encode},
                         state_transitions: {$state_transitions|json_encode},
                         locale: {
                             'no_action_for_states': {_w("No actions are available to transfer orders to this status.")|json_encode},
@@ -242,11 +292,41 @@
                     {include file='./include.template_order_list_kanban_card.html' inline}
                 {/capture}
             {else}
-                {$_dummy_kanban_premium}
+                {_dummy_kanban_premium title="[`Kanban by status`]"}
+            {/if}
+        {elseif $view == 'kanban-users'}
+            <link href="{$wa_app_static_url}css/backend/orders/kanban.css?v={$wa->version()}" rel="stylesheet" />
+            {if shopLicensing::isPremium()}
+                <script src="{$wa_app_static_url}js/backend/orders/kanban-users.js?v={$wa->version()}"></script>
+                <script>
+                    KanbanUsers.init({
+                        filter_params: {json_encode($params)},
+                        filter_params_str: {$params_str|json_encode},
+                        locale: {
+                            'assign_failed': {_w("Could not assign order to the selected user.")|json_encode}
+                        }
+                    });
+                </script>
+
+                <div id="skeleton_kanban-users">
+                    {include './skeleton/kanban.html' select='kanban-users' no_sidebar=true inline}
+                </div>
+                <div class="s-kanban flexbox js-fix-max-width">
+                    <div class="flexbox fixed space-12 width-100" id="order-list" data-skeleton="#skeleton_kanban-users"></div>
+                </div>
+
+                {capture name="template-order-list-kanban-users"}
+                    {include file='./include.template_order_list_kanban_users.html' inline}
+                {/capture}
+                {capture name="template-order-list-kanban-users-card"}
+                    {include file='./include.template_order_list_kanban_users_card.html' inline}
+                {/capture}
+            {else}
+                {_dummy_kanban_premium title="[`Kanban by user`]"}
             {/if}
         {/if}
 
-        {if $view != 'kanban'}
+        {if !$is_kanban_type}
         <div class="lazyloading-wrapper small {if $view == 'table'}custom-ml-16{else}custom-pb-20{/if}">
             <div class="lazyloading-progress-string custom-mb-16">{_w('%d order','%d orders', $count)}&nbsp;{sprintf(_w('of %d'), $total_count)}</div>
             {if $count < $total_count}
@@ -310,7 +390,7 @@
     {include './skeleton/split.html' no_sidebar=true inline}
 </div>
 {/if}
-<div class="content desktop-and-tablet-only hide-scrollbar" id="s-order" {if $view == 'table' || $view == 'kanban'}style="display:none;"{/if} {if $view == 'split'}data-skeleton="#skeleton_split"{/if}></div>
+<div class="content desktop-and-tablet-only hide-scrollbar" id="s-order" {if $view == 'table' || $is_kanban_type}style="display:none;"{/if} {if $view == 'split'}data-skeleton="#skeleton_split"{/if}></div>
 {capture name="template-order-list-printforms-menu-items"}
     {literal}
         {% var printform, printform_iterator = $.shop.iterator(o.printforms); %}
@@ -389,7 +469,7 @@
         all_order_state_ids: {$all_order_state_ids|json_encode},
         count: {$count},
         lazy_loading: {
-            auto: {if $view == 'kanban'}false{else}true{/if}
+            auto: {if $is_kanban_type}false{else}true{/if}
         },
         update_process: {
             timeout: {$timeout},
@@ -400,6 +480,7 @@
         state_icons,
         counters: {json_encode($counters)},
         state_counters: {json_encode($state_counters)},
+        assigned_users: {json_encode($assigned_users)},
         $selectionMenu: $("#s-orders-selection-menu"),
         sort: {$sort|json_encode},
         locale: {

@@ -5,7 +5,6 @@
 class shopFrontApiCategoryFormatter extends shopFrontApiFormatter
 {
     public $fields;
-    public $options;
     protected $product_fields = null;
 
     public function format(array $c)

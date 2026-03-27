@@ -859,6 +859,7 @@ class shopHelper
         foreach ($orders as & $order) {
             $order['id_str'] = self::encodeOrderId($order['id']);
             $order['total_str'] = wa_currency_html(ifset($order, 'total', 0), ifset($order, 'currency', null));
+            $order['assigned_to_me'] = wa()->getUser()->getId() && ifset($order, 'assigned_contact_id', null) == wa()->getUser()->getId();
             if (!empty($order['create_datetime'])) {
                 $order['create_datetime_str'] = wa_date('humandatetime', $order['create_datetime']);
             }
@@ -2489,5 +2490,36 @@ SQL;
             }
         }
         return $result;
+    }
+
+    /**
+     * @param $user
+     * @return array
+     * @throws waException
+     */
+    public static function getTeamGroups($user = null)
+    {
+        if (wa()->appExists('team')) {
+            wa('team');
+            return teamHelper::getVisibleGroups($user);
+        }
+
+        return [];
+    }
+
+    /**
+     * @param $group_id
+     * @param $fields
+     * @return array|array[]
+     * @throws waException
+     */
+    public static function getUsersTeamGroup($group_id, $fields = ['id', 'name'])
+    {
+        if (wa()->appExists('team')) {
+            wa('team');
+            return teamUser::getList('group/'.(int) $group_id, ['fields' => implode(',', $fields)]);
+        }
+
+        return [];
     }
 }

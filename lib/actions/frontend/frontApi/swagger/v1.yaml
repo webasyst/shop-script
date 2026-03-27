@@ -788,6 +788,20 @@ paths:
             enum:
               - 0
               - 1
+        - in: query
+          name: values_limit
+          default: 1000
+          description: |
+            Если передан параметр filters=1, то values_limit ограничивает общее количество значений в фильтрах типа "выбор из списка". Это предохранитель, чтобы ответ контроллера не оказался очень большим. Фильтры обрабатываются последовательно, суммируется количество значений. Когда общее количество значений превосходит values_limit, то в каждом последующем фильтре количество значений ограничивается числом min_values_count.
+          schema:
+            type: integer
+        - in: query
+          name: min_values_count
+          default: 20
+          description: |
+            См. values_limit
+          schema:
+            type: integer
       responses:
         200:
           description: Информация о категориях товаров.

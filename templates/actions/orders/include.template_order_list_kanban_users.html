@@ -1,0 +1,39 @@
+{literal}
+    {%
+        const orders = o.orders;
+        const states = o.states;
+        const a_users = o.assigned_users;
+        const assignment_counters = o.counters.assignment_counters;
+    %}
+
+    {% for (user_id in a_users) { %}
+        <div class="s-kanban__list">
+            <div class="flexbox middle custom-p-12">
+                <div class="wide text-ellipsis" style="color:green;" data-wa-tooltip-content="">
+                    <span class="s-status-wrapper nowrap flexbox middle space-8">
+                        <img src="{%#a_users[user_id]['photo_50x50']%}" class="userpic userpic-20">
+                        <span class="semibold">{%=a_users[user_id]['name']%}</span>
+                    </span>
+                </div>
+                <div>
+                    <span class="s-kanban__list__count gray small bold" data-user-id="{%#user_id%}">{%=assignment_counters[user_id]%}</span>
+                </div>
+            </div>
+            <div data-kanban-list-user-id="{%#user_id%}" data-kanban-list-total="0" class="s-kanban__list__body hide-scrollbar custom-px-12">
+                {% for (order of orders) { %}
+                    {% if (order.assigned_contact_id == user_id) { %}
+                        {%
+                            const state_color = states[order.state_id]['options']['style']['color'] || '#FFF';
+                            const state_name = states[order.state_id]['name'] || '';
+                        %}
+                        {% include('template-order-list-kanban-users-card', { state_name, user_id, order, state_color }); %}
+                    {% } %}
+                {% } %}
+                <div class="s-kanban__list__body__footer">
+                    <div class="spinner custom-p-8 js-kanban-spinner" style="display: none;"></div>
+                </div>
+            </div>
+            <div class="s-kanban__list__fade"></div>
+        </div>
+    {% } %}
+{/literal}

@@ -100,6 +100,7 @@ ul.menu-v.dropdown > li.is-opened > ul { display: block }
 #s-order-nav .s-order-nav-block { padding: 0.5rem 0.75rem; }
 #s-order-nav .s-order-nav-block.s-order-nav-block-chips { padding-top: 0.6125rem; }
 #s-order-nav .s-order-nav-block.s-order-nav-block-chips .chips > li { margin-right: 0.6125rem; font-size: 0.9375rem; margin-bottom: 0.25rem; }
+#s-order-nav .s-order-nav-block.s-order-nav-block-chips .chips > li a { font-weight: 500; line-height: 1; }
 #s-order-nav .s-order-nav-block.s-order-nav-block-chips .chips > li.dropdown { display: grid; height: max-content; padding-top: 0.1rem; padding-bottom: 0.1rem; }
 #s-order-nav[data-view-mode="split"] .s-order-nav-block.s-order-nav-block-chips .chips > li.dropdown { margin-bottom: 0.375rem; }
 #s-order-nav .s-order-nav-block.s-order-nav-block-chips .chips > li .dropdown-toggle > .icon { margin-right: 0.25rem; border-radius: 0.25rem; overflow: hidden; }
@@ -141,6 +142,8 @@ ul.menu-v.dropdown > li.is-opened > ul { display: block }
 #s-content .s-embed { color: #aaa; }
 #s-content .s-embed-code { color: #555; }
 .p-sort-order-error-disclaimer { color: #c33; }
+
+.s-order .s-order-status-badge { padding: 0.25rem 0.5rem; position: relative; top: 2px; font-weight: 600; }
 
 .s-order-items-edit td.save i.loading {margin-top: 10px; display: none}
 
@@ -204,7 +207,9 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 #wf-ship-form .shipping-time-from-fields input,
 #wf-ship-form .shipping-time-to-fields input { width: 55px; }
 
-ul.s-orders.list > .item.selected { background: var(--accent-color); color: var(--white); }
+ul.s-orders.list > .item.highlighted { background: #fff8dc; }
+[data-theme="dark"] ul.s-orders.list > .item.highlighted { background: rgba(155,145,25,0.15); }
+ul.s-orders.list > .item.selected { background: var(--accent-color) !important; color: var(--white); }
 ul.s-orders.list > .item.selected * { color: var(--white); }
 ul.s-orders.list > .item { -webkit-tap-highlight-color: transparent; }
 ul.s-orders.list > .item .highlighted, .s-order-table .highlighted, .s-kanban__list .s-kanban-item-top-wrapper .highlighted { padding: 0.1rem 0.3rem; }

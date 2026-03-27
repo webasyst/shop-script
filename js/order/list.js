@@ -222,12 +222,15 @@
                     // template-order-list-table
                     // template-order-list-split
                     // template-order-list-kanban
+                    // template-order-list-kanban-users
                     this.container.append(
                         tmpl('template-order-list-' + this.options.view, {
                                 orders: options.orders,
                                 states: options.state_names || {},
-                                state_counters: options.state_counters  || {},
-                                state_icons: options.state_icons  || {},
+                                counters: options.counters || {},
+                                state_counters: options.state_counters || {},
+                                state_icons: options.state_icons || {},
+                                assigned_users: options.assigned_users || {}
                             }, true
                         ));
                     this.container.trigger('append_order_list', [options.orders]);
@@ -1315,6 +1318,12 @@
                         if (cntrs.hasOwnProperty(id)) {
                             var item;
                             if (name == 'common_counters') {
+                                if (id == 'app_badge') {
+                                    $.shop.updateAppCounter(cntrs[id]);
+                                    this.updateTitle(this.options.title_suffix, parseInt(cntrs[id], 10));
+                                    $(document).find('.js-new-order-counter').text(`+${cntrs[id]}`);
+                                    continue;
+                                }
                                 item = $('.js-' + id + '-counter');
                             } else {
                                 if (name === 'storefront_counters') {
@@ -1341,12 +1350,6 @@
                             } else {
                                 cnt = parseInt(cntrs[id], 10) || 0;
                                 item.text(cnt);
-                            }
-
-                            if (id === 'new') {
-                                $.shop.updateAppCounter(cnt);
-                                this.updateTitle(this.options.title_suffix, parseInt(cnt, 10));
-                                $(document).find('.js-new-order-counter').text(`+${cnt}`);
                             }
                         }
                     }
@@ -1439,7 +1442,7 @@
                             // console.log('$.order_list.filter_params_str', $.order_list.filter_params_str);
                         }
                         $.order_list.dispatch(params);
-                        $(window).trigger('wa_loaded', [['table', 'kanban']]);
+                        $(window).trigger('wa_loaded', [['table', 'kanban', 'kanban-users']]);
                     });
                 },
                 order: function () {
@@ -1566,7 +1569,18 @@
                                                     }
                                                 )));
                                             }
-                                        }else{
+                                        } else if (self.options.view === 'kanban-users') {
+                                            const $kanban_first_column = self.container.find('#order-list .s-kanban__list:first');
+                                            if ($kanban_first_column.length) {
+                                                r.data.orders.reverse();
+                                                r.data.orders.forEach(order => $kanban_first_column.prepend(tmpl('template-order-list-kanban-users-card', {
+                                                    order,
+                                                    state_name: self.options?.state_names['new']?.name || '',
+                                                    state_color: self.options?.state_names['new']?.options?.style?.color || '',
+                                                    }
+                                                )));
+                                            }
+                                        } else {
                                             self.container.prepend(
                                                 tmpl('template-order-list-' + self.options.view, {
                                                         orders: r.data.orders,

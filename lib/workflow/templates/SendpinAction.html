@@ -1,0 +1,128 @@
+<form id="wf-sendpin-form" action="?module=workflow&action=perform" method="post">
+    <input type="hidden" name="id" value="{$order_id}">
+    <input type="hidden" name="action_id" value="{$action_id}">
+    <input type="hidden" name="notifications" value="silent">
+
+    <div class="fields form">
+        <div class="field">
+            <div class="name">[`Send via`]</div>
+            <div class="value">
+                {if !empty($contact_email)}
+                <div>
+                    <label class="flexbox middle space-8">
+                        <input class="transport" type="radio" name="transport" value="email"{if $transport == 'email'} checked{/if}>
+                        <i class="fas fa-envelope text-gray"></i>
+                        <span>[`Email`]</span>
+                    </label>
+                </div>
+                {/if}
+                {if !empty($sms_from) && !empty($contact_phone)}
+                <div>
+                    <label class="flexbox middle space-8">
+                        <input class="transport" type="radio" name="transport" value="sms"{if $transport == 'sms'} checked{/if}>
+                        <i class="fas fa-mobile-alt text-gray"></i>
+                        <span>[`SMS`]</span>
+                    </label>
+                </div>
+                {/if}
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="name"><label for="{if !empty($contact_email)}transport-email{elseif !empty($sms_from) && !empty($contact_phone)}transport-sms{/if}">[`Sender`]</label></div>
+            <div class="value">
+                {if !empty($contact_email)}
+                    {if $email_from}
+                        <select id="transport-email" name="sender"{if $transport != 'email'} style="display:none" disabled{/if}>
+                            {foreach $email_from as $from => $value}
+                            <option value="{$from}">{$from}</option>
+                            {/foreach}
+                        </select>
+                    {else}
+                        <div class="js-email-errors state-error-hint">
+                            <i class="fas fa-exclamation-triangle text-yellow"></i>
+                            <span>[`Primary email address is not specified in store settings.`]</span>
+                            <a href="{$wa_app_url}?action=settings" target="_blank">[`Edit settings`]</a>
+                        </div>
+                    {/if}
+                {/if}
+                {if !empty($sms_from) && !empty($contact_phone)}
+                    <select id="transport-sms" name="sender"{if $transport != 'sms'} style="display:none" disabled{/if}>
+                        {$cnt = count($sms_from)}
+                        <option value="" selected>[`Default (as configured in SMS gateway)`]</option>
+                        {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
+                            {foreach $sms_from as $from => $value}
+                                <option value="{$from}">{$from}</option>
+                            {/foreach}
+                        {/if}
+                    </select>
+                {/if}
+            </div>
+        </div>
+    </div>
+    <div class="custom-my-16">
+        {if !empty($plugins_html)}
+            {foreach $plugins_html as $plugin_id => $html}
+                <!-- {$plugin_id} -->
+                {$html}
+            {/foreach}
+        {/if}
+    </div>
+
+    <footer class="js-form-footer-actions">
+        <input class="button green js-submit-button" type="submit" value="[`Send`]">
+        <a class="button light-gray js-cancel-button" href="javascript:void(0);">[`Cancel`]</a>
+    </footer>
+</form>
+
+<script>
+    (function ($) {
+        let $form = $("#wf-sendpin-form");
+        let $error_place = $form.find('.js-email-errors');
+        let $submit_button = $form.find(':submit');
+
+        // cancel link
+        $form.on('click', '.js-cancel-button', function () {
+            var el = $(this).closest('.workflow-content');
+            el.empty().hide();
+            el.prev().show();
+            return false;
+        });
+
+        $form.submit(function () {
+            var f = $(this);
+            $submit_button.attr('disabled', true);
+            $.post(f.attr('action'), f.serialize(), function () {
+                if ('order' in $) {
+                    $.order.reload();
+                }
+            }, 'json');
+            return false;
+        });
+
+        $form.on('change', '.transport', function () {
+            if ($('#wf-sendpin-form .transport:checked').val() == 'sms') {
+                $('#transport-sms').show().removeAttr('disabled');
+                if ($error_place.length) {
+                    $submit_button.removeAttr('disabled');
+                    $error_place.hide();
+                } else {
+                    $('#transport-email').hide().attr('disabled', true);
+                }
+            } else {
+                $('#transport-sms').hide().attr('disabled', true);
+                if ($error_place.length) {
+                    $submit_button.attr('disabled', true);
+                    $error_place.show();
+                } else {
+                    $('#transport-email').show().removeAttr('disabled');
+                }
+            }
+        });
+
+        if ($error_place.length) {
+            $submit_button.attr('disabled', true);
+        }
+
+    })(jQuery);
+</script>

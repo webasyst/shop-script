@@ -273,6 +273,7 @@ HTML;
         }
 
         $order = $this->getOrder($order_id);
+        $order['params'] = $this->order_params_model->get($order_id);
 
         $data = is_array($result) ? $result : array();
         if (isset($data['id'])) {
@@ -312,13 +313,14 @@ HTML;
         if ($this->state_id) {
             $update['state_id'] = $this->state_id;
         }
+        $update['assigned_contact_id'] = $this->assignmentAutomation($order);
         $this->order_model->updateById($order['id'], $update);
         $order = $update + $order;
 
         if (isset($update['params'])) {
             $this->order_params_model->set($order['id'], $update['params'], false);
+            $order['params'] = $update['params'] + $update['params'];
         }
-        $order['params'] = $this->order_params_model->get($order_id);
 
         // send notifications
         $silent = false;
@@ -673,5 +675,147 @@ HTML;
             }
         }
         return $controls;
+    }
+
+    protected function assignmentAutomation($order, $is_update = false)
+    {
+        $compare = function ($a, $b, $op) {
+            if ($op === '==') {
+                return $a == $b;
+            } elseif ($op === '!=') {
+                return $a != $b;
+            } elseif ($op === '>') {
+                return $a > $b;
+            } elseif ($op === '<') {
+                return $a < $b;
+            }
+            return false;
+        };
+        $getAssignedContactId = function($r_data) {
+            switch (ifset($r_data, 'assignment', null)) {
+                case 'user_action':
+                    return wa()->getUser()->getId();
+                case 'user_id':
+                    $user = new waContact(ifset($r_data, 'user_id', 0));
+                    return ($user->exists() ? $user->getId() : null);
+                case 'user_low_busy':
+                    if ($user_group = ifset($r_data, 'user_group', 0)) {
+                        $user_ids = null;
+                        if ($user_group !== 'all') {
+                            $users = shopHelper::getUsersTeamGroup($user_group);
+                            $user_ids = array_keys($users);
+                        }
+                        $user_id = (new shopOrderModel())->query("
+                            SELECT wc.id, COUNT(so.assigned_contact_id) AS cnt 
+                            FROM wa_contact wc 
+                            LEFT JOIN shop_order so ON so.assigned_contact_id = wc.id
+                            WHERE wc.is_user = 1".(isset($user_ids) ? ' AND wc.id IN (?)' : '')." 
+                            GROUP BY wc.id
+                            ORDER BY cnt, wc.id
+                        ", [$user_ids])->fetchField();
+
+                        return ($user_id ?: null);
+                    }
+                    return null;
+                case 'user_reset':
+                default:
+                    return null;
+            }
+        };
+
+        if (!shopLicensing::isPremium()) {
+            return null;
+        }
+
+        $assign_rules_model = new shopOrderAssignRulesModel();
+        $rule = $assign_rules_model->getByField('action_id', $this->getId());
+        $assigned_contact_id = ifset($order, 'assigned_contact_id', null);
+        if (empty($rule)) {
+            return null;
+        }
+
+        if (empty($order['params'])) {
+            $order['params'] = $this->order_params_model->get($order['id']);
+        }
+        if (empty($order['items'])) {
+            $order['items'] = $this->order_items_model->getItems($order['id']);
+        }
+
+        $found = false;
+        $conditions = ifset($rule, 'conditions', []);
+        $rule_data = ifset($rule, 'rule_data', []);
+        foreach ($conditions as $_condition) {
+            $operator = ifempty($_condition, 'compare_op', null);
+
+            if ($storefront = ifset($_condition, 'by_storefront', null)) {
+                if ($compare(ifset($order, 'params', 'storefront', ''), $storefront, $operator)) {
+                    $found = true;
+                }
+            } elseif ($amount = ifset($_condition, 'by_amount', null)) {
+                if ($compare(ifset($order, 'total', ''), $amount, $operator)) {
+                    $found = true;
+                }
+            } elseif ($channel_id = ifset($_condition, 'by_channel_id', null)) {
+                if (preg_match('#^([a-z0-9]+):(\d+)$#', ifset($order, 'params', 'sales_channel', ''), $matches)) {
+                    if ($compare($matches[2], $channel_id, $operator)) {
+                        $found = true;
+                    }
+                }
+            } elseif ($payment_id = ifset($_condition, 'by_payment_id', null)) {
+                if ($compare(ifset($order, 'params', 'payment_id', ''), $payment_id, $operator)) {
+                    $found = true;
+                }
+            } elseif ($shipping_id = ifset($_condition, 'by_shipping_id', null)) {
+                if ($compare(ifset($order, 'params', 'shipping_id', ''), $shipping_id, $operator)) {
+                    $found = true;
+                }
+            } elseif ($customer_group_id = ifset($_condition, 'by_customer_group_id', null)) {
+                $customer = new shopCustomer(ifset($order, 'contact_id', 0));
+                if ($customer->exists()) {
+                    $customer_groups = $customer->getCategories();
+                    $available = in_array($customer_group_id, $customer_groups);
+                    if ($compare(($available ? $customer_group_id : 0), $customer_group_id, $operator)) {
+                        $found = true;
+                    }
+                }
+            } elseif ($prod_type_id = ifset($_condition, 'by_prod_type_id', null)) {
+                $product_ids = array_column($order['items'], 'product_id');
+                $product_model = new shopProductModel();
+                $available = $product_model->select('COUNT(*)')->where('id IN (?) AND type_id = ?', [$product_ids, (int) $prod_type_id])->fetchField();
+                if ($compare(($available ? $prod_type_id : 0), $prod_type_id, $operator)) {
+                    $found = true;
+                }
+            } elseif ($sku_id = ifset($_condition, 'by_sku_id', null)) {
+                $sku_ids = array_column($order['items'], 'sku_id');
+                if (in_array($sku_id, $sku_ids)) {
+                    $found = true;
+                }
+            } elseif ($stock_id = ifset($_condition, 'by_stock_id', null)) {
+                $available = in_array($stock_id,  array_column($order['items'], 'stock_id'));
+                if ($compare(($available ? $stock_id : 0), $stock_id, $operator)) {
+                    $found = true;
+                }
+            }
+
+            if ($found) {
+                break;
+            }
+        }
+
+        if ($found || empty($conditions)) {
+            $assigned_contact_id = $getAssignedContactId($rule_data);
+        }
+
+        if ($assigned_contact_id) {
+            if ($is_update) {
+                $this->order_model->updateById($order['id'], ['assigned_contact_id' => $assigned_contact_id]);
+            }
+            $user_role = shopRights::getUserRole($assigned_contact_id);
+            if ($field_name = ifset($user_role, 'role_field', null)) {
+                $this->order_params_model->set($order['id'], [$field_name => $assigned_contact_id], false);
+            }
+        }
+
+        return $assigned_contact_id;
     }
 }

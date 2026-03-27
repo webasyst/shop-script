@@ -556,13 +556,14 @@ return array(
             /** OTHER **/
             '$signup_url'                                              => _w('Signup page URL. Will not be provided if either the order was placed by a registered customer, or <a href="?action=settings#/checkout/">Guest checkout setting</a> is not enabled.'),
             '$payment_url'                                             => _w('Order payment link (URL)'),
-            /** AFILIATE **/
+            /** AFFILIATE **/
             '$is_affiliate_enabled'                                    => _w('Indicates if <a href="?action=settings#/affiliate/">Loyalty program</a> is enabled in store settings.'),
             '$add_affiliate_bonus'                                     => _w('Amount of affiliate bonus that will be credited to customer account when order is paid.'),
         ),
         'followups'     => array(
             '$order'                                                      => _w('An array containing information about the order'),
             '$order.id'                                                   => _w('Order ID'),
+            '$order.id_str'                                               => _w('Order ID formatted according to the store’s settings'),
             '$order.currency'                                             => _w('Order currency (ISO 3 code)'),
             '$order.items'                                                => _w('An array containing information about ordered items'),
             '$order.items[].price'                                        => _w('Item price'),

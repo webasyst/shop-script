@@ -62,6 +62,10 @@ class shopOrderAction extends waViewAction
         if (!empty($order_data_array['contact']['name'])) {
             $order_data_array['contact']['name'] = htmlspecialchars($order_data_array['contact']['name']);
         }
+        $order_data_array['assigned_contact'] = $_order->assigned_contact;
+        if (!empty($order_data_array['assigned_contact']['name'])) {
+            $order_data_array['assigned_contact']['name'] = htmlspecialchars($order_data_array['assigned_contact']['name']);
+        }
         $order_data_array['coupon'] = $_order['coupon'];
         $order_data_array['state'] = $_order['state'];
         $order_data_array['items'] = $order_items;
@@ -92,7 +96,7 @@ class shopOrderAction extends waViewAction
             }
         }
 
-        if (wa()->whichUI() != '1.3') {
+        if (wa()->whichUI() != '1.3' && !shopRights::isAssistant()) {
             $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
         }
 
@@ -132,8 +136,14 @@ class shopOrderAction extends waViewAction
             'customer_delivery_time'     => $customer_delivery_time,
             'customer_delivery_date_str' => ifset($params['shipping_params_desired_delivery.date_str']),
             'offset'                     => $order_model->getOffset($_order->id, $this->getParams(), true),
-            'courier'                    => $_order->courier,
             'total_processing'           => ifset($total_processing),
+            'assign_contacts'            => $this->getAssignContacts($_order),
+            'assistants'                 => [
+                'courier'     => $_order->courier,
+                'fulfillment' => $_order->fulfillment,
+                'manager'     => $_order->manager,
+                'cashier'     => $_order->cashier,
+            ],
         ));
 
         $event_data = $order_data_array;
@@ -223,7 +233,7 @@ class shopOrderAction extends waViewAction
         if ($this->filter_params === null) {
             $params = array();
             $state_id = waRequest::get('state_id', null);
-            if ($state_id && wa()->getUser()->getRights('shop', 'orders') != shopRightConfig::RIGHT_ORDERS_COURIER) {
+            if ($state_id && !shopRights::isAssistant()) {
                 if (strstr($state_id, '|') !== false) {
                     $params['state_id'] = explode('|', $state_id);
                 } else {
@@ -484,5 +494,30 @@ class shopOrderAction extends waViewAction
         }
 
         return $storefront;
+    }
+
+    private function getAssignContacts($order)
+    {
+        $users = shopRights::getUsers('orders', shopRightConfig::RIGHT_ORDERS_COURIER);
+        $assigned_contact_id = (int) $order->getData('assigned_contact_id');
+
+        $result = [
+            shopRightConfig::RIGHT_ORDERS_COURIER => [],
+            shopRightConfig::RIGHT_ORDERS_FULFILLMENT => [],
+            shopRightConfig::RIGHT_ORDERS_CASHIER => [],
+            shopRightConfig::RIGHT_ORDERS_MANAGER => [],
+            shopRightConfig::RIGHT_ORDERS_FULL => [],
+        ];
+
+        foreach ($users as $_user) {
+            $_user['selected'] = ($_user['id'] == $assigned_contact_id);
+            if ($_user['right']['name'] == 'orders') {
+                $result[$_user['right']['value']][] = $_user;
+            } else {
+                $result[shopRightConfig::RIGHT_ORDERS_FULL][] = $_user;
+            }
+        }
+
+        return $result;
     }
 }

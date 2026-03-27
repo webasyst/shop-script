@@ -36,13 +36,37 @@ class shopFrontendApiCategoriesController extends shopFrontApiJsonController
 
     protected function formatCategories($cats)
     {
+        $values_limit = waRequest::get('values_limit', 1000, waRequest::TYPE_INT);
+        $min_values_count = waRequest::get('min_values_count', 20, waRequest::TYPE_INT);
         $formatter = new shopFrontApiCategoryFormatter([
             'without_meta' => true,
         ]);
         $result = array();
-        foreach ($cats as $c) {
-            $result[] = $formatter->format($c);
+        foreach ($cats as &$c) {
+            $c = $formatter->format($c);
+
+            // Total number of filter feature values can not exceed $values_limit;
+            // if it does, the rest of the filers have their value count limited to $min_values_count
+            if (!empty($c['filters'])) {
+                foreach ($c['filters'] as &$f) {
+                    if (!empty($f['values'])) {
+                        if (count($f['values']) > $values_limit) {
+                            if ($min_values_count > $values_limit) {
+                                $values_limit = $min_values_count;
+                            }
+                            $f['values'] = array_slice($f['values'], 0, $values_limit);
+                            $values_limit = $min_values_count;
+                        } else {
+                            $values_limit -= count($f['values']);
+                        }
+                    }
+                }
+                unset($f);
+            }
+
+            $result[] = $c;
         }
+        unset($c);
         return $result;
     }
 

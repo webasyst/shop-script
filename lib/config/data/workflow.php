@@ -15,6 +15,7 @@ return array(
                 'process',
                 'initpay',
                 'pay',
+                'fulfilling',
                 'ship',
                 'complete',
                 'comment',
@@ -23,6 +24,7 @@ return array(
                 'editshippingdetails',
                 'message',
                 'delete',
+                'sendpin',
             ),
         ),
         'processing' => array(
@@ -37,6 +39,7 @@ return array(
             'available_actions' => array(
                 'initpay',
                 'pay',
+                'fulfilling',
                 'ship',
                 'complete',
                 'comment',
@@ -45,6 +48,7 @@ return array(
                 'editshippingdetails',
                 'message',
                 'delete',
+                'sendpin',
             ),
         ),
         'auth'       => array(
@@ -61,6 +65,7 @@ return array(
                 'cancel',
                 'comment',
                 'message',
+                'sendpin',
             ),
         ),
         'paid'       => array(
@@ -74,12 +79,32 @@ return array(
                 ),
             ),
             'available_actions' => array(
+                'fulfilling',
                 'ship',
                 'editcode',
                 'editshippingdetails',
                 'complete',
                 'refund',
                 'comment',
+                'message',
+                'sendpin',
+            ),
+        ),
+        'fulfilling' => array(
+            'name'              => _w('Fulfilling'),
+            'options'           => array(
+                'icon'  => 'fas fa-boxes',
+                'style' => array(
+                    'color' => '#ff6c00',
+                )
+            ),
+            'available_actions' => array(
+                'ship',
+                'editcode',
+                'editshippingdetails',
+                'complete',
+                'comment',
+                'delete',
                 'message',
             ),
         ),
@@ -99,6 +124,7 @@ return array(
                 'comment',
                 'delete',
                 'message',
+                'sendpin',
             ),
         ),
         'completed'  => array(
@@ -134,6 +160,7 @@ return array(
                 'editshippingdetails',
                 'message',
                 'delete',
+                'sendpin',
             ),
         ),
         'pickup' => array(
@@ -154,6 +181,7 @@ return array(
                 'editshippingdetails',
                 'message',
                 'delete',
+                'sendpin',
             ),
         ),
         'refunded'   => array(
@@ -225,6 +253,16 @@ return array(
                 'description'  => _w('Sends order to payment terminal in manual mode.'),
                 'position' => 'top',
                 'icon' => 'fas fa-cash-register',
+            ),
+        ),
+        'fulfilling'          => array(
+            'classname' => 'shopWorkflowFulfillingAction',
+            'name'      => _w('Start fulfillment'),
+            'state'     => 'fulfilling',
+            'options'   => array(
+                'log_record'   => _w('Order sent to fulfillment'),
+                'button_class' => 'orange',
+                'icon'       => 'boxes',
             ),
         ),
         'ship'                => array(
@@ -394,6 +432,15 @@ return array(
                 'log_record'   => _w('Order was picked up'),
                 'button_class' => 'purple',
                 'icon'         => 'flag-checkered',
+            ),
+        ),
+        'sendpin' => array(
+            'classname' => 'shopWorkflowSendpinAction',
+            'name'      => _w('Resend PIN'),
+            'options'   => array(
+                'position'   => 'top',
+                'icon'       => 'fas fa-key',
+                'log_record' => _w('PIN was resent'),
             ),
         ),
     ),

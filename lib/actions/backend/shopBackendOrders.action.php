@@ -20,11 +20,16 @@ class shopBackendOrdersAction extends waViewAction
         $pending_count =
             (!empty($state_counters['new']) ? $state_counters['new'] : 0) +
             (!empty($state_counters['processing']) ? $state_counters['processing'] : 0) +
+            (!empty($state_counters['auth']) ? $state_counters['auth'] : 0) +
+            (!empty($state_counters['pickup']) ? $state_counters['pickup'] : 0) +
             (!empty($state_counters['paid']) ? $state_counters['paid'] : 0);
+        $processing_count_new = $config->getAppBadgeCount();
 
         $cm = new shopCouponModel();
 
-        $all_count = $order_model->countByField('all');
+        if (!shopRights::isAssistant()) {
+            $all_count = $order_model->countByField('all');
+        }
         $sales_channels = self::getSalesChannelsWithCounts($order_model);
 
         $unsettled_count = $order_model->countByField('unsettled', 1);
@@ -42,8 +47,8 @@ class shopBackendOrdersAction extends waViewAction
         $courier_model = new shopApiCourierModel();
         $couriers = $courier_model->getEnabled();
         $courier_model->getOrderCounts($couriers);
-        $contacts_as_courier = self::getContactsAsCourier('`id`, `name`, `photo`');
-        $order_model->getOrderCounts($contacts_as_courier['courier_access']);
+        $assistants = shopRights::getAssistants();
+        $order_model->getOrderCounts($assistants);
 
         $this->view->assign(array(
             'states'          => $this->getStates(),
@@ -55,13 +60,17 @@ class shopBackendOrdersAction extends waViewAction
             'state_counters'  => $state_counters,
             'currency'        => $config->getCurrency(),
             'pending_count'   => $pending_count,
-            'all_count'       => $all_count,
+            'all_count'       => ifset($all_count),
             'sales_channels'  => $sales_channels,
             'backend_orders'  => $backend_orders,
             'unsettled_count' => $unsettled_count,
             'shipping'        => $this->shipping(),
             'payments'        => $this->payment(),
-            'contacts_as_courier' => $contacts_as_courier['courier_access'],
+            'contacts_as_courier' => $assistants['couriers'],
+            'manager_users'       => $assistants['managers'] + $assistants['admins'],
+            'fulfillment_users'   => $assistants['fulfillments'],
+            'cashier_users'       => $assistants['cashiers'],
+            'processing_count_new' => $processing_count_new,
         ));
     }
 
@@ -114,33 +123,6 @@ class shopBackendOrdersAction extends waViewAction
     protected function payment() {
         $plugin_model = new shopPluginModel();
         return $plugin_model->listPlugins('payment');
-    }
-
-    public static function getContactsAsCourier($fields)
-    {
-        $users = self::getUsersByRights('orders', [
-            'courier_access' => shopRightConfig::RIGHT_ORDERS_COURIER,
-            'full_access' => shopRightConfig::RIGHT_ORDERS_FULL,
-        ]);
-        $contacts = [
-            'courier_access' => [],
-            'full_access' => [],
-        ];
-        if ($users) {
-            $contact_model = new waContactModel();
-            $all_contacts = $contact_model->select($fields)->where('`is_user` = 1 AND `id` IN (?)', [array_keys($users)])->fetchAll('id');
-            foreach ($users as $contact_id => $user) {
-                if (isset($all_contacts[$contact_id])) {
-                    if ($user['courier_access']) {
-                        $contacts['courier_access'][$contact_id] = $all_contacts[$contact_id];
-                    } else {
-                        $contacts['full_access'][$contact_id] = $all_contacts[$contact_id];
-                    }
-                }
-            }
-        }
-
-        return $contacts;
     }
 
     /**

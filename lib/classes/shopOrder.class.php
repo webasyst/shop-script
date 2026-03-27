@@ -20,6 +20,7 @@
  * @property-read double $tax               Total order tax in order currency. Set it into 'calculate' to recalculate tax;
  * @property double $shipping               Total order shipping cost in order currency.
  * @property double $discount               Total order discount in order currency. Set it into `null` or empty to hold previous calculated discount or set into 'calculate' to recalculate.
+ * @property int $assigned_contact_id       Assigned contact.
  * @property string $discount_description   Human-readable text description of how discounts were calculated. Intended for store admin, not customer. If you call without calculating a discount, then you will calculate the discount yourself and return the value without affecting the rest of the order.
  * @property-read string $auth_date         Date when order payment was auth, or NULL if it wasn't
  * @property-read string $paid_date         Date when order was paid, or NULL if it wasn't.
@@ -31,6 +32,9 @@
  * @property-read bool $unsettled           `true` if this order is unsettled (Created via payment callback and the order was not matched with the existing one)
  * @property string $comment                Text left by a customer during checkout
  * @property-read int $courier_contact_id
+ * @property-read int $fulfillment_contact_id
+ * @property-read int $cashier_contact_id
+ * @property-read int $manager_contact_id
  * @property-read datetime $shipping_datetime Estimated shipping datetime as may be set by store admin using "Edit shipping details" order action.
  *
  * @property array[] $items                 Order items
@@ -76,6 +80,9 @@
  * @property-read array $shipping_custom_fields     Custom fields from shipping plugins
  * @property-read string $tracking                  HTML, contains tracking info or null if it not available
  * @property-read array $courier                    Courier data from shop_api_courier table
+ * @property-read array $fulfillment
+ * @property-read array $cashier
+ * @property-read array $manager
  * @property-read string $map                       HTML contains data to display map
  * @property-read array[] $shipping_methods
  * @property-read string $shipping_id
@@ -92,6 +99,8 @@
  * @property-read array $printforms             See shopPrintforms::getOrderPrintforms()
  *
  * @property-read array $coupon                 Discount coupon data if used for this order
+ *
+ * @property-read waContact $assigned_contact   Assigned contact
  *
  * @todo move `items.selector`, `items._parent_index` and `items._index` into controller code — GUI depends selectors
  */
@@ -154,6 +163,7 @@ class shopOrder implements ArrayAccess
 
     protected static $readonly_fields = array(
         'actions',
+        'assigned_contact',
         'billing_address_text',
         'contact',
         'contact_essentials',
@@ -180,7 +190,6 @@ class shopOrder implements ArrayAccess
         'printforms',
         'products',
         'rate',
-        'courier_contact_id',
         'shipping_address_text',
         'shipping_datetime',
         'shipping_id',
@@ -268,10 +277,7 @@ class shopOrder implements ArrayAccess
 
     private static $cached_products = array();
 
-    /**
-     * @var array
-     *
-     * */
+    /** @var array */
     private static $cached_services = array();
 
     private $item_ids;
@@ -1452,6 +1458,19 @@ class shopOrder implements ArrayAccess
         return $order_model->getOrderContactData($this->data + $this->original_data);
     }
 
+    protected function getAssignedContact()
+    {
+        if ($this->assigned_contact_id) {
+            $order_model = new shopOrderModel();
+            $assigned_contact = $order_model->getOrderContactData($this->data + $this->original_data, 'assigned_contact_id');
+            $assigned_contact += (array) shopRights::getUserRole($this->assigned_contact_id);
+
+            return $assigned_contact;
+        }
+
+        return null;
+    }
+
     protected function getShopCustomer()
     {
         $customer_model = new shopCustomerModel();
@@ -1852,7 +1871,9 @@ class shopOrder implements ArrayAccess
         $customer_addresses = $contact['address'];
 
         // This is a list of all addresses with ext matching $ext
-        $old_customer_addresses_ext = array_filter($customer_addresses, wa_lambda('$a', 'return $a["ext"] == '.var_export($ext, 1).';'));
+        $old_customer_addresses_ext = array_filter($customer_addresses, function($a) use ($ext) {
+            return ifset($a, "ext", null) == $ext;
+        });
 
         // Look for $old_order_address in $old_customer_addresses_ext
         $match_index = $this->findAddressInList($old_order_address, $old_customer_addresses_ext);
@@ -4534,9 +4555,63 @@ HTML;
             $contact_model = new waContactModel();
             $courier = $contact_model->getById($this->courier_contact_id);
         }
+        if ($courier) {
+            $courier['name'] = waContactNameField::formatName($courier);
+        }
+
         return $courier;
     }
 
+    /**
+     * @return array|null
+     */
+    protected function getFulfillment()
+    {
+        $fulfillment = null;
+        if ($this->fulfillment_contact_id) {
+            $fulfillment = (new waContactModel())->getById($this->fulfillment_contact_id);
+        } elseif (($params = $this->params) && !empty($params['fulfillment_contact_id'])) {
+            $fulfillment = (new waContactModel())->getById($params['fulfillment_contact_id']);
+        }
+        if ($fulfillment) {
+            $fulfillment['name'] = waContactNameField::formatName($fulfillment);
+        }
+
+        return $fulfillment;
+    }
+
+    protected function getCashier()
+    {
+        $cashier = null;
+        if ($this->cashier_contact_id) {
+            $cashier = (new waContactModel())->getById($this->cashier_contact_id);
+        } elseif (($params = $this->params) && !empty($params['cashier_contact_id'])) {
+            $cashier = (new waContactModel())->getById($params['cashier_contact_id']);
+        }
+        if ($cashier) {
+            $cashier['name'] = waContactNameField::formatName($cashier);
+        }
+
+        return $cashier;
+    }
+
+    /**
+     * @return array|null
+     */
+    protected function getManager()
+    {
+        $manager = null;
+        if ($this->manager_contact_id) {
+            $manager = (new waContactModel())->getById($this->manager_contact_id);
+        } elseif (($params = $this->params) && !empty($params['manager_contact_id'])) {
+            $manager = (new waContactModel())->getById($params['manager_contact_id']);
+        }
+        if ($manager) {
+            $manager['name'] = waContactNameField::formatName($manager);
+        }
+
+        return $manager;
+    }
 
     ###############################
     # Internal utils section

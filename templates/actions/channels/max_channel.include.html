@@ -154,8 +154,8 @@
                     <script>
                         $(function() {
                             "use strict";
-                            const $bot_url = $('.js-bot-url');
-                            $bot_url.find('.js-copy').on('click', function() {
+                            $('.js-bot-url .js-copy').on('click', function() {
+                                const $bot_url = $(this).closest('.js-bot-url');
                                 const url = $bot_url.find('code').text().trim();
                                 if (!url) return;
 
@@ -246,16 +246,6 @@
                             $token_input.addClass('state-caution');
                         }
                     });
-
-                    $('[name="data[params][channel_username]"]').on('input', function () {
-                        let channel_username = $(this).val().trim();
-                        const regex = /^https:\/\/max\.ru\/join\/\S+\/?$/gm;
-                        if (channel_username.match(regex)) {
-                            $(this).removeClass('state-error');
-                        } else {
-                            $(this).addClass('state-error');
-                        }
-                    });
                 });
             </script>
 
@@ -281,7 +271,15 @@
         </div>
     </form>
 </div>
-
+{capture assign="_app_preview"}
+<div class="s-mini-app-preview">
+    <iframe width="375" height="670" src="" frameborder="0"></iframe>
+    <div class="align-center custom-mx-32 custom-mt-8">
+        <p class="hint">[`This is a preview of how the mini-app will look within the messaging app. The shopping functionality is disabled in the preview mode.`]</p>
+        <button type="button" class="js-reload-mini-app button light-gray rounded smaller custom-mt-4"><i class="fas fa-redo opacity-50 custom-mr-4"></i> [`Update`]</button>
+    </div>
+</div>
+{/capture}
 <script type="text/javascript" src="{$wa_app_static_url}js/backend/channels/channels.js?{$wa->version()}"></script>
 <script>
     $(function () {
@@ -297,6 +295,8 @@
             $form,
         });
 
+        showMiniAppPreview();
+
         $form.on('save_request', function () {
             $place_for_errors.empty();
             $submit_button.prop('disabled', true).after(spinner_html);
@@ -305,12 +305,13 @@
             if (data.result?.error_description) {
                 $place_for_errors.append('<span class="state-caution-hint">'+ data.result.error_description +'</span>');
             } else if (data.result?.wa_channel_id) {
-                $(this).find('.js-bot-url span').html('{$bot_url}'.replace('%s', data.result.wa_channel_id));
+                $(this).find('.js-bot-url code').text('{$bot_url}'.replace('%s', data.result.wa_channel_id));
             }
             $submit_button.prop('disabled', false).siblings('.spinner').remove();
         });
 
         $form.on('save_success', function (evt, data) {
+            showMiniAppPreview();
             {if empty($channel.id)}
                 // After successfull save of a new channel, redirect to its proper URL containing id
                 window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
@@ -339,5 +340,29 @@
                 });
             });
         {/if}
+
+        function showMiniAppPreview() {
+            const wa_channel_id = {$channel.wa_channel_id|default:''|escape|json_encode};
+            if (!wa_channel_id) return;
+
+            const url = "{$bot_url}".replace('%s', wa_channel_id);
+            const $settings_wrapper = $('#js-channels-content .article');
+            const $app = $({$_app_preview|json_encode});
+            const $iframe = $('iframe', $app);
+            const width = $iframe.prop('width') + 'px';
+
+            $settings_wrapper.find('.s-mini-app-preview').remove();
+            $settings_wrapper.css('--iframe-width', width);
+
+            const $reload_button = $('.js-reload-mini-app', $app);
+            $reload_button.on('click', () => {
+                $reload_button.prop('disabled', true);
+                showMiniAppPreview();
+            });
+
+            $iframe.prop('src', url);
+
+            $settings_wrapper.append($app);
+        }
     });
 </script>

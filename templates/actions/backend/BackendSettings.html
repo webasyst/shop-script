@@ -126,7 +126,7 @@
                 </li>
                 <li>
                     <a href="?action=settings#/orderEditor/">
-                        <span class="icon"><i class="fas fa-user-check"></i></span>
+                        <span class="icon"><i class="fas fa-clipboard-list"></i></span>
                         <span class="shop-sidebar-hidden">[`Order editor`]</span>
                     </a>
                 </li>
@@ -134,6 +134,15 @@
                     <a href="?action=settings#/checkout/">
                         <span class="icon"><i class="fas fa-route"></i></span>
                         <span class="shop-sidebar-hidden">[`Checkout`]</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="?action=settings#/orderAssignments/">
+                        <span class="icon"><i class="fas fa-user-check"></i></span>
+                        <span class="shop-sidebar-hidden{if empty($is_premium)} text-light-gray{/if}">[`Managers & assignments`]</span>
+                        {if empty($is_premium)}
+                            <span class="count small"><i class="fas fa-star fa-xs"></i></span>
+                        {/if}
                     </a>
                 </li>
                 <li>

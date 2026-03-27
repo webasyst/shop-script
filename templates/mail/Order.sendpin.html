@@ -1,0 +1,131 @@
+{strip}
+
+{$_background_color = "#f3f5fa"}
+{$_bonus_background = "#fea"}
+{$_button_background = "#f3c200"}
+{$_border_color = "rgba(0, 20, 80, 0.1)"}
+
+<table cellspacing="0" border="0" cellpadding="0" width="100%" bgcolor="{$_background_color}" style="
+font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen-Sans, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
+letter-spacing:normal;
+text-indent:0;
+text-transform:none;
+word-spacing:0;
+border-collapse:collapse
+">
+    <tr>
+        <td style="padding: 20px;">
+            <table width="600" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; width: 600px !important;margin:auto;">
+                <tr>
+                    <td width="20" style="width:20px !important;"></td>
+                    <td valign="middle" align="left" height="55" style="height: 55px;">
+                        <a href="[`https://www.webasyst.com`]" style="text-decoration: none;"><img src="{$wa->url(true)}wa-apps/shop/img/webasyst.png" alt="Webasyst" width="103" height="23" style="border: 0;"></a>
+                    </td>
+                    <td valign="middle" align="right" height="55" style="color: #89a; height: 55px;">
+                        {$wa->shop->settings("name")}
+                    </td>
+                    <td width="20" style="width:20px !important;"></td>
+                </tr>
+            </table>
+            <table width="600" border="0" align="center" cellpadding="0" cellspacing="0" bgcolor="#ffffff" style="
+                width: 600px !important;
+                background-color:#fff;
+                border-radius: 12px;
+                margin:auto;
+                overflow: hidden;
+                ">
+
+                <!-- HEADER -->
+                <tr>
+                    <td width="50" style="width:50px !important; border: solid {$_border_color}; border-width: 0 0 1px 0;"></td>
+                    <td height="70" align="center" valign="middle" style="border: solid {$_border_color}; border-width: 0 0 1px 0;">
+                        <table width="500" border="0" align="center" cellpadding="0" cellspacing="0" style="width: 100% !important;">
+                            <tr>
+                                <td>
+                                    <font style="font-weight: bold; font-size: 20px; margin: 0 12px 0 0;"><b>{$order.id}</b></font>
+                                    <font style="color: #89a;">{$order.create_datetime|wa_date:'humandate'}</font>
+                                </td>
+                                <td style="text-align: right;">
+                                    <font style="{if !empty($order.style)}{$order.style}{/if}">{$status}</font>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td width="50" style="width:50px !important; border: solid {$_border_color}; border-width: 0 0 1px 0;"></td>
+                </tr>
+
+                <!-- STATUS -->
+                <tr>
+                    <td></td>
+                    <td>
+                        <table cellspacing="0" border="0" cellpadding="0" width="100%" style="border-collapse:collapse">
+                            <tr>
+                                <td>
+                                    {if !empty($order.params.auth_pin)}
+                                    <h1 style="
+                                color: #444;
+                                font-style:normal;
+                                font-variant:normal;
+                                font-weight:normal;
+                                margin: 20px 0;
+                                font-size:24px;
+                                text-align:center;
+                                ">
+                                        %16%: <b>{$order.params.auth_pin}</b>
+                                    </h1>
+                                    {/if}
+                                    <p align="center" style="margin: 20px 0;">
+                                        <a href="{$order_url}" style="
+                                            text-decoration:none;
+                                            font-style:normal;
+                                            font-variant:normal;
+                                            font-size:16px;line-height:40px;
+                                            color:#000;font-weight: normal;width:180px;
+                                            display:block;
+                                            background: {$_button_background};
+                                            border-radius: 10px;
+                                            " target="_blank">[`Order status`]</a>
+                                    </p>
+                                    <p style="
+                            color: #444;
+                            font-style:normal;
+                            font-variant:normal;
+                            font-weight:normal;
+                            font-size:14px;
+                            line-height:16px;
+                            margin: 20px 0;
+                            text-align:center;
+                            ">%17%</p>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    <td></td>
+                </tr>
+
+            </table>
+
+            <!-- BOTTOM SITE INFORMATION -->
+            <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+                <tr>
+                    <td valign="middle" align="center" height="45">
+                        <p style="
+                            font-style:normal;
+                            font-variant:normal;
+                            font-weight:normal;
+                            font-size:13px;
+                            line-height:16px;
+                            color: #89a;
+                            margin: 20px 0 0;
+                            ">
+                            <a href="[`https://www.shop-script.com`]" style="color: #89a; text-decoration: none;" target="_blank">[`Sent via Shop-Script app`]</a>
+                        </p>
+                    </td>
+                </tr>
+            </table>
+
+        </td>
+    </tr>
+</table>
+
+{/strip}

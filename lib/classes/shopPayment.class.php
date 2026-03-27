@@ -1012,7 +1012,11 @@ class shopPayment extends waAppPayment
             $interval = min(ceil($interval*1.3), 90);
             $next_time = time() + $interval;
             (new shopOrderParamsModel())->setOne($order['id'], 'state_polling', $next_time.":".$interval);
-            $plugin->statePolling(shopPayment::getOrderData($order['id'], $plugin));
+            try {
+                $plugin->statePolling(shopPayment::getOrderData($order['id'], $plugin));
+            } catch (Throwable $e) {
+                // ignore
+            }
         }
     }
 

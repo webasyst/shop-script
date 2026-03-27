@@ -338,12 +338,16 @@ $(document).ready(function () {
         // Функция показа/скрытия кнопки Reset
         var toggleResetButton = function() {
 
-            var $resetBtn = $('#filters-reset-btn');
+            var $resetBtn = $('.js-filters-reset-btn');
             if (checkFiltersApplied()) {
                 $resetBtn.show();
             } else {
                 $resetBtn.hide();
             }
+        };
+
+        var toggleFilterButtonColor = function() {
+            $('#filters-toggle-link').toggleClass('gray', !checkFiltersApplied());
         };
 
         // Функция сброса фильтров к исходному состоянию
@@ -365,7 +369,7 @@ $(document).ready(function () {
             });
 
             // Скрытие кнопки Reset
-            $('#filters-reset-btn').hide();
+            $('.js-filters-reset-btn').hide();
 
             // AJAX запрос без параметров фильтрации
             $(window).lazyLoad && $(window).lazyLoad('sleep');
@@ -378,12 +382,17 @@ $(document).ready(function () {
                 $(window).lazyLoad && $(window).lazyLoad('reload');
             });
 
+            toggleFilterButtonColor();
+
             return false;
         };
 
         // Привязка обработчиков
         $('.filters.ajax form [type="reset"]').on('click.resetFilters', resetFilters);
-        $('.filters.ajax form input').on('change.toggleReset input.toggleReset', toggleResetButton);
+        $('.filters.ajax form input').on('change.toggleReset input.toggleReset', function(){
+            toggleResetButton();
+            toggleFilterButtonColor();
+        });
 
         window.addEventListener('popstate', function(event) {
             location.reload();
@@ -502,25 +511,41 @@ $(document).ready(function () {
         shownClass: "is-shown"
     };
 
+    var getFilters = function() {
+        return $(".filters");
+    };
+
+    var openFilters = function() {
+        getFilters().addClass(storage.shownClass);
+        $("body").addClass("overflow-hidden");
+    };
+
+    var closeFilters = function() {
+        getFilters().removeClass(storage.shownClass);
+        $("body").removeClass("overflow-hidden");
+    };
+
     var bindEvents = function() {
-        $("#filters-toggle-link").on("click", function() {
-            toggleFilters( $(this) );
+        $(document).on("click", "#filters-toggle-link", function() {
+            toggleFilters();
+        });
+
+        $(document).on("click", "[data-filters-close]", function() {
+            closeFilters();
+        });
+
+        $(document).on("keyup", function(event) {
+            if (event.key === "Escape" && getFilters().hasClass(storage.shownClass)) {
+                closeFilters();
+            }
         });
     };
 
-    var toggleFilters = function($link) {
-        var $filters = $link.closest(".filters"),
-            activeClass = storage.shownClass,
-            show_text = $link.data("show-text"),
-            hide_text = $link.data("hide-text"),
-            is_active = $filters.hasClass(activeClass);
-
-        if (is_active) {
-            $filters.removeClass(activeClass);
-            $link.text(show_text);
+    var toggleFilters = function() {
+        if (getFilters().hasClass(storage.shownClass)) {
+            closeFilters();
         } else {
-            $filters.addClass(activeClass);
-            $link.text(hide_text);
+            openFilters();
         }
     };
 
@@ -528,6 +553,53 @@ $(document).ready(function () {
         bindEvents();
     });
 
+})(jQuery);
+
+(function($) {
+    var dropdownSelector = '[data-sorting-dropdown]';
+    var openClass = 'is-open';
+
+    function closeDropdown($dropdown) {
+        $dropdown.removeClass(openClass);
+        $dropdown.find('[data-sorting-toggle]').attr('aria-expanded', 'false');
+    }
+
+    function closeAllDropdowns() {
+        $(dropdownSelector).each(function() {
+            closeDropdown($(this));
+        });
+    }
+
+    $(function() {
+        $(document).on('click', '[data-sorting-toggle]', function(e) {
+            var $dropdown = $(this).closest(dropdownSelector);
+            var shouldOpen = !$dropdown.hasClass(openClass);
+
+            e.preventDefault();
+            closeAllDropdowns();
+
+            if (shouldOpen) {
+                $dropdown.addClass(openClass);
+                $(this).attr('aria-expanded', 'true');
+            }
+        });
+
+        $(document).on('click', '[data-sorting-menu] a', function() {
+            closeAllDropdowns();
+        });
+
+        $(document).on('click', function(e) {
+            if (!$(e.target).closest(dropdownSelector).length) {
+                closeAllDropdowns();
+            }
+        });
+
+        $(document).on('keyup', function(e) {
+            if (e.key === 'Escape' || e.keyCode === 27) {
+                closeAllDropdowns();
+            }
+        });
+    });
 })(jQuery);
 
 // Shop :: Promo CountDown

@@ -166,21 +166,88 @@ class shopOrderModel extends waModel
         }
     }
 
+    public function countAwaitingAssignment($user_id)
+    {
+        if (!$user_id) {
+            $user_id = 0;
+        }
+        if (!is_array($user_id)) {
+            $user_id = [$user_id];
+        }
+        $user_id[] = '0';
+        $sql = "
+            SELECT COUNT(id) AS cnt 
+            FROM `{$this->table}`
+            WHERE `state_id` IN (?)
+                AND (`assigned_contact_id` IS NULL OR `assigned_contact_id` IN (?))
+        ";
+
+        $count_state_ids = ['new','auth','paid','pickup'];
+        return (int) ($this->query($sql, [$count_state_ids, $user_id])->fetchField('cnt') ?? 0);
+    }
+
+    public function countOpenAssignedTo($user_id)
+    {
+        if (!$user_id) {
+            return 0;
+        }
+        $assigned_contact = shopRights::getUserRole($user_id);
+        switch (ifset($assigned_contact, 'right', null)) {
+            case shopRightConfig::RIGHT_ORDERS_COURIER:
+                $count_state_ids = ['shipped'];
+                break;
+            case shopRightConfig::RIGHT_ORDERS_FULFILLMENT:
+                $count_state_ids = ['fulfilling'];
+                break;
+            case shopRightConfig::RIGHT_ORDERS_MANAGER:
+                $count_state_ids = ['new','auth','paid','pickup'];
+                break;
+            case shopRightConfig::RIGHT_ORDERS_CASHIER:
+            default:
+                return 0;
+        }
+        if (ifset($assigned_contact, 'right', null) == shopRightConfig::RIGHT_ORDERS_CASHIER) {
+            return 0;
+        }
+        $field_name = ifset($assigned_contact, 'role_field', 'assigned_contact_id');
+        $sql = "
+            SELECT COUNT(id) AS cnt 
+            FROM `{$this->table}`
+            WHERE `$field_name` IN (?)
+                AND `state_id` IN (?)
+        ";
+
+        return (int) ($this->query($sql, [$user_id, $count_state_ids])->fetchField('cnt') ?? 0);
+    }
+
     /**
      * @param int|null $state_id If null return counters for each state in assoc array
      * @return int|array
      */
     public function getStateCounters($state_id = null)
     {
+        $counters = array();
+        $workflow = new shopWorkflow();
+        foreach (array_keys($workflow->getAvailableStates()) as $_state_id) {
+            $counters[$_state_id] = 0;
+        }
+
         $where = ['1=1'];
         $left_join = '';
         if ($state_id !== null) {
             $where[] = $this->getWhereByField('state_id', $state_id, 'o');
         }
-        if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
-            $where[] = $this->getWhereByField('courier_contact_id', wa()->getUser()->getId(), 'o');
-            $left_join = "LEFT JOIN shop_order_log ol ON o.id = ol.order_id AND ol.action_id IN ('complete', 'delete')";
-            $where[] = "(ol.id IS NULL OR datetime >= '" . date('Y-m-d H:i:s', time() - 3600 * 24) . "')";
+        if (shopRights::isAssistant()) {
+            $assigned_contact = shopRights::getUserRole(wa()->getUser()->getId());
+            if (ifset($assigned_contact, 'right', null) == shopRightConfig::RIGHT_ORDERS_CASHIER) {
+                return ($state_id ? 0 : $counters);
+            }
+            $field_name = ifset($assigned_contact, 'role_field', 'assigned_contact_id');
+            $where[] = $this->getWhereByField($field_name, wa()->getUser()->getId(), 'o');
+            if (ifset($assigned_contact, 'right', null) != shopRightConfig::RIGHT_ORDERS_MANAGER) {
+                $left_join = "LEFT JOIN shop_order_log ol ON o.id = ol.order_id AND ol.action_id IN ('complete', 'delete')";
+                $where[] = "(ol.id IS NULL OR datetime >= '" . date('Y-m-d H:i:s', time() - 3600 * 24) . "')";
+            }
         }
         $where_str = join(' AND ', $where);
         $sql = "SELECT o.state_id, COUNT(o.state_id) cnt FROM `{$this->table}` o
@@ -190,12 +257,6 @@ class shopOrderModel extends waModel
         if ($state_id !== null) {
             $cnt = $r->fetchField('cnt');
             return $cnt ? $cnt : 0;
-        }
-
-        $counters = array();
-        $workflow = new shopWorkflow();
-        foreach (array_keys($workflow->getAvailableStates()) as $state_id) {
-            $counters[$state_id] = 0;
         }
 
         $counters = $r->fetchAll('state_id', true) + $counters;
@@ -214,7 +275,7 @@ class shopOrderModel extends waModel
             $where = [$this->getWhereByField($field, $value, 'o')];
         }
         $left_join = '';
-        if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+        if (shopRights::isAssistant()) {
             $where[] = $this->getWhereByField('courier_contact_id', wa()->getUser()->getId(), 'o');
             $left_join = "LEFT JOIN shop_order_log ol ON o.id = ol.order_id AND ol.action_id IN ('complete', 'delete')";
             $where[] = "(ol.id IS NULL OR datetime >= '" . date('Y-m-d H:i:s', time() - 3600 * 24) . "')";
@@ -410,18 +471,18 @@ SQL;
         return $order;
     }
 
-    public function getOrderContactData($order)
+    public function getOrderContactData($order, $field = 'contact_id')
     {
-        if ($order['contact_id']) {
-            $contact = new waContact($order['contact_id']);
+        if (!empty($order[$field])) {
+            $contact = new waContact($order[$field]);
             try {
                 $contact->getName();
             } catch (Exception $e) {
                 $contact = new waContact();
-                $contact['name'] = 'Contact does not exist: id='.$order['contact_id'];
+                $contact['name'] = sprintf_wp('(deleted contact %s)', $order[$field]);
             }
             $order['contact'] = array(
-                'id'         => $order['contact_id'],
+                'id'         => $order[$field],
                 'name'       => $contact->getName(),
                 'email'      => $contact->get('email', 'default'),
                 'phone'      => $contact->get('phone', 'default'),
@@ -893,20 +954,37 @@ SQL;
         return (float)$this->query($sql, array('cid' => $contact_id))->fetchField();
     }
 
-    public function getOrderCounts(&$couriers)
+    public function getOrderCounts(&$assistants)
     {
-        if (!$couriers) {
-            return;
+        foreach ($assistants as $role => &$_assistants) {
+            if ($_assistants) {
+                switch ($role) {
+                    case 'couriers':
+                        $field_name = 'courier_contact_id';
+                        break;
+                    case 'fulfillments':
+                        $field_name = 'fulfillment_contact_id';
+                        break;
+                    case 'cashiers':
+                        $field_name = 'cashier_contact_id';
+                        break;
+                    case 'managers':
+                    case 'admins':
+                        $field_name = 'manager_contact_id';
+                        break;
+                }
+                $counts = $this->query("
+                    SELECT $field_name, count(*) `order_count` FROM {$this->getTableName()}
+                    WHERE $field_name IN (?)
+                        AND state_id NOT IN ('completed', 'refunded', 'deleted')
+                    GROUP BY $field_name
+                ", array(array_keys($_assistants)))->fetchAll($field_name, true);
+
+                foreach($_assistants as &$asst) {
+                    $asst['count'] = ifset($counts[$asst['id']], 0);
+                }
+                unset($asst);
+            }
         }
-        $sql = "SELECT courier_contact_id, count(*) `order_count`
-                FROM {$this->getTableName()}
-                WHERE courier_contact_id IN (?)
-                    AND state_id NOT IN ('completed', 'refunded', 'deleted')
-                GROUP BY courier_contact_id";
-        $counts = $this->query($sql, array(array_keys($couriers)))->fetchAll('courier_contact_id', true);
-        foreach($couriers as &$c) {
-            $c['count'] = ifset($counts[$c['id']], 0);
-        }
-        unset($c);
     }
 }

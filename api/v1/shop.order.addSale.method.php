@@ -7,7 +7,7 @@ class shopOrderAddSaleMethod extends shopApiMethod
 
     public function execute()
     {
-        if (wa()->getUser()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER) {
+        if (shopRights::isAssistant()) {
             throw new waAPIException('access_denied', _w('Action not available to user.'), 403);
         }
         $contact_id = $this->post('contact_id');

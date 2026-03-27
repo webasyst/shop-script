@@ -14,21 +14,33 @@
     [
         "id" => "ai",
         "noshadow" => true,
-        "title" => _w("AI descriptions & SEO"),
+        "title" => _w("Bulk AI descriptions & SEO"),
         "description" => sprintf(
             _w("Use the built-in <a %s>Webasyst AI</a> service to generate custom descriptions and promo SEO content for your product listings. Customize the default AI setup to better fit your audience."),
             sprintf(
                 'href="%s" target="_blank"',
                 _w('https://www.webasyst.com/pricing/#services')
             )
-        ),
+        )|cat:' <br><br>'|cat:_w("With the basic version, AI generation is available on individual product leve. With premium, generate descriptions for your entire product catalog in seconds."),
         "image" => [
             "name" => "image-ai.webp"
         ]
     ],
     [
+        "id" => "teamroles",
+        "noshadow" => true,
+        "title" => _w("Order processing & team role automation"),
+        "description" => _w(
+            "Automate your order processing workflow by automatically assigning orders across your teammates based on order details and current status. Assigned users always see their orders on top of a list making it easier to focus and improve efficiency."
+            )|cat:' <br><br>'|cat:_w("With the basic version, you can manually assign orders to managers, start order fulfillment, ship via couriers. In premium, the entire process can be automated, so Shop-Script handles all assignments based on each user workload."),
+        "image" => [
+            "name" => "image8.webp?v12"
+        ]
+    ],
+    [
         "id" => "kanban",
         "title" => _w("Kanban view for orders"),
+        "predescription" => '<ul class="chips tags rounded small custom-mb-0"><li><span class="chip"><i class="fas fa-check custom-mr-4"></i>'|cat:_w('By status')|cat:'</span></li><li><span class="chip"><i class="fas fa-check custom-mr-4"></i>'|cat:_w('By manager')|cat:'</span></li></ul>',
         "description" => _w("See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status."),
         "image" => [
             "name" => "image0.jpg"
@@ -40,6 +52,25 @@
         "description" => _w("Shop-Script <a href=\"https://www.webasyst.com/mobile/\">mobile app</a> is a next-gen Point Of Sale terminal: quickly create orders, accept payments offline via QR codes and credit cards — all in one app.<br><br> Premium enables advanced POS features such as barcode scanner, multiple store locations, cashier shifts, and more."),
         "image" => [
             "name" => "image7.webp?v12"
+        ]
+    ],
+    [
+        "id" => "pos",
+        "title" => "Сканеры маркировки",
+        "ru_only" => 1,
+        "noshadow" => true,
+        "description" => "Мобильное приложение Shop-Script поддерживает сканеры маркировки для быстрого добавления товаров в заказ (GTIN) и ввода маркировки уже добавленных позиций («Честный ЗНАК). Поддерживается сканирование как камерой телефона/планшета, так и внешними Bluetooth-сканерами. Поддерживаются все современные типы кодов маркировки:",
+        "postdescription" => "<ul>
+<li>QR</li>
+<li>EAN-8</li>
+<li>EAN-13</li>
+<li>GTIN</li>
+<li>UPC</li>
+<li>Code 39</li>
+<li>DataMatrix</li>
+</ul>",
+        "image" => [
+            "name" => "image-scan.webp"
         ]
     ],
     [
@@ -101,16 +132,6 @@
         ]
     ],
     [
-        "id" => "teamroles",
-        "noshadow" => true,
-        "soon" => _w("Later"),
-        "title" => _w("Multiple managers"),
-        "description" => _w("Improve order processing by automatically scheduling & assigning orders to managers. Control the processing efficiency by each user."),
-        "image" => [
-            "name" => "image8.webp"
-        ]
-    ],
-    [
         "id" => "complexproducts",
         "noshadow" => true,
         "soon" => _w("Later"),
@@ -155,7 +176,7 @@
         </div>
         <h1 class="align-center h2-mobile custom-mt-24 custom-mx-auto" style="max-width: 420px;">
             {if empty($_is_premium)}
-                [`Unlock all features and unlimited updates`]
+                [`Big features for bigger sales`]
             {else}
                 [`You are all set!`]
             {/if}
@@ -204,7 +225,9 @@
                             {if !empty($_feature.soon)}<span class="badge light-gray squared custom-mr-4">{$_feature.soon}</span>{else}<i class="fas fa-check-circle text-green custom-mr-4"></i>{/if}
                             {$_feature.title|escape}
                         </h3>
+                        {if !empty($_feature.predescription)}{$_feature.predescription}{/if}
                         <p class="s-description{if empty($_feature.image)} align-center width-70 width-100-mobile custom-mx-auto{/if}">{$_feature.description}</p>
+                        {if !empty($_feature.postdescription)}{$_feature.postdescription}{/if}
                     </div>
                     {if !empty($_feature.image)}
                         {if !empty($_feature.id) && $_feature.id == 'ai'}

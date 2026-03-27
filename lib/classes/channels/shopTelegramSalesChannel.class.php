@@ -297,12 +297,16 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'checkout_terms_link'    => 1,
             'locale'                 => 1,
             'powered_by'             => 1,
-        ]);
+        ]) + [
+            'is_custom_bot' => !empty($params['bot_token']),
+        ];
     }
 
     public function getWaidChannelParams(array $channel): array
     {
-        $store_params = [];
+        $store_params = [
+            'is_custom_bot' => !empty($channel['params']['bot_token']),
+        ];
         if (wa()->getSetting('headless_api_antispam_enabled', false, 'shop')) {
             $store_params['antispam_api_key'] = wa()->getSetting('headless_api_antispam_key', '', 'shop');
         }

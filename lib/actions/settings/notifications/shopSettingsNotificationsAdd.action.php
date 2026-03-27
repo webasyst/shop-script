@@ -71,6 +71,24 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
         return $template;
     }
 
+    protected static function getOrderSendpinTemplate()
+    {
+        $template = self::getMailTemplate('Order.sendpin.html');
+        $locales = array(
+            "%1%"            => sprintf(_w('Hi %s'), '{$customer->get("name", "html")}'),
+            "%2%"            => sprintf(_w('Your order %s has been confirmed and accepted for processing.'), '{$order.id}'),
+            "%contact_info%" => _w('Contact info'),
+            "%16%"           => _w('PIN'),
+            "%17%"           => sprintf(_w('Thank you for shopping at %s!'), '{$wa->shop->settings("name")}')
+        );
+
+        foreach ($locales as $index => $locale) {
+            $template = str_replace($index, $locale, $template);
+        }
+
+        return $template;
+    }
+
     protected static function getOrderShipmentTemplate()
     {
         $template = self::getMailTemplate('Order.shipment.html');
@@ -213,9 +231,14 @@ class shopSettingsNotificationsAddAction extends shopSettingsNotificationsAction
             'subject'     => sprintf(_w('Order %s has been confirmed'), '{$order.id}'),
             'body'        => self::getOrderConfirmedTemplate(),
             'sms'         => sprintf(_w('Order %s has been confirmed.'), '{$order.id}'),
-
         );
 
+        $result['order.sendpin'] = array(
+            'description' => _w('Send order PIN (confirmation code) to the customer.'),
+            'subject'     => _w('Order PIN'),
+            'body'        => self::getOrderSendpinTemplate(),
+            'sms'         => sprintf(_w('%s - PIN for the order %s'), '{$order.params.auth_pin}', '{$order.id}'),
+        );
 
         /* order SHIPMENT (sending out) email notification template */
         $sms = sprintf(_w('Order %s has been sent out!'), '{$order.id}');

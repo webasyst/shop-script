@@ -310,7 +310,7 @@ html.is-order-page .container {
   color: var(--text-color);
 }
 .s-order-page .s-order-section > .s-section-header .s-delete-button {
-  color: var(--gray4);
+  color: var(--text-color-additional);
   font-weight: 600;
   font-size: 13px;
   line-height: 15px;
@@ -345,9 +345,14 @@ html.is-order-page .container {
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-section {
   position: relative;
 }
+.s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-section.wa-step-auth-section .wa-toggle {
+  border: 1px solid var(--input-border-color);
+  border-radius: var(--element-border-radius);
+}
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-section.wa-step-auth-section .wa-toggle > * {
   background-color: var(--input-bg-color) !important;
   color: var(--text-color) !important;
+  padding: 0.6rem 0.75rem;
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-section.wa-step-auth-section .wa-toggle > *.selected {
   background-color: var(--white-auto) !important;
@@ -393,6 +398,12 @@ html.is-order-page .container {
   border-radius: var(--element-border-radius);
   line-height: 1.5;
   background-color: transparent;
+}
+.s-order-page input:checked[type=checkbox] {
+  background-color: transparent;
+  background-image: var(--check-svg);
+  border-color: var(--input-border-color);
+  background-size: 0.85em;
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-checkbox {
   display: inline-block;
@@ -469,6 +480,10 @@ html.is-order-page .container {
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-confirm-section {
   border-top: 2px solid var(--divider-color);
   padding-top: 32px;
+}
+.s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-confirm-section.is-single {
+  border-top: 0;
+  padding-top: 0;
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-step-shipping-section .wa-delivery-types-section {
   margin-top: 24px;
@@ -622,7 +637,7 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-details .wa-details .wa-actions .wa-action {
   font-weight: 600 !important;
-  color: var(--gray4) !important;
+  color: var(--text-color-additional) !important;
   font-size: 13px !important;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-details .wa-services .s-checkbox input {
@@ -704,7 +719,7 @@ html.is-order-page .container {
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-price .wa-price-total {
   font-weight: 600;
-  color: var(--black-auto);
+  color: var(--text-color);
   white-space: nowrap;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body select {
@@ -742,21 +757,26 @@ html.is-order-page .container {
   color: var(--gray4);
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-price-total {
-  color: var(--black-auto);
+  color: var(--text-color);
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-weight-section {
   color: var(--gray4);
   line-height: 150%;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-input {
-  font-size: 1em;
-  padding: 0.392em 0.57em;
+  color: var(--header-menu-pages-link-color);
+  font-size: 14px;
+  padding: 0.6rem 0.75rem;
   border: 1px solid var(--input-border-color);
+  border-radius: var(--element-border-radius);
+  line-height: 1.5;
   background-color: transparent;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-inactive-state .wa-button {
-  font-size: 1em;
-  padding: 0.392em 0.857em;
+  font-size: 14px;
+  padding: 0.6rem 0.75rem;
+  line-height: 1.5;
+  font-weight: 500;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-coupon-section .wa-inactive-state .wa-button.gray {
   color: var(--text-color);
@@ -769,12 +789,17 @@ html.is-order-page .container {
   font-size: 1em;
   color: var(--white);
 }
+.s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details {
+  color: var(--gray3);
+}
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details .wa-active-state .wa-text {
   margin-right: 8px;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details .wa-inactive-state .wa-button {
-  font-size: 1em;
-  padding: 0.392em 0.857em;
+  font-size: 14px;
+  padding: 0.6rem 0.75rem;
+  line-height: 1.5;
+  font-weight: 500;
 }
 .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-cart-details .wa-affiliate-section .wa-bonus-details .wa-inactive-state .wa-button.gray {
   color: var(--text-color);

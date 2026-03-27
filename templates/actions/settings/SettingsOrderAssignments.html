@@ -1,0 +1,253 @@
+{$_page_title = _w("Order assignment automation")}
+
+<script src="{$wa_app_static_url}js/settings/order_assignments.js?{$wa->version()}"></script>
+
+{function condition_block __rule_id=null condition=null}
+    {$rule_name = ''}
+    {$_rule_id = ifempty($__rule_id, '%%RULE_ID%%')}
+    {$condition_name = '%%RULE_NAME%%'}
+    {$compare_op = ifset($condition, 'compare_op', null)}
+    {if $condition}
+        {$condition_id = mt_rand(1000, 10000)}
+        {foreach shopSettingsOrderAssignmentsAction::getConditions() as $_name => $_rule_name}
+            {if isset($condition[$_name])}
+                {$rule_name = $_name}
+                {$condition_name = $_rule_name}
+                {break}
+            {/if}
+        {/foreach}
+    {else}
+        {$condition_id = '%%CONDITION_ID%%'}
+    {/if}
+
+    <div class="js-condition-block box uploadbox rounded custom-mb-12 custom-p-8 flexbox space-8 middle" style="text-align: left;">
+        <span class="s-condition-name small">{$condition_name}</span>
+        <div class="nowrap wide">
+            {$is_classes = in_array($rule_name, ['by_amount'])}
+            {if ($__rule_id && $is_classes) || (!$__rule_id && !$is_classes)}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][compare_op]" class="smaller{if !$is_classes} hidden{/if} by_amount"{if !$is_classes} disabled{/if}>
+                    <option value=">"{if $compare_op == '>'} selected{/if}>[`>`]</option>
+                    <option value="<"{if $compare_op == '<'} selected{/if}>[`<`]</option>
+                </select>
+            {/if}
+
+            {$is_classes = in_array($rule_name, ['by_storefront', 'by_channel_id', 'by_payment_id', 'by_shipping_id', 'by_customer_group_id', 'by_prod_type_id', 'by_stock_id'])}
+            {if ($__rule_id && $is_classes) || (!$__rule_id && !$is_classes)}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][compare_op]" class="smaller{if !$is_classes} hidden{/if} by_storefront by_channel_id by_payment_id by_shipping_id by_customer_group_id by_prod_type_id by_stock_id"{if !$is_classes} disabled{/if}>
+                    <option value="=="{if $compare_op == '=='} selected{/if}>[`=`]</option>
+                    <option value="!="{if $compare_op == '!='} selected{/if}>[`!=`]</option>
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_storefront') || (!$__rule_id && $rule_name != 'by_storefront')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_storefront]" class="smaller{if $rule_name != 'by_storefront'} hidden{/if} by_storefront"{if $rule_name != 'by_storefront'} disabled{/if}>
+                    {$storefront = ifset($condition, 'by_storefront', null)}
+                    {foreach $storefronts as $_storefront}
+                    <option value="{$_storefront}"{if $storefront == $_storefront} selected{/if}>{$_storefront|escape|truncate:42}</option>
+                    {/foreach}
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_amount') || (!$__rule_id && $rule_name != 'by_amount')}
+                <input type="text" name="rules[{$_rule_id}][conditions][{$condition_id}][by_amount]" class="smaller{if $rule_name != 'by_amount'} hidden{/if} by_amount" value="{$condition.by_amount|default:''|escape}" {if $rule_name != 'by_amount'}disabled{/if}>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_channel_id') || (!$__rule_id && $rule_name != 'by_channel_id')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_channel_id]" class="smaller{if $rule_name != 'by_channel_id'} hidden{/if} by_channel_id"{if $rule_name != 'by_channel_id'} disabled{/if}>
+                    {$channel_id = ifset($condition, 'by_channel_id', null)}
+                    {foreach $sales_channel as $_channel_id => $_sale_channel}
+                    <option value="{$_channel_id}"{if $channel_id == $_channel_id} selected{/if}>{$_sale_channel|escape|truncate:42}</option>
+                    {/foreach}
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_payment_id') || (!$__rule_id && $rule_name != 'by_payment_id')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_payment_id]" class="smaller{if $rule_name != 'by_payment_id'} hidden{/if} by_payment_id"{if $rule_name != 'by_payment_id'} disabled{/if}>
+                    {$payment_id = ifset($condition, 'by_payment_id', null)}
+                    {foreach $payments as $_payment_id => $_payment}
+                    <option value="{$_payment_id}"{if $payment_id == $_payment_id} selected{/if}>{$_payment|escape|truncate:42}</option>
+                    {/foreach}
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_shipping_id') || (!$__rule_id && $rule_name != 'by_shipping_id')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_shipping_id]" class="smaller{if $rule_name != 'by_shipping_id'} hidden{/if} by_shipping_id"{if $rule_name != 'by_shipping_id'} disabled{/if}>
+                    {$shipping_id = ifset($condition, 'by_shipping_id', null)}
+                    {foreach $shipping as $_shipping_id => $_shipping}
+                    <option value="{$_shipping_id}"{if $shipping_id == $_shipping_id} selected{/if}>{$_shipping|escape|truncate:42}</option>
+                    {/foreach}
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_customer_group_id') || (!$__rule_id && $rule_name != 'by_customer_group_id')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_customer_group_id]" class="smaller{if $rule_name != 'by_customer_group_id'} hidden{/if} by_customer_group_id"{if $rule_name != 'by_customer_group_id'} disabled{/if}>
+                    {$customer_group_id = ifset($condition, 'by_customer_group_id', null)}
+                    {foreach $customer_groups as $_customer_group_id => $_customer_group}
+                    <option value="{$_customer_group_id}"{if $customer_group_id == $_customer_group_id} selected{/if}>{$_customer_group|escape|truncate:32}</option>
+                    {/foreach}
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_prod_type_id') || (!$__rule_id && $rule_name != 'by_prod_type_id')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_prod_type_id]" class="smaller{if $rule_name != 'by_prod_type_id'} hidden{/if} by_prod_type_id"{if $rule_name != 'by_prod_type_id'} disabled{/if}>
+                    {$prod_type_id = ifset($condition, 'by_prod_type_id', null)}
+                    {foreach $product_types as $_product_type_id => $_product_type}
+                    <option value="{$_product_type_id}"{if $prod_type_id == $_product_type_id} selected{/if}>{$_product_type|escape|truncate:42}</option>
+                    {/foreach}
+                </select>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_sku_id') || (!$__rule_id && $rule_name != 'by_sku_id')}
+                <input type="search" name="rules[{$_rule_id}][conditions][{$condition_id}][sku_name]" value="{$condition.sku_name|default:''|escape}" class="smaller {if $rule_name != 'by_sku_id'} hidden{/if} by_sku_id" placeholder="[`Search`]"{if $rule_name != 'by_sku_id'} disabled{/if}>
+                <input type="hidden" name="rules[{$_rule_id}][conditions][{$condition_id}][by_sku_id]" value="{$condition.by_sku_id|default:''|escape}" class="by_sku_id"{if $rule_name != 'by_sku_id'} disabled{/if}>
+            {/if}
+
+            {if ($__rule_id && $rule_name == 'by_stock_id') || (!$__rule_id && $rule_name != 'by_stock_id')}
+                <select name="rules[{$_rule_id}][conditions][{$condition_id}][by_stock_id]" class="smaller{if $rule_name != 'by_stock_id'} hidden{/if} by_stock_id"{if $rule_name != 'by_stock_id'} disabled{/if}>
+                    {$stock_id = ifset($condition, 'by_stock_id', null)}
+                    {foreach $stocks as $_stock}
+                    <option value="{$_stock.id}"{if $stock_id == $_stock.id} selected{/if}>{$_stock.name|escape|truncate:42}</option>
+                    {/foreach}
+                </select>
+            {/if}
+        </div>
+        <span class="custom-ml-8 align-right">
+            <a href="#" title="[`Delete`]" class="s-delete-condition text-blue"><i class="fas fa-times-circle text-gray"></i></a>
+        </span>
+    </div>
+{/function}
+
+{capture 'new_condition'}
+    {strip}
+        {condition_block}
+    {/strip}
+{/capture}
+
+{function rule_condition_editor_form _rule_id=null rule_conditions=null}
+    {if $rule_conditions}
+        {foreach $rule_conditions as $_condition}
+            {condition_block __rule_id=$_rule_id condition=$_condition}
+        {/foreach}
+    {/if}
+    <div class="wa-select smaller">
+        <select class="add-condition-selector">
+            {foreach $conditions as $name => $_condition}
+            <option value="{$name}">{$_condition|escape}</option>
+            {/foreach}
+        </select>
+    </div>
+{/function}
+
+
+{function assignment_rule rule=null}
+    {$rule_id = ifset($rule, 'id', '%%RULE_ID%%')}
+    <tr data-rule-id="{$rule_id}">
+        <td class="valign-top s-assignment-sort-handle">
+            <i class="fas fa-grip-vertical text-light-gray cursor-pointer assignment-rows-handle"></i>
+            <input type="hidden" name="rules[{$rule_id}][sort]" value="{$rule.sort|default:'0'|escape}" class="js-sort-rule">
+        </td>
+        <td class="valign-top">
+            <div class="wa-select small">
+                <select name="rules[{$rule_id}][action_id]" class="bold">
+                    {foreach $actions as $_action_id => $_action}
+                    <option value="{$_action_id}"{if $rule && $rule.action_id == $_action_id} selected{/if}>[`{$_action}`]</option>
+                    {/foreach}
+                </select>
+            </div>
+            <h6 class="gray small custom-mt-16 custom-mb-8">[`Conditions (OR)`]</h6>
+            {if $rule && !empty($rule.conditions)}
+                {rule_condition_editor_form _rule_id=$rule_id rule_conditions=$rule.conditions}
+            {else}
+                {rule_condition_editor_form}
+            {/if}
+        </td>
+        <td class="valign-top">
+            <div class="wa-select small">
+                <select name="rules[{$rule_id}][rule_data][assignment]" class="add-assignment-selector">
+                    {foreach $assignments as $_assignment_id => $_assignment}
+                    <option value="{$_assignment_id}"{if $rule && $rule.rule_data.assignment == $_assignment_id} selected{/if}>{$_assignment|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+            <div class="custom-my-8{if ifset($rule, 'rule_data', 'assignment', '') != 'user_id'} hidden{/if} user_id">
+                <input type="search" class="bold search custom-mb-16 js-user-autocomplete" value="{$rule.rule_data.user_name|default:''|escape}" placeholder="[`Find user...`]">
+                <input type="hidden" name="rules[{$rule_id}][rule_data][user_id]" value="{$rule.rule_data.user_id|default:''|escape}"{if $rule && $rule.rule_data.assignment != 'user_id'} disabled{/if}>
+            </div>
+            <div class="custom-my-8{if ifset($rule, 'rule_data', 'assignment', '') != 'user_low_busy'} hidden{/if} user_low_busy">
+                {$group_id = ifset($rule, 'rule_data', 'user_group', '')}
+                <select name="rules[{$rule_id}][rule_data][user_group]" class="js-user-group-selector"{if $rule && $rule.rule_data.assignment != 'user_low_busy'} disabled{/if}>
+                    {foreach $user_groups as $_group}
+                    <option value="{$_group.id}"{if $group_id == $_group.id} selected{/if}>{$_group.name|escape}</option>
+                    {/foreach}
+                </select>
+            </div>
+        </td>
+        <td class="valign-top">
+            <a href="javascript:void(0);" class="s-delete-assignment text-red" title="[`Delete`]"><i class="fas fa-trash-alt small"></i></a>
+        </td>
+    </tr>
+{/function}
+
+
+
+<form method="post" action="?module=settingsOrderAssignmentsSave" id="s-settings-assignment-rules-form">
+    <div class="s-settings-form">
+        <h1>[`Order assignment automation`]</h1>
+        <p class="small">[`Automate your order processing workflow by automatically assigning orders across your teammates based on order details and current status. Assigned users always see their orders on top of a list making it easier to focus and improve efficiency.`]</p>
+        <p class="small">[`The first matching rule from the list applies, and the rest is skipped.`]</p>
+
+        {if !shopLicensing::isPremium()}
+            <div class="custom-mt-16">
+                {include file="templates/includes/availableWithPremiumAlert.html" title="[`Order assignment automation`]" inline}
+            </div>
+        {/if}
+
+        <div class="fields"{if !shopLicensing::isPremium()} style="opacity: 0.75;"{/if}>
+            <div class="fields-group">
+                <a href="#/assignment/add/" class="button small rounded light-gray" id="s-settings-add-rule">
+                    <i class="fas fa-plus-circle text-green"></i>
+                    [`Add rule`]
+                </a>
+                <table id="s-settings-order-assignments">
+                    <thead class="header">
+                        <tr>
+                            <th class="min-width"></th>
+                            <th>[`Action`]</th>
+                            <th>[`Assign to`]</th>
+                            <th class="min-width"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {foreach $assignment_rules as $_rule}
+                            {assignment_rule rule=$_rule}
+                        {/foreach}
+                        {capture 'new_assignment_rule'}
+                            {strip}
+                                {assignment_rule}
+                            {/strip}
+                        {/capture}
+                    </tbody>
+                </table>
+
+                {if shopLicensing::isPremium()}
+                    {$wa->csrf()}
+                    <button type="submit" name="save" data-assignment class="button green js-form-submit">
+                        [`Save`]
+                        <span class="hidden s-msg-after-button"><i class="fas fa-check-circle after-submit"></i></span>
+                    </button>
+                {/if}
+            </div>
+        </div>
+    </div>
+</form>
+
+
+<script>
+    document.title = {$_page_title|json_encode} +" — "+ {json_encode($wa->accountName(false))};
+
+    $.settings.assignmentsInit({
+        new_assignment_rule: {json_encode($smarty.capture.new_assignment_rule)},
+        new_condition: {json_encode(trim($smarty.capture.new_condition))}
+    });
+
+</script>

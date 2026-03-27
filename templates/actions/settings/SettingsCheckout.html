@@ -82,11 +82,11 @@
             <h4 class="wide name{if !$step.status} gray{/if}">{$step.name}</h4>
             <div class="js-links">
                 {if $step_id == shopPluginModel::TYPE_SHIPPING && empty($shipping_plugins)}
-                    {sprintf('[`<a href="%s" target="_blank">Add a shipping method</a>`]', '?action=settings#/shipping/')}
-                    <i class="fas fa-external-link-alt smaller"></i>
+                    <!-- {sprintf('[`<a href="%s" target="_blank">Add a shipping method</a>`]', '?action=settings#/shipping/')}
+                    <i class="fas fa-external-link-alt smaller"></i> -->
                 {elseif $step_id == shopPluginModel::TYPE_PAYMENT && empty($payment_plugins)}
-                    {sprintf('[`<a href="%s" target="_blank">Add a payment method</a>`]', '?action=settings#/payment/')}
-                    <i class="fas fa-external-link-alt smaller"></i>
+                    <!-- {sprintf('[`<a href="%s" target="_blank">Add a payment method</a>`]', '?action=settings#/payment/')}
+                    <i class="fas fa-external-link-alt smaller"></i> -->
                 {elseif $step.status}
                     {$_settings_button}
                 {else}

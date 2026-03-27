@@ -1,8 +1,16 @@
 {include file="./include.orders_assets.html" inline}
-{$is_courier = $wa->user()->getRights('shop', 'orders') == shopRightConfig::RIGHT_ORDERS_COURIER}
+{$is_assistant = shopRights::isAssistant()}
+
+{* !!! TODO move to .css *}
+<style>
+    .s-order-nav:not([data-view-mode="kanban-users"]) .s-order-nav-only-kanban-users { display:none }
+    .s-order-nav[data-view-mode="kanban-users"] .s-order-nav-hide-kanban-users { display:none !important; }
+    .s-order-nav[data-view-mode="kanban-users"] .s-order-nav-block-chips .dropdown { display:none !important; }
+</style>
+
 <div id="s-order-nav" class="flexbox wrap-mobile s-order-nav" style="display:none;">
 
-    <div class="s-order-nav-block js-order-nav-view flexbox space-8 wide-mobile">
+    <div class="s-order-nav-block js-order-nav-view flexbox wide-mobile">
 
         <!-- VIEW -->
         <div class="s-order-nav-view s-order-view-toggle js-order-view wide">
@@ -15,18 +23,27 @@
                     <a href="#" title="[`Table`]"><i class="fas fa-list"></i></a>
                 </li>
 
-                <li data-view="split" class="rounded transparent custom-mx-0 js-view-pos">
-                    <a class="s-position-relative" href="#" title="[`Point of sale`]">
-                        <i class="fas fa-cash-register"></i>
-                    </a>
-                </li>
+                {if !$is_assistant}
+                    <li data-view="split" class="rounded transparent custom-mx-0 js-view-pos">
+                        <a class="s-position-relative" href="#" title="[`Point of sale`]">
+                            <i class="fas fa-cash-register"></i>
+                        </a>
+                    </li>
 
-                <li data-view="kanban" class="rounded transparent custom-mx-0">
-                    <a class="s-position-relative" href="#" title="[`Kanban`]">
-                        <i class="fas fa-table"></i>
-                        {if !shopLicensing::isPremium()}<i class="fas fa-star s-premium-status"></i>{/if}
-                    </a>
-                </li>
+                    <li data-view="kanban" class="rounded transparent custom-mx-0">
+                        <a class="s-position-relative" href="#" title="[`Kanban by status`]">
+                            <i class="fas fa-table"></i>
+                            {if !shopLicensing::isPremium()}<i class="fas fa-star s-premium-status"></i>{/if}
+                        </a>
+                    </li>
+
+                    <li data-view="kanban-users" class="rounded transparent custom-mx-0">
+                        <a class="s-position-relative" href="#" title="[`Kanban by user`]">
+                            <i class="fas fa-users"></i>
+                            {if !shopLicensing::isPremium()}<i class="fas fa-star s-premium-status"></i>{/if}
+                        </a>
+                    </li>
+                {/if}
 
                 <!-- plugin hook: 'backend_orders.viewmode_li' -->
                 {* @event backend_orders.%plugin_id%.viewmode_li *}
@@ -34,12 +51,12 @@
             </ul>
         </div>
 
-        <div class="s-order-nav-view flexbox space-8">
+        <div class="s-order-nav-view flexbox space-">
             <!-- SORT -->
-            <div class="s-order-nav-sort js-orders-sort">
+            <div class="s-order-nav-sort js-orders-sort custom-pt-2">
                 <div class="flexbox space-8">
                     <div class="dropdown s-orders-sort-dropdown js-sort-dropdown">
-                        <button type="button" class="dropdown-toggle without-arrow button nobutton circle nowrap text-gray light-gray" title="[`Sort order`]" data-sort="" data-order="">
+                        <button type="button" class="dropdown-toggle without-arrow button nobutton circle nowrap" title="[`Sort order`]" data-sort="" data-order="">
                             <i class="fas fa-sort-amount-up count hidden asc"></i>
                             <i class="fas fa-sort-amount-down count hidden desc"></i>
                         </button>
@@ -91,9 +108,9 @@
                 </div>
             </div>
             <!-- SEARCH -->
-            <div class="s-order-nav-search">
-                <button type="button" class="button nobutton light-gray circle js-orders-search-show">
-                    <span class="icon text-gray"><i class="fas fa-search"></i></span>
+            <div class="s-order-nav-search custom-pt-2">
+                <button type="button" class="button nobutton circle js-orders-search-show">
+                    <span class="icon"><i class="fas fa-search"></i></span>
                 </button>
                 <!-- teleport for view=split or mobile after parent block -->
                 <div class="s-order-search hidden js-orders-search">
@@ -105,9 +122,9 @@
                     </div>
                 </div>
             </div>
-            {if !$is_courier}
+            {if !$is_assistant || in_array($wa->userRights('orders'), [shopRightConfig::RIGHT_ORDERS_CASHIER, shopRightConfig::RIGHT_ORDERS_MANAGER])}
                 <!-- NEW ORDER -->
-                <a class="rounded button small nowrap s-order-nav-plus-button" href="#/orders/new/" title="[`New order`]">
+                <a class="rounded button small nowrap s-order-nav-plus-button s-order-nav-hide-kanban-users custom-ml-8" href="#/orders/new/" title="[`New order`]">
                     <span class="icon"><i class="fas fa-plus"></i></span>
                     <span class="s-order-nav-plus-button-label"><span class="desktop-and-tablet-only">[`New order`]</span></span>
                 </a>
@@ -118,7 +135,7 @@
 
     <div class="s-order-nav-block hide-when-not-view-pos" id="js-orders-stats"></div>
 
-    {if !$is_courier}
+{if !$is_assistant || in_array($wa->userRights('orders'), [shopRightConfig::RIGHT_ORDERS_MANAGER])}
     <!-- PRIMARY FILTERS -->
     <div class="s-order-nav-block s-order-nav-block-split-filters hide-when-view-pos">
 
@@ -130,8 +147,8 @@
             <a href="#/orders/state_id=new|processing|auth|paid|pickup" class="brick shadowed js-orders-link js-orders-hide-filters js-order-nav-brick" id="s-pending-orders">
                 {$_pending_count = (empty($pending_count)) ? 0 : $pending_count}
                 <span class="custom-pr-4 icon js-pending-counter js-pending_counters-counter bold">{$_pending_count}</span>
-                {if $wa->user()->getRights('shop', 'orders') > 1}<span class="count js-total_processing-counter"></span>{/if}
-                <span class="label nowrap semibold">[`Processing`]{if $state_counters.new} <span class="badge orange small squared custom-px-4 js-new-order-counter">+{$state_counters.new}</span>{/if}</span>
+                {if $wa->user()->getRights('shop', 'orders') >= shopRightConfig::RIGHT_ORDERS_FULL}<span class="count js-total_processing-counter"></span>{/if}
+                <span class="label nowrap semibold">[`Processing`]{if !empty($processing_count_new) && $wa->user()->getRights('shop', 'orders') >= shopRightConfig::RIGHT_ORDERS_FULL} <span class="badge red small squared custom-px-4 js-new-order-counter">+{$processing_count_new}</span>{/if}</span>
             </a>
             <a href="#/orders/all/" class="brick shadowed js-orders-link js-orders-show-filters js-order-nav-brick" id="s-all-orders">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
@@ -144,24 +161,103 @@
     <!-- SECONDAY FILTERS -->
     <div class="s-order-nav-block s-order-nav-block-chips js-order-nav-block-secondary s-order-nav-block-filters hide-when-view-pos" style="display: none;">
     <ul class="sidebar-dropdown-container chips small custom-m-0">
-        <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban">
+        <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban s-order-nav-hide-kanban-users">
             <a href="#/orders/state_id=new|processing|auth|paid|pickup" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-brick s-order-nav-button js-pending-orders">
                 <span class="label">[`Processing`]</span>
-                <span class="badge orange small squared custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
+                <span class="badge red small squared custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
                 <span class="hint">
                     <span class="js-pending-counter js-pending_counters-counter">{$_pending_count}</span>,
                     <span class="js-total_processing-counter"></span>
                 </span>
             </a>
         </li>
+
+        <li class="dropdown js-orders-dropdown s-order-nav-hide-kanban-users">
+            <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Managers`]">[`Managers`]</button>
+            <div class="dropdown-body">
+                <ul class="menu">
+                    <li>
+                        <a href="javascript:void(0)" class="custom-pl-16" data-param="all=manager_contact_id">
+                            <span>[`All`]</span>
+                        </a>
+                    </li>
+                {if !empty($manager_users)}
+                    {foreach $manager_users as $_manager_user}
+                    <li>
+                        <a href="javascript:void(0)" data-param="manager_contact_id={$_manager_user.id|escape}" class="js-orders-link">
+                            <span class="icon">
+                                <i class="userpic" style="background-image: url({waContact::getPhotoUrl($_manager_user.id, $_manager_user.photo, 20)});"></i>
+                            </span>
+                            <span>{$_manager_user.name|escape}</span>
+                            {if !$is_assistant}<span class="count">{$_manager_user.count|default:'0'}</span>{/if}
+                        </a>
+                    </li>
+                    {/foreach}
+                {/if}
+                </ul>
+            </div>
+        </li>
+
+        {if !empty($fulfillment_users)}
+            <li class="dropdown js-orders-dropdown s-order-nav-hide-kanban-users">
+                <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Fulfillments`]">[`Fulfillments`]</button>
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        <li>
+                            <a href="javascript:void(0)" class="custom-pl-16" data-param="all=fulfillment_contact_id">
+                                <span>[`All`]</span>
+                            </a>
+                        </li>
+                        {foreach $fulfillment_users as $_fulfillment_user}
+                        <li>
+                            <a href="javascript:void(0)" data-param="fulfillment_contact_id={$_fulfillment_user.id|escape}" class="js-orders-link">
+                                <span class="icon">
+                                    <i class="userpic" style="background-image: url({waContact::getPhotoUrl($_fulfillment_user.id, $_fulfillment_user.photo, 20)});"></i>
+                                </span>
+                                <span>{$_fulfillment_user.name|escape}</span>
+                                {if !$is_assistant}<span class="count">{$_fulfillment_user.count|default:'0'}</span>{/if}
+                            </a>
+                        </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </li>
+        {/if}
+
+        {if !empty($cashier_users)}
+            <li class="dropdown js-orders-dropdown s-order-nav-hide-kanban-users">
+                <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Cashiers`]">[`Cashiers`]</button>
+                <div class="dropdown-body">
+                    <ul class="menu">
+                        <li>
+                            <a href="javascript:void(0)" class="custom-pl-16" data-param="all=cashier_contact_id">
+                                <span>[`All`]</span>
+                            </a>
+                        </li>
+                        {foreach $cashier_users as $_cashier_user}
+                        <li>
+                            <a href="javascript:void(0)" data-param="cashier_contact_id={$_cashier_user.id|escape}" class="js-orders-link">
+                                    <span class="icon">
+                                        <i class="userpic" style="background-image: url({waContact::getPhotoUrl($_cashier_user.id, $_cashier_user.photo, 20)});"></i>
+                                    </span>
+                                <span>{$_cashier_user.name|escape}</span>
+                                {if !$is_assistant}<span class="count">{$_cashier_user.count|default:'0'}</span>{/if}
+                            </a>
+                        </li>
+                        {/foreach}
+                    </ul>
+                </div>
+            </li>
+        {/if}
+
         {if !empty($couriers) || !empty($contacts_as_courier)}
-            <li class="dropdown js-orders-dropdown">
+            <li class="dropdown js-orders-dropdown s-order-nav-hide-kanban-users">
                 <button class="dropdown-toggle light-gray full-width align-left nowrap" data-text="[`Couriers`]">[`Couriers`]</button>
                 <div class="dropdown-body">
                     <ul class="menu">
                         <li>
                             <a href="javascript:void(0)" class="custom-pl-16" data-param="all=params.courier_id|courier_contact_id">
-                                <span>[`All couriers`]</span>
+                                <span>[`All`]</span>
                             </a>
                         </li>
                         {if !empty($couriers)}
@@ -176,7 +272,7 @@
                                             {/if}
                                         </span>
                                         <span>{$courier.name|escape}</span>
-                                        <span class="count">{$courier.count}</span>
+                                        {if !$is_assistant}<span class="count">{$courier.count}</span>{/if}
                                     </a>
                                 </li>
                             {/foreach}
@@ -189,7 +285,7 @@
                                             <i class="userpic" style="background-image: url({waContact::getPhotoUrl($courier.id, $courier.photo, 20)});"></i>
                                         </span>
                                         <span>{$courier.name|escape}</span>
-                                        <span class="count">{$courier.count}</span>
+                                        {if !$is_assistant}<span class="count">{$courier.count}</span>{/if}
                                     </a>
                                 </li>
                             {/foreach}
@@ -328,6 +424,32 @@
             </div>
         </li>
 
+        <li class="s-order-nav-only-kanban-users js-chip-user" data-chip="couriers">
+            <a href="#orders/view=kanban-users&role=couriers">
+                [`Couriers`]
+            </a>
+        </li>
+        <li class="s-order-nav-only-kanban-users js-chip-user" data-chip="fulfillments">
+            <a href="#orders/view=kanban-users&role=fulfillments">
+                [`Fulfillments`]
+            </a>
+        </li>
+        <li class="s-order-nav-only-kanban-users js-chip-user" data-chip="cashiers">
+            <a href="#orders/view=kanban-users&role=cashiers">
+                [`Cashiers`]
+            </a>
+        </li>
+        <li class="s-order-nav-only-kanban-users js-chip-user" data-chip="managers">
+            <a href="#orders/view=kanban-users&role=managers">
+                [`Managers`]
+            </a>
+        </li>
+        <li class="s-order-nav-only-kanban-users js-chip-user accented" data-chip="all">
+            <a href="#orders/view=kanban-users">
+                [`All`]
+            </a>
+        </li>
+
         <!-- plugin hook: 'backend_orders.sidebar_bottom_li' -->
         {* @event backend_orders.%plugin_id%.sidebar_bottom_li *}
         {if !empty($backend_orders)}{foreach $backend_orders as $_}{ifset($_.sidebar_bottom_li)}{/foreach}{/if}
@@ -339,7 +461,21 @@
         </li>
     </ul>
     </div>
-    {/if}
+
+    <div class="s-order-nav-block s-order-nav-block-shortcuts js-order-nav-block-shortcuts">
+    {$_allowed_statuses = ['fulfilling', 'shipped']}
+    {foreach $states as $id => $state}
+        {if !in_array($id, $_allowed_statuses)}{continue}{/if}
+
+            <a href="#/orders/state_id={$id}/" data-param="state_id={$id|escape}" class="button smaller light-gray">
+                <span class="icon custom-mr-4"><i class="{$wa->shop->convertIcon($state->getOption('icon'))}" style="{$state->getStyle()}"></i></span>
+                <span class="label" style="{$state->getStyle()}">{$state->getName()|escape}</span>
+                <span class="count text-gray small custom-ml-2">{if isset($state_counters[$id])}{$state_counters[$id]}{else}0{/if}</span>
+            </a>
+
+    {/foreach}
+    </div>
+{/if}
 
 </div>
 <div class="flexbox" id="s-content">
@@ -395,6 +531,9 @@
             case 'kanban':
                 skeleton_template = '{{include '../orders/skeleton/kanban.html' select='kanban'}|strip}';
                 break;
+            case 'kanban-users':
+                skeleton_template = '{{include '../orders/skeleton/kanban.html' select='kanban-users'}|strip}';
+                break;
             case 'order':
                 skeleton_template = '{{include '../orders/skeleton/split.html' no_sidebar=true inline}|strip}';
                 break;
@@ -420,7 +559,8 @@
 
         $.orders.init({
             view: '{$default_view}',
-            wa_app_static_url: '{$wa_app_static_url}'
+            wa_app_static_url: '{$wa_app_static_url}',
+            shortcut_statuses: {$_allowed_statuses|default:[]|json_encode}
         });
     });
 </script>

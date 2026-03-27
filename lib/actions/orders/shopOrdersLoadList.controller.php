@@ -117,7 +117,7 @@ class shopOrdersLoadListController extends shopOrderListAction
     {
         $view = waRequest::get('view', '', waRequest::TYPE_STRING_TRIM);
         $counters = [];
-        if ($view == 'kanban') {
+        if (in_array($view, ['kanban', 'kanban-users'])) {
             $workflow = new shopWorkflow();
             $available_states = $workflow->getAvailableStates();
             $filter_state_id = $this->getStateId();
@@ -128,36 +128,50 @@ class shopOrdersLoadListController extends shopOrderListAction
                 }
             }
             $collection = new shopOrdersCollection(implode('&', $conditions));
-            $counters['state_counters'] = array_fill_keys(array_keys($available_states), 0);
-            if ($filter_state_id) {
-                $available_states = array_intersect_key($available_states, array_flip($filter_state_id));
-            }
-            foreach ($available_states as $state_id => $state) {
-                $temp_where = "o.state_id = '$state_id'";
-                $collection->addWhere($temp_where);
-                $counters['state_counters'][$state_id] = $collection->count(true);
-                $collection->deleteTempWhere($temp_where);
+
+            if ($view == 'kanban') {
+                $counters['state_counters'] = array_fill_keys(array_keys($available_states), 0);
+                if ($filter_state_id) {
+                    $available_states = array_intersect_key($available_states, array_flip($filter_state_id));
+                }
+                foreach ($available_states as $state_id => $state) {
+                    $temp_where = "o.state_id = '$state_id'";
+                    $collection->addWhere($temp_where);
+                    $counters['state_counters'][$state_id] = $collection->count(true);
+                    $collection->deleteTempWhere($temp_where);
+                }
+            } elseif ($view == 'kanban-users') {
+                foreach ($this->getAssignedUsers() as $_assigned_user_id) {
+                    $temp_where = "o.assigned_contact_id = '$_assigned_user_id'";
+                    $collection->addWhere($temp_where);
+                    $counters['assignment_counters'][$_assigned_user_id] = $collection->count(true);
+                    $collection->deleteTempWhere($temp_where);
+                }
             }
         } else {
             $counters['state_counters'] = $this->model->getStateCounters();
         }
 
         $pending_counters = intval(
-            ifset($counters['state_counters']['new'], 0) +
-            ifset($counters['state_counters']['auth'], 0) +
-            ifset($counters['state_counters']['processing'], 0) +
-            ifset($counters['state_counters']['paid'], 0)
+            ifset($counters, 'state_counters', 'new', 0) +
+            ifset($counters, 'state_counters', 'processing', 0) +
+            ifset($counters, 'state_counters', 'auth', 0) +
+            ifset($counters, 'state_counters', 'pickup', 0) +
+            ifset($counters, 'state_counters', 'paid', 0)
         );
-        $counters['common_counters'] = ['pending_counters' => $pending_counters];
+        $counters['common_counters'] = [
+            'pending_counters' => $pending_counters,
+            'app_badge' => wa('shop')->getConfig()->getAppBadgeCount(),
+        ];
 
         $prev_count_pending = waRequest::get('prev_pending', 0, waRequest::TYPE_INT);
-        if ($pending_counters && $prev_count_pending !== $pending_counters) {
+        if ($pending_counters && $prev_count_pending !== $pending_counters && !shopRights::isAssistant()) {
             /** @var shopConfig $config */
             $config = $this->getConfig();
             $counters['total_processing'] = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
         }
 
-        if ($view == 'split') {
+        if ($view == 'split' && !shopRights::isAssistant()) {
             $counters['all_count'] = intval($this->model->countAll());
         }
 

@@ -64,20 +64,35 @@ class shopFrontendApiCartController extends shopFrontApiJsonController
         $variant_services = (new shopServiceVariantsModel())->getWithPrice($variant_ids);
         $services = (new shopServiceModel())->getById(array_column($variant_services, 'id'));
 
-        foreach ($items as &$_item) {
-            $_item['total_discount'] = 0.0;
-            $_item['product'] = ifset($products, $_item['product_id'], null);
-            $_item = $formatter_item->format($_item);
-            if ($_item['type'] === 'service') {
-                $variant = ifset($variant_services, $_item['service_variant_id'], null);
+        $delete_item_ids = [];
+        foreach ($items as $i => &$item) {
+            $item['total_discount'] = 0.0;
+            $item['product'] = ifset($products, $item['product_id'], null);
+            if (!$item['product']) {
+                unset($items[$i]);
+                $delete_item_ids[$item['id']] = true;
+                continue;
+            }
+            $item = $formatter_item->format($item);
+            if ($item['type'] === 'service') {
+                $variant = ifset($variant_services, $item['service_variant_id'], null);
                 if ($variant && !empty($variant['service_id'])) {
-                    $_item['service'] = $formatter_service->format(ifset($services, $variant['service_id'], null), [$variant]);
+                    $item['service'] = $formatter_service->format(ifset($services, $variant['service_id'], null), [$variant]);
                 } else {
-                    $_item['service'] = null;
+                    unset($items[$i]);
+                    $delete_item_ids[$item['id']] = true;
+                    continue;
                 }
             }
         }
-        unset($_item);
+        unset($item);
+
+        if ($delete_item_ids) {
+            $cart_model = new shopCartItemsModel();
+            $cart_model->deleteById(array_keys($delete_item_ids));
+            $items = array_values($items);
+        }
+        unset($delete_item_ids);
 
         $discount = 0.0;
         $coupon_valid = false;
