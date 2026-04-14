@@ -465,11 +465,15 @@
                 this.toggleMainButtonLoader(true);
             }
             $btn.prop('disabled', true).after(loading_html);
-            this.post(url, {}, function () {
+            this.post(url, {}, function (response) {
+                var warning = response && response.warning ? String(response.warning) : '';
                 if (state === 'load') {
                     self.setPrimaryState('import');
-                    self.reload(true);
+                    self.reload(true, warning);
                 } else {
+                    if (warning) {
+                        self.status('js-ozon-progress', warning, false);
+                    }
                     self.showImportSuccess();
                 }
             }, {
@@ -851,7 +855,7 @@
             });
         },
 
-        reload: function (showSnapshot) {
+        reload: function (showSnapshot, progressMessage) {
             var $fields = $("#plugin-migrate-transport-fields");
             var transport = $("#plugin-migrate-transport").val();
             if (!transport) { return; }
@@ -891,6 +895,9 @@
                     var $newRoot = $fields.find('#js-ozon-root');
                     if ($newRoot.length) {
                         $.migrateOzon.init($newRoot);
+                        if (progressMessage) {
+                            $.migrateOzon.status('js-ozon-progress', progressMessage, false);
+                        }
                     }
                 }
             }).fail(function (xhr) {

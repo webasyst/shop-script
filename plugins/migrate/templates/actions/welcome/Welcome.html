@@ -69,10 +69,8 @@
     {$_additional_icons = ['yml' => 'fas fa-file-excel text-green']}
 
     {foreach $transports as $id => $t}
-        {if !empty($t.group) && $t.group == 'Marketplaces'}
-            {if in_array($id, $_marketplace_allowed)}
-                {$_marketplace_group[$id] = $t}
-            {/if}
+        {if in_array($id, $_marketplace_allowed)}
+            {$_marketplace_group[$id] = $t}
         {/if}
         {if !empty($t.group) && $t.group == 'Webasyst'}
             {$_webasyst_group[$id] = $t}

@@ -23,6 +23,10 @@
     .s-ozon-preview-more {margin-top:8px;}
     .s-ozon-preview-more a {font-size:13px;text-decoration:none;}
     .s-ozon-preview-more a:hover {text-decoration:underline;}
+    .s-ozon-warning {margin:0 0 16px;padding:12px 14px;border:1px solid #f1c27d;border-radius:8px;background:#fff4df;color:#6f4a12;}
+    .s-ozon-warning__title {display:block;font-weight:600;margin-bottom:4px;}
+    .s-ozon-warning ul {margin:8px 0 0 18px;padding:0;list-style:disc;}
+    .s-ozon-warning li {margin:3px 0;}
     .s-ozon-empty {margin:0 0 20px;}
     .s-ozon-actions {display:flex;align-items:center;gap:20px;margin-top:10px;}
     .s-ozon-layout.is-loading::after {content:'';position:absolute;inset:0;border-radius:12px;background:rgba(255,255,255,0.7);z-index:10;}
@@ -45,7 +49,10 @@
     .s-ozon-button-pulsar {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;border-radius:16px;z-index:1;}
     .s-ozon-button-pulsar {width:90%!important;height:100%!important;border-radius:16px!important;}
     .s-ozon-button-pulsar.pulsar {animation-direction:reverse!important;}
-    .s-ozon-debug-actions {text-align:right;margin-bottom:12px;}
+    .s-ozon-connection-actions {display:flex;align-items:center;gap:12px;flex-wrap:nowrap;}
+    .s-ozon-connection-actions__left {display:flex;align-items:center;gap:8px;flex-wrap:wrap;flex:1 1 auto;min-width:0;}
+    .s-ozon-connection-actions__left .js-ozon-status {display:inline-block;}
+    .s-ozon-connection-actions__right {display:flex;justify-content:flex-end;flex:0 0 auto;margin-left:auto;padding-right:12px;}
     .s-ozon-clean-table {width:100%;color:var(--text-color);}
     .s-ozon-clean-table th,.s-ozon-clean-table td {padding:8px 10px;text-align:left;}
     .s-ozon-clean-table tbody tr:nth-child(odd) {background:var(--layer-surface-hover);}
@@ -119,6 +126,8 @@
         .s-ozon-import-flow__icon {width:104px;height:104px;}
         .s-ozon-import-flow__icon img {max-width:96px;max-height:96px;}
         .s-ozon-import-flow__icon--ozon img {max-width:90px;max-height:90px;}
+        .s-ozon-connection-actions {align-items:flex-start;flex-wrap:wrap;}
+        .s-ozon-connection-actions__right {width:100%;margin-left:0;padding-right:0;}
     }
 </style>
 {/literal}
@@ -168,10 +177,17 @@
             <br><hr>
             <div class="field">
                 <div class="name for-input">[`Connection`]</div>
-                <div class="value">
-                    <button type="button" class="button green js-ozon-save">[`Save`]</button>
-                    <button type="button" class="button light-gray js-ozon-test">[`Test connection`]</button>
-                    <span class="hint js-ozon-status"></span>
+                <div class="value s-ozon-connection-actions">
+                    <div class="s-ozon-connection-actions__left">
+                        <button type="button" class="button green js-ozon-save">[`Save`]</button>
+                        <button type="button" class="button light-gray js-ozon-test">[`Test connection`]</button>
+                        <span class="hint js-ozon-status"></span>
+                    </div>
+                    {if $ozon_debug}
+                        <div class="s-ozon-connection-actions__right">
+                            <button type="button" class="button red js-ozon-clean-open">[`Debug: purge tables`]</button>
+                        </div>
+                    {/if}
                 </div>
             </div>
         </div>
@@ -185,6 +201,35 @@
                     [`Snapshot collected at`] {$ozon_snapshot.updated_at|wa_datetime}
                 </p>
             </div>
+
+            {if !empty($ozon_snapshot.meta.invalid_attribute_pairs_count)}
+                <div class="s-ozon-warning">
+                    <span class="s-ozon-warning__title">[`Ozon returned errors for some category/type pairs`]</span>
+                    <div>
+                        [`Products from these categories will be imported without characteristics.`]
+                        <span class="gray">([`Pairs`]: {$ozon_snapshot.meta.invalid_attribute_pairs_count|default:0}; [`Products`]: {$ozon_snapshot.meta.invalid_attribute_products_count|default:0})</span>
+                    </div>
+                    {if !empty($ozon_snapshot.meta.invalid_attribute_pairs)}
+                        <ul>
+                            {foreach $ozon_snapshot.meta.invalid_attribute_pairs as $index => $pair}
+                                {if $index < 10}
+                                    <li>
+                                        {if !empty($pair.path)}
+                                            {$pair.path|escape}
+                                        {else}
+                                            category_id={$pair.description_category_id|default:0}, type_id={$pair.type_id|default:0}
+                                        {/if}
+                                        <span class="gray">({$pair.products_count|default:0})</span>
+                                    </li>
+                                {/if}
+                            {/foreach}
+                        </ul>
+                        {if $ozon_snapshot.meta.invalid_attribute_pairs|@count > 10}
+                            <div class="hint">[`And more categories...`]</div>
+                        {/if}
+                    {/if}
+                </div>
+            {/if}
 
             <div class="s-ozon-summary">
                 <div class="s-ozon-summary__item">
@@ -508,11 +553,6 @@
                     </div>
                 </div>
             </div>
-                {if $ozon_debug}
-                    <div class="s-ozon-debug-actions">
-                        <button type="button" class="button red js-ozon-clean-open">[`Debug: purge tables`]</button>
-                    </div>
-                {/if}
             </div>
         </div>
     {/if}

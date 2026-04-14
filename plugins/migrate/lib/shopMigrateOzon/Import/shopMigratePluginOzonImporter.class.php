@@ -2,6 +2,9 @@
 
 class shopMigratePluginOzonImporter
 {
+    const SCRIPT_TIME_LIMIT_SECONDS = 600;
+    const HARD_DEADLINE_SECONDS = 590;
+
     private $repository;
     private $settings;
     private $type_mapper;
@@ -19,9 +22,13 @@ class shopMigratePluginOzonImporter
     private $product_tags_model;
     private $product_images_model;
     private $feature_model;
+    private $feature_values_models = array();
+    private $feature_value_validity = array();
     private $temp_image_dir;
     private $image_cache = array();
     private $product_default_sku = array();
+    private $invalid_attribute_pair_keys = array();
+    private $hard_deadline_at = 0.0;
 
     public function __construct(
         shopMigratePluginOzonSnapshotRepository $repository,
@@ -54,22 +61,30 @@ class shopMigratePluginOzonImporter
     public function import($snapshot_id)
     {
         if (function_exists('set_time_limit')) {
-            @set_time_limit(0);
+            @set_time_limit(self::SCRIPT_TIME_LIMIT_SECONDS);
         }
+        $this->startHardDeadline(self::HARD_DEADLINE_SECONDS);
 
+        $this->ensureRuntimeNotExceeded('load snapshot');
         $snapshot = $this->repository->getSnapshotsModel()->getByIdSafe($snapshot_id);
         if (!$snapshot || $snapshot['status'] !== 'ready') {
             throw new waException('Snapshot is not ready for import');
         }
+        $this->ensureRuntimeNotExceeded('warmup invalid pairs');
+        $this->warmupInvalidAttributePairs($snapshot);
 
+        $this->ensureRuntimeNotExceeded('load products from snapshot');
         $products = $this->repository->getProductsModel()->getAllBySnapshot($snapshot_id);
         if (!$products) {
             return array('created' => 0, 'updated' => 0, 'skipped' => 0);
         }
 
+        $this->ensureRuntimeNotExceeded('load attribute values');
         $attribute_values = $this->groupValuesByProduct($snapshot_id, array_keys($products));
+        $this->ensureRuntimeNotExceeded('load stocks');
         $stocks = $this->groupStocksByOffer($snapshot_id);
 
+        $this->ensureRuntimeNotExceeded('warmup mappers');
         $this->type_mapper->warmup($snapshot_id);
         $this->category_mapper->warmup($snapshot_id);
         $this->stock_mapper->warmup($snapshot_id);
@@ -80,6 +95,7 @@ class shopMigratePluginOzonImporter
         list($grouped_products, $single_products) = $this->partitionProductsByModelInfo($products);
 
         foreach ($grouped_products as $group) {
+            $this->ensureRuntimeNotExceeded('import grouped product');
             try {
                 $is_new = $this->importGroupedProduct($snapshot_id, $group, $attribute_values, $stocks);
                 if ($is_new === null) {
@@ -96,6 +112,7 @@ class shopMigratePluginOzonImporter
         }
 
         foreach ($single_products as $item) {
+            $this->ensureRuntimeNotExceeded('import single product');
             $product = $item['product'];
             try {
                 $is_new = $this->importProduct($snapshot_id, $product, $attribute_values, $stocks);
@@ -115,11 +132,33 @@ class shopMigratePluginOzonImporter
         return $result;
     }
 
+    private function startHardDeadline($seconds)
+    {
+        $seconds = max(1, (int) $seconds);
+        $this->hard_deadline_at = microtime(true) + $seconds;
+    }
+
+    private function ensureRuntimeNotExceeded($phase)
+    {
+        if ($this->hard_deadline_at <= 0) {
+            return;
+        }
+        if (microtime(true) <= $this->hard_deadline_at) {
+            return;
+        }
+        throw new waException(sprintf(
+            'Import exceeded %d seconds at phase: %s',
+            self::HARD_DEADLINE_SECONDS,
+            (string) $phase
+        ));
+    }
+
     private function partitionProductsByModelInfo(array $products)
     {
         $grouped = array();
         $singles = array();
         foreach ($products as $product_id => $product) {
+            $this->ensureRuntimeNotExceeded('prepare product groups');
             $details = $product['details'] ? json_decode($product['details'], true) : array();
             $model_info = ifset($details['model_info'], array());
             $model_id = (int) ifset($model_info['model_id'], 0);
@@ -156,6 +195,8 @@ class shopMigratePluginOzonImporter
 
     private function importProduct($snapshot_id, array $product, array $attribute_values, array $stocks_by_offer)
     {
+        $this->ensureRuntimeNotExceeded('import product payload');
+        $skip_features_for_pair = $this->shouldSkipFeaturesForProduct($product);
         $type_id = $this->type_mapper->resolve(
             $snapshot_id,
             ifset($product['description_category_id']),
@@ -194,9 +235,13 @@ class shopMigratePluginOzonImporter
         $this->ensureDefaultSkuAssigned($product_id, $sku_id);
 
         if ($this->settings->getFeatureImportMode() === shopMigratePluginOzonSettings::FEATURE_MODE_AUTO) {
-            $product_attributes = ifset($attribute_values[$product['product_id']], array());
-            $this->assignFeatures($snapshot_id, $product_id, $type_id, $attribute_values, $product['product_id']);
-            $this->assignCollectedTags($product_id, $product_attributes);
+            if ($skip_features_for_pair) {
+                $this->clearAllProductFeatures($product_id);
+            } else {
+                $product_attributes = ifset($attribute_values[$product['product_id']], array());
+                $this->assignFeatures($snapshot_id, $product_id, $type_id, $attribute_values, $product['product_id']);
+                $this->assignCollectedTags($product_id, $product_attributes);
+            }
         }
 
         $this->assignStocks($snapshot_id, $product_id, $sku_id, $product['offer_id'], $stocks_by_offer);
@@ -222,6 +267,7 @@ class shopMigratePluginOzonImporter
     private function findExistingMapInGroup(array $items)
     {
         foreach ($items as $item) {
+            $this->ensureRuntimeNotExceeded('search existing group map');
             $product = $item['product'];
             if (empty($product['offer_id'])) {
                 continue;
@@ -236,10 +282,12 @@ class shopMigratePluginOzonImporter
 
     private function importGroupedProduct($snapshot_id, array $group, array $attribute_values, array $stocks_by_offer)
     {
+        $this->ensureRuntimeNotExceeded('import grouped product payload');
         if (empty($group['items'])) {
             return null;
         }
         $items = $group['items'];
+        $skip_features_for_group = $this->shouldSkipFeaturesForGroup($items);
         $product_ids = array_keys($items);
         $base_product_id = isset($group['base_product_id']) ? $group['base_product_id'] : reset($product_ids);
         if (!isset($items[$base_product_id])) {
@@ -288,6 +336,7 @@ class shopMigratePluginOzonImporter
         $additional_urls = array();
         $variant_primary_urls = array();
         foreach ($items as $item_product_id => $item) {
+            $this->ensureRuntimeNotExceeded('collect grouped product images');
             $primary = $this->resolvePrimaryImageUrl($item['details']);
             if ($primary) {
                 $primary_urls[] = $primary;
@@ -301,16 +350,22 @@ class shopMigratePluginOzonImporter
         $tag_mode = $this->resolveTagImportMode();
 
         if ($this->settings->getFeatureImportMode() === shopMigratePluginOzonSettings::FEATURE_MODE_AUTO) {
-            list($common_attributes, $variant_attributes) = $this->splitAttributesByVariance($product_ids, $attribute_values);
-            $this->applyFeatureAttributes($snapshot_id, $product_id, $type_id, $common_attributes);
-            if ($this->shouldAssignTagsToProduct($tag_mode)) {
-                $this->assignCollectedTags($product_id, $this->collectAttributesByProductIds($product_ids, $attribute_values));
+            if ($skip_features_for_group) {
+                $variant_attributes = array_fill_keys($product_ids, array());
+                $this->clearAllProductFeatures($product_id);
+            } else {
+                list($common_attributes, $variant_attributes) = $this->splitAttributesByVariance($product_ids, $attribute_values);
+                $this->applyFeatureAttributes($snapshot_id, $product_id, $type_id, $common_attributes);
+                if ($this->shouldAssignTagsToProduct($tag_mode)) {
+                    $this->assignCollectedTags($product_id, $this->collectAttributesByProductIds($product_ids, $attribute_values));
+                }
             }
         } else {
             $variant_attributes = array_fill_keys($product_ids, array());
         }
 
         foreach ($items as $item_product_id => $item) {
+            $this->ensureRuntimeNotExceeded('import grouped product sku');
             $variant_product = $item['product'];
             $variant_details = $item['details'];
             $sku_name = $this->resolveSkuName($product_data['name'], $variant_product, $variant_details);
@@ -320,11 +375,18 @@ class shopMigratePluginOzonImporter
             $this->ensureDefaultSkuAssigned($product_id, $sku_id);
             $sku_ids[$item_product_id] = $sku_id;
             if ($this->settings->getFeatureImportMode() === shopMigratePluginOzonSettings::FEATURE_MODE_AUTO) {
-                $attributes = ifset($variant_attributes[$item_product_id], array());
-                if (!$this->shouldAssignTagsToSku($tag_mode)) {
-                    $attributes = $this->filterTagAttributes($attributes);
+                if ($skip_features_for_group) {
+                    $this->product_features_model->deleteByField(array(
+                        'product_id' => $product_id,
+                        'sku_id'     => $sku_id,
+                    ));
+                } else {
+                    $attributes = ifset($variant_attributes[$item_product_id], array());
+                    if (!$this->shouldAssignTagsToSku($tag_mode)) {
+                        $attributes = $this->filterTagAttributes($attributes);
+                    }
+                    $this->assignSkuFeaturesFromAttributes($snapshot_id, $product_id, $type_id, $sku_id, $attributes);
                 }
-                $this->assignSkuFeaturesFromAttributes($snapshot_id, $product_id, $type_id, $sku_id, $attributes);
             } else {
                 $this->product_features_model->deleteByField(array(
                     'product_id' => $product_id,
@@ -350,6 +412,60 @@ class shopMigratePluginOzonImporter
         }
 
         return $existing_map ? false : true;
+    }
+
+    private function warmupInvalidAttributePairs(array $snapshot)
+    {
+        $this->invalid_attribute_pair_keys = array();
+        $meta = array();
+        if (!empty($snapshot['meta']) && is_string($snapshot['meta'])) {
+            $decoded = json_decode($snapshot['meta'], true);
+            if (is_array($decoded)) {
+                $meta = $decoded;
+            }
+        }
+        foreach ((array) ifset($meta['invalid_attribute_pairs'], array()) as $pair) {
+            $category_id = (int) ifset($pair['description_category_id']);
+            $type_id = (int) ifset($pair['type_id']);
+            if ($category_id > 0 && $type_id > 0) {
+                $this->invalid_attribute_pair_keys[$category_id.':'.$type_id] = true;
+            }
+        }
+    }
+
+    private function shouldSkipFeaturesForProduct(array $product)
+    {
+        $key = $this->getCategoryTypeKeyFromProduct($product);
+        return $key !== '' && isset($this->invalid_attribute_pair_keys[$key]);
+    }
+
+    private function shouldSkipFeaturesForGroup(array $items)
+    {
+        foreach ($items as $item) {
+            if (!empty($item['product']) && $this->shouldSkipFeaturesForProduct($item['product'])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function getCategoryTypeKeyFromProduct(array $product)
+    {
+        $category_id = (int) ifset($product['description_category_id']);
+        $type_id = (int) ifset($product['type_id']);
+        if ($category_id <= 0 || $type_id <= 0) {
+            return '';
+        }
+        return $category_id.':'.$type_id;
+    }
+
+    private function clearAllProductFeatures($product_id)
+    {
+        $product_id = (int) $product_id;
+        if ($product_id <= 0) {
+            return;
+        }
+        $this->product_features_model->deleteByField('product_id', $product_id);
     }
 
     private function buildProductData(array $product, array $details, $type_id, $category_id)
@@ -528,21 +644,20 @@ class shopMigratePluginOzonImporter
             $feature = $feature_refs[$code];
             $values = $this->flattenFeatureValues($feature, $value);
             foreach ($values as $item_value) {
-                $value_id = $this->feature_model->getValueId($feature, $item_value, true);
-                if (!$value_id) {
-                    continue;
+                $value_ids = $this->resolveFeatureValueIds($feature, $item_value);
+                foreach ($value_ids as $value_id) {
+                    $row_key = implode('-', array((int) $product_id, (int) $sku_id, (int) $feature['id'], (int) $value_id));
+                    if (isset($row_index[$row_key])) {
+                        continue;
+                    }
+                    $row_index[$row_key] = true;
+                    $rows[] = array(
+                        'product_id'       => $product_id,
+                        'sku_id'           => $sku_id,
+                        'feature_id'       => $feature['id'],
+                        'feature_value_id' => $value_id,
+                    );
                 }
-                $row_key = implode('-', array((int) $product_id, (int) $sku_id, (int) $feature['id'], (int) $value_id));
-                if (isset($row_index[$row_key])) {
-                    continue;
-                }
-                $row_index[$row_key] = true;
-                $rows[] = array(
-                    'product_id'       => $product_id,
-                    'sku_id'           => $sku_id,
-                    'feature_id'       => $feature['id'],
-                    'feature_value_id' => $value_id,
-                );
             }
         }
         if ($rows) {
@@ -561,25 +676,132 @@ class shopMigratePluginOzonImporter
         return array($value);
     }
 
-    private function assignStocks($snapshot_id, $product_id, $sku_id, $offer_id, array $stocks_by_offer)
+    private function resolveFeatureValueIds(array $feature, $value)
     {
-        if (!$offer_id || empty($stocks_by_offer[$offer_id])) {
-            return;
+        $lookup_value = $this->sanitizeFeatureLookupValue($feature, $value);
+        $resolved_ids = $this->feature_model->getValueId($feature, $lookup_value, true);
+        $resolved_ids = $this->normalizeFeatureValueIds($resolved_ids);
+        if (!$resolved_ids) {
+            return array();
         }
 
-        $stock_payload = array();
-        foreach ($stocks_by_offer[$offer_id] as $stock_row) {
-            $shop_stock_id = $this->stock_mapper->resolve($snapshot_id, $stock_row['warehouse_id']);
-            if ($shop_stock_id) {
-                if (!isset($stock_payload[$shop_stock_id])) {
-                    $stock_payload[$shop_stock_id] = 0;
-                }
-                $stock_payload[$shop_stock_id] += (float) $stock_row['quantity'];
+        $result = array();
+        foreach ($resolved_ids as $value_id) {
+            if ($this->isFeatureValueIdValid($feature, $value_id)) {
+                $result[$value_id] = $value_id;
             }
         }
 
-        if (!$stock_payload) {
-            return;
+        return array_values($result);
+    }
+
+    private function sanitizeFeatureLookupValue(array $feature, $value)
+    {
+        if (!is_array($value) || $this->isSequentialArray($value)) {
+            return $value;
+        }
+        if (!isset($value['id'])) {
+            return $value;
+        }
+
+        $value_id = (int) $value['id'];
+        if ($value_id <= 0 || !$this->isFeatureValueIdValid($feature, $value_id, false)) {
+            unset($value['id']);
+        } else {
+            $value['id'] = $value_id;
+        }
+
+        return $value;
+    }
+
+    private function normalizeFeatureValueIds($value_ids)
+    {
+        if ($value_ids === null || $value_ids === false || $value_ids === '') {
+            return array();
+        }
+        $list = is_array($value_ids) ? $value_ids : array($value_ids);
+        $result = array();
+        foreach ($list as $value_id) {
+            if (is_array($value_id)) {
+                if (!isset($value_id['id'])) {
+                    continue;
+                }
+                $value_id = $value_id['id'];
+            }
+            $value_id = (int) $value_id;
+            if ($value_id > 0) {
+                $result[$value_id] = $value_id;
+            }
+        }
+        return array_values($result);
+    }
+
+    private function isFeatureValueIdValid(array $feature, $value_id, $allow_cache = true)
+    {
+        $feature_id = (int) ifset($feature['id'], 0);
+        $value_id = (int) $value_id;
+        $type = (string) ifset($feature['type'], '');
+        if ($feature_id <= 0 || $value_id <= 0 || $type === '') {
+            return false;
+        }
+
+        $cache_key = $feature_id.':'.$type.':'.$value_id;
+        if ($allow_cache && isset($this->feature_value_validity[$cache_key])) {
+            return $this->feature_value_validity[$cache_key];
+        }
+
+        $model = $this->getFeatureValuesModel($type);
+        if (!$model) {
+            if ($allow_cache) {
+                $this->feature_value_validity[$cache_key] = false;
+            }
+            return false;
+        }
+
+        $row = $model->getByField(array(
+            'id'         => $value_id,
+            'feature_id' => $feature_id,
+        ));
+        $is_valid = !empty($row);
+        if ($allow_cache) {
+            $this->feature_value_validity[$cache_key] = $is_valid;
+        }
+        return $is_valid;
+    }
+
+    private function getFeatureValuesModel($type)
+    {
+        $type = (string) $type;
+        if ($type === '') {
+            return null;
+        }
+        if (!array_key_exists($type, $this->feature_values_models)) {
+            try {
+                $this->feature_values_models[$type] = shopFeatureModel::getValuesModel($type);
+            } catch (Exception $e) {
+                $this->feature_values_models[$type] = null;
+            }
+        }
+        return $this->feature_values_models[$type];
+    }
+
+    private function assignStocks($snapshot_id, $product_id, $sku_id, $offer_id, array $stocks_by_offer)
+    {
+        $stock_payload = array();
+        foreach ($this->stock_mapper->getResolvedShopStockIds() as $shop_stock_id) {
+            $stock_payload[(int) $shop_stock_id] = 0.0;
+        }
+
+        if ($offer_id && !empty($stocks_by_offer[$offer_id])) {
+            foreach ($stocks_by_offer[$offer_id] as $stock_row) {
+                $shop_stock_id = $this->stock_mapper->resolve($snapshot_id, $stock_row['warehouse_id']);
+                if ($shop_stock_id) {
+                    if (!isset($stock_payload[$shop_stock_id])) {
+                        $stock_payload[$shop_stock_id] = 0.0;
+                    }
+                    $stock_payload[$shop_stock_id] += (float) $stock_row['quantity'];
+                }
+            }
         }
 
         foreach ($stock_payload as $stock_id => $quantity) {
@@ -591,7 +813,7 @@ class shopMigratePluginOzonImporter
                 'count'      => $quantity,
             ));
         }
-        $total = array_sum($stock_payload);
+        $total = $stock_payload ? array_sum($stock_payload) : 0;
         $this->product_skus_model->updateById($sku_id, array('count' => $total));
         $this->product_model->updateById($product_id, array('count' => $total));
     }
@@ -1502,10 +1724,6 @@ class shopMigratePluginOzonImporter
         if (!isset($feature['multiple']) || (int) $feature['multiple'] !== $desired_multiple) {
             $updates['multiple'] = $desired_multiple;
             $feature['multiple'] = $desired_multiple;
-        }
-        if (!empty($feature['selectable']) && ifset($feature['type']) === 'text') {
-            $updates['type'] = 'varchar';
-            $feature['type'] = 'varchar';
         }
         if ($updates && !empty($feature['id'])) {
             $this->feature_mapper->updateFeatureFlags($feature['id'], $updates);

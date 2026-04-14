@@ -895,3 +895,11 @@ msgstr "Скрыть дополнительные"
 msgid "Hide"
 msgstr "Скрыть"
 
+msgid "Ozon returned errors for some category/type pairs"
+msgstr "Не удалось получить полные сведения о нескольких категориях и типах товаров"
+
+msgid "Pairs"
+msgstr "Категорий"
+
+msgid "Products from these categories will be imported without characteristics."
+msgstr "Для товаров из следующих категорий характеристики перенесены не будут."

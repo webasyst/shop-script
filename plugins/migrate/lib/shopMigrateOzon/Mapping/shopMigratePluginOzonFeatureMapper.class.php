@@ -31,7 +31,7 @@ class shopMigratePluginOzonFeatureMapper
 
         if (!$this->settings->shouldForceTextFeatures()) {
             if ($builtin = $this->resolveBuiltinFeature($attribute, $shop_type_id)) {
-                return $builtin;
+                return $this->applyStorefrontVisibilityRule($builtin, $attribute);
             }
         }
 
@@ -43,13 +43,15 @@ class shopMigratePluginOzonFeatureMapper
             }
             if (!empty($option['shop_feature_id'])) {
                 $this->bindFeatureToType($option['shop_feature_id'], $shop_type_id);
-                return $this->normalizeSelectableFeatureType($this->feature_model->getById((int) $option['shop_feature_id']));
+                $feature = $this->normalizeSelectableFeatureType($this->feature_model->getById((int) $option['shop_feature_id']));
+                return $this->applyStorefrontVisibilityRule($feature, $attribute);
             }
         }
 
         if (!empty($this->map[$attribute_id]['shop_feature_id']) && $this->map[$attribute_id]['mode'] === shopMigratePluginOzonSettings::MODE_AUTO) {
             $this->bindFeatureToType($this->map[$attribute_id]['shop_feature_id'], $shop_type_id);
-            return $this->normalizeSelectableFeatureType($this->feature_model->getById((int) $this->map[$attribute_id]['shop_feature_id']));
+            $feature = $this->normalizeSelectableFeatureType($this->feature_model->getById((int) $this->map[$attribute_id]['shop_feature_id']));
+            return $this->applyStorefrontVisibilityRule($feature, $attribute);
         }
 
         $feature = $this->createFeature($attribute, $shop_type_id);
@@ -64,7 +66,8 @@ class shopMigratePluginOzonFeatureMapper
             'mode'            => shopMigratePluginOzonSettings::MODE_AUTO,
         );
 
-        return $this->normalizeSelectableFeatureType($feature);
+        $feature = $this->normalizeSelectableFeatureType($feature);
+        return $this->applyStorefrontVisibilityRule($feature, $attribute);
     }
 
     private function resolveBuiltinFeature(array $attribute, $shop_type_id)
@@ -103,7 +106,9 @@ class shopMigratePluginOzonFeatureMapper
             $selectable = 1;
             $multiple = 0;
         }
-        $data['status'] = 'public';
+        $data['status'] = $this->shouldHideFeatureOnStorefront($attribute, ifset($data['code'], ''))
+            ? shopFeatureModel::STATUS_PRIVATE
+            : shopFeatureModel::STATUS_PUBLIC;
         $data['selectable'] = $selectable;
         $data['multiple'] = $multiple;
         $data['available_for_sku'] = 1;
@@ -120,14 +125,16 @@ class shopMigratePluginOzonFeatureMapper
 
         if ($feature) {
             $this->bindFeatureToType($feature['id'], $shop_type_id);
-            return $this->normalizeSelectableFeatureType($feature);
+            $feature = $this->normalizeSelectableFeatureType($feature);
+            return $this->applyStorefrontVisibilityRule($feature, $attribute);
         }
 
         $id = $this->feature_model->insert($data);
         $feature = $this->feature_model->getById($id);
         $this->bindFeatureToType($feature['id'], $shop_type_id);
 
-        return $this->normalizeSelectableFeatureType($feature);
+        $feature = $this->normalizeSelectableFeatureType($feature);
+        return $this->applyStorefrontVisibilityRule($feature, $attribute);
     }
 
     private function resolveFeatureFlags($type, array $attribute)
@@ -765,20 +772,70 @@ class shopMigratePluginOzonFeatureMapper
         if (!$feature || !is_array($feature)) {
             return $feature;
         }
-        if (!empty($feature['selectable']) && ifset($feature['type']) === 'text' && !empty($feature['id'])) {
-            $this->feature_model->updateById((int) $feature['id'], array('type' => 'varchar'));
-            $feature['type'] = 'varchar';
+        return $feature;
+    }
+
+    private function applyStorefrontVisibilityRule($feature, array $attribute)
+    {
+        if (!$feature || !is_array($feature) || empty($feature['id'])) {
+            return $feature;
+        }
+        if (!$this->shouldHideFeatureOnStorefront($attribute, ifset($feature['code'], ''))) {
+            return $feature;
+        }
+        if (ifset($feature['status']) !== shopFeatureModel::STATUS_PRIVATE) {
+            $this->feature_model->updateById((int) $feature['id'], array(
+                'status' => shopFeatureModel::STATUS_PRIVATE,
+            ));
+            $feature['status'] = shopFeatureModel::STATUS_PRIVATE;
         }
         return $feature;
     }
 
+    private function shouldHideFeatureOnStorefront(array $attribute, $feature_code = '')
+    {
+        $target_code = 'ozon_videooblozhka_ssylka';
+        $candidate_codes = array();
+
+        if (is_string($feature_code) && $feature_code !== '') {
+            $candidate_codes[] = strtolower($feature_code);
+        }
+
+        $name = ifset($attribute['name'], '');
+        if ((!is_string($name) || $name === '') && isset($attribute['meta'])) {
+            $meta_name = $this->getAttributeMetaValue($attribute, 'name');
+            if (is_string($meta_name)) {
+                $name = $meta_name;
+            }
+        }
+        if (is_string($name) && $name !== '') {
+            $candidate_codes[] = $this->buildAttributeCodeKey($name);
+        }
+
+        foreach ($candidate_codes as $code) {
+            if ($code === $target_code) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private function buildAttributeCodeKey($name)
+    {
+        $key = strtolower(waLocale::transliterate((string) $name));
+        $key = preg_replace('/[^a-z0-9_]+/', '_', $key);
+        return trim($key, '_');
+    }
+
     public function updateFeatureFlags($feature_id, array $data)
     {
-        $allowed = array('selectable', 'multiple', 'status');
+        $allowed = array('selectable', 'multiple');
         $update = array();
         foreach ($data as $key => $value) {
             if (in_array($key, $allowed, true)) {
                 $update[$key] = (int) $value;
+            } elseif ($key === 'status' && is_string($value) && $value !== '') {
+                $update[$key] = $value;
             } elseif ($key === 'type' && is_string($value) && $value !== '') {
                 $update[$key] = $value;
             }
