@@ -17,7 +17,7 @@
             var that = this;
             that.options = options;
             that.$wrapper = $('#s-content');
-
+            console.log(options)
             if (typeof($.History) != "undefined") {
                 $.History.bind(function () {
                     that.dispatch();
@@ -595,10 +595,10 @@
 
         visibilityShortcuts: function(state) {
             const $wrapper = $('.js-order-nav-block-shortcuts');
-            
+
             $wrapper.toggle(state);
 
-            $wrapper.find('.button').each(function() {                
+            $wrapper.find('.button').each(function() {
                 this.classList.toggle('active', location.hash.includes(this.getAttribute('href').replace(/\/$/, '')))
             })
         },
@@ -1007,8 +1007,11 @@
 
         argsLastFilters () {
             let args = [];
-            const hash_from_storage = this.getFiltersHashStorage();
+            let hash_from_storage = this.getFiltersHashStorage();
             if (hash_from_storage) {
+                if ($.storage.get('shop/orders/view') === 'kanban-users') {
+                    hash_from_storage = 'all'
+                }
                 args = hash_from_storage.split('/').filter(Boolean);
 
                 $.wa.setHash('/orders/' + hash_from_storage);

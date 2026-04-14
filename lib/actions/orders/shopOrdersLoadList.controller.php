@@ -161,18 +161,23 @@ class shopOrdersLoadListController extends shopOrderListAction
         );
         $counters['common_counters'] = [
             'pending_counters' => $pending_counters,
-            'app_badge' => wa('shop')->getConfig()->getAppBadgeCount(),
+            'app_badge' => $pending_counters,
         ];
 
-        $prev_count_pending = waRequest::get('prev_pending', 0, waRequest::TYPE_INT);
-        if ($pending_counters && $prev_count_pending !== $pending_counters && !shopRights::isAssistant()) {
-            /** @var shopConfig $config */
-            $config = $this->getConfig();
-            $counters['total_processing'] = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
-        }
+        if (shopRights::isAssistant()) {
+            $counters['common_counters']['app_badge'] = wa('shop')->getConfig()->getAppBadgeCount();
+        } else {
+            wa('shop')->getConfig()->setCount($counters['common_counters']['app_badge']);
+            $prev_count_pending = waRequest::get('prev_pending', 0, waRequest::TYPE_INT);
+            if ($pending_counters && $prev_count_pending !== $pending_counters) {
+                /** @var shopConfig $config */
+                $config = $this->getConfig();
+                $counters['total_processing'] = wa_currency_html($this->model->getTotalSalesByInProcessingStates(), $config->getCurrency(), '%k{h}');
+            }
 
-        if ($view == 'split' && !shopRights::isAssistant()) {
-            $counters['all_count'] = intval($this->model->countAll());
+            if ($view == 'split') {
+                $counters['all_count'] = intval($this->model->countAll());
+            }
         }
 
         return $counters;

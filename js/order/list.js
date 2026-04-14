@@ -440,7 +440,9 @@
                 var self = $(this);
                 var li = $(this).parents('li:first');
                 var filter_params_str = '';
-                if (li.hasClass('js-view-pos')) {
+                if(li.attr('data-view') === 'kanban-users') {
+                    filter_params_str = '';
+                }else if (li.hasClass('js-view-pos')) {
                     filter_params_str = '&viewpos=1';
                 } else {
                     if ($.order_list.options.filter_params_str) {

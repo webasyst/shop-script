@@ -148,7 +148,7 @@
                 {$_pending_count = (empty($pending_count)) ? 0 : $pending_count}
                 <span class="custom-pr-4 icon js-pending-counter js-pending_counters-counter bold">{$_pending_count}</span>
                 {if $wa->user()->getRights('shop', 'orders') >= shopRightConfig::RIGHT_ORDERS_FULL}<span class="count js-total_processing-counter"></span>{/if}
-                <span class="label nowrap semibold">[`Processing`]{if !empty($processing_count_new) && $wa->user()->getRights('shop', 'orders') >= shopRightConfig::RIGHT_ORDERS_FULL} <span class="badge red small squared custom-px-4 js-new-order-counter">+{$processing_count_new}</span>{/if}</span>
+                <span class="label nowrap semibold">[`Processing`]</span>
             </a>
             <a href="#/orders/all/" class="brick shadowed js-orders-link js-orders-show-filters js-order-nav-brick" id="s-all-orders">
                 <span class="icon"><i class="fas fa-shopping-cart"></i></span>
@@ -164,10 +164,9 @@
         <li class="s-order-nav-button-wrapper s-order-nav-only-table-kanban s-order-nav-hide-kanban-users">
             <a href="#/orders/state_id=new|processing|auth|paid|pickup" class="button light-gray js-orders-link js-orders-hide-filters js-order-nav-brick s-order-nav-button js-pending-orders">
                 <span class="label">[`Processing`]</span>
-                <span class="badge red small squared custom-px-4 js-new-order-counter">+{$state_counters.new}</span>
                 <span class="hint">
-                    <span class="js-pending-counter js-pending_counters-counter">{$_pending_count}</span>,
-                    <span class="js-total_processing-counter"></span>
+                    <span class="bold black js-pending-counter js-pending_counters-counter">{$_pending_count}</span>
+                    <span class="hint js-total_processing-counter"></span>
                 </span>
             </a>
         </li>
@@ -462,7 +461,7 @@
     </ul>
     </div>
 
-    <div class="s-order-nav-block s-order-nav-block-shortcuts js-order-nav-block-shortcuts">
+    {* TODO configurable order quick nav <div class="s-order-nav-block s-order-nav-block-shortcuts js-order-nav-block-shortcuts">
     {$_allowed_statuses = ['fulfilling', 'shipped']}
     {foreach $states as $id => $state}
         {if !in_array($id, $_allowed_statuses)}{continue}{/if}
@@ -474,7 +473,7 @@
             </a>
 
     {/foreach}
-    </div>
+    </div> *}
 {/if}
 
 </div>

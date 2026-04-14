@@ -46,11 +46,20 @@ class shopOrdersAction extends shopOrderListAction
                 $this->collection->deleteTempWhere($temp_where);
                 if (!count($_ords)) {
                     $_assigned_user = new waContact($_assigned_user_id);
-                    $assigned_users[$_assigned_user_id] = [
-                        'id' => $_assigned_user->getId(),
-                        'name' => $_assigned_user->getName(),
-                        'photo_50x50' => waContact::getPhotoUrl($_assigned_user_id, $_assigned_user['photo'], 50, 50, shopCheckoutConfig::CUSTOMER_TYPE_PERSON),
-                    ];
+                    if ($_assigned_user->exists()) {
+                        $assigned_users[$_assigned_user_id] = [
+                            'id' => $_assigned_user->getId(),
+                            'name' => $_assigned_user->getName(),
+                            'photo_50x50' => waContact::getPhotoUrl($_assigned_user_id, $_assigned_user['photo'], 50, 50, shopCheckoutConfig::CUSTOMER_TYPE_PERSON),
+                        ];
+                    } else {
+                        $assigned_users[$_assigned_user_id] = [
+                            'id' => $_assigned_user_id,
+                            'name' => sprintf_wp('(deleted contact %s)', $_assigned_user_id),
+                            'photo_50x50' => wa()->getConfig()->getRootUrl(true).'wa-content/img/userpic.svg',
+                            'is_deleted' => 1,
+                        ];
+                    }
                 }
             }
         } else {

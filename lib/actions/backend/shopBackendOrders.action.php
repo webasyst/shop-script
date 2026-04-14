@@ -23,7 +23,7 @@ class shopBackendOrdersAction extends waViewAction
             (!empty($state_counters['auth']) ? $state_counters['auth'] : 0) +
             (!empty($state_counters['pickup']) ? $state_counters['pickup'] : 0) +
             (!empty($state_counters['paid']) ? $state_counters['paid'] : 0);
-        $processing_count_new = $config->getAppBadgeCount();
+        $processing_count_new = $pending_count;
 
         $cm = new shopCouponModel();
 

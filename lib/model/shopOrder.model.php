@@ -166,26 +166,6 @@ class shopOrderModel extends waModel
         }
     }
 
-    public function countAwaitingAssignment($user_id)
-    {
-        if (!$user_id) {
-            $user_id = 0;
-        }
-        if (!is_array($user_id)) {
-            $user_id = [$user_id];
-        }
-        $user_id[] = '0';
-        $sql = "
-            SELECT COUNT(id) AS cnt 
-            FROM `{$this->table}`
-            WHERE `state_id` IN (?)
-                AND (`assigned_contact_id` IS NULL OR `assigned_contact_id` IN (?))
-        ";
-
-        $count_state_ids = ['new','auth','paid','pickup'];
-        return (int) ($this->query($sql, [$count_state_ids, $user_id])->fetchField('cnt') ?? 0);
-    }
-
     public function countOpenAssignedTo($user_id)
     {
         if (!$user_id) {
@@ -200,7 +180,7 @@ class shopOrderModel extends waModel
                 $count_state_ids = ['fulfilling'];
                 break;
             case shopRightConfig::RIGHT_ORDERS_MANAGER:
-                $count_state_ids = ['new','auth','paid','pickup'];
+                $count_state_ids = ['new','processing','auth','paid','pickup'];
                 break;
             case shopRightConfig::RIGHT_ORDERS_CASHIER:
             default:

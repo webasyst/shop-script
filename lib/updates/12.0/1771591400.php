@@ -34,11 +34,11 @@ if (file_exists($modified_config_path)) {
             }
 
             // Make it available in certain states
-            foreach(['new', 'processing', 'paid'] as $state_id) {
-                if (isset($cfg['states'][$state_id]['available_actions']) && !in_array('fulfilling', $cfg['states'][$state_id]['available_actions'])) {
-                    $cfg['states'][$state_id]['available_actions'][] = 'fulfilling';
-                }
-            }
+            //foreach(['new', 'processing', 'paid'] as $state_id) {
+            //    if (isset($cfg['states'][$state_id]['available_actions']) && !in_array('fulfilling', $cfg['states'][$state_id]['available_actions'])) {
+            //        $cfg['states'][$state_id]['available_actions'][] = 'fulfilling';
+            //    }
+            //}
 
             $something_changed = true;
         }

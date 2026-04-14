@@ -667,7 +667,12 @@ class shopWorkflowCreateAction extends shopWorkflowAction
         }
 
         $this->setPackageState(waShipping::STATE_DRAFT, $order_id, array('log' => true));
-        $this->assignmentAutomation($order, true);
+        if($update = $this->assignmentAutomation($order, [])) {
+            $this->order_model->updateById($order_id, $update);
+            if (isset($update['params'])) {
+                $this->order_params_model->set($order_id, $update['params'], false);
+            }
+        }
 
         return $order_id;
     }

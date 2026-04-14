@@ -17,26 +17,15 @@ class shopWorkflowEditAction extends shopWorkflowAction
 
     public function isAvailable($order)
     {
-        $available = true;
+        if (!wa()->getUser()->getRights('shop', 'workflow_actions.edit')) {
+            return false;
+        }
         if (is_array($order)) {
             $this->order_item = $order;
         } elseif ($order instanceof shopOrder) {
             $this->order_item = $order;
         }
-
-        if ($order) {
-            if (!($order instanceof shopOrder)) {
-                $order = new shopOrder($order);
-            }
-
-            if ($order->auth_date && !$order->paid_date) {
-                // We want to show button, but it will not work in this case.
-                // Attempt to edit will show warning and bail because of $this->order_uneditable_reason
-                $available = true;
-            }
-        }
-
-        return $available && parent::isAvailable($order);
+        return parent::isAvailable($order);
     }
 
     public function execute($data = null)

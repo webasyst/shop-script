@@ -50,7 +50,7 @@ class shopOrderListAction extends waViewAction
     public function getOrders($offset, $limit)
     {
         if ($this->orders === null) {
-            $this->orders = $this->collection->getOrders("*,products,contact,params,courier", $offset, $limit);
+            $this->orders = $this->collection->getOrders("*,products,contact,assigned_contact,params,courier", $offset, $limit);
             self::extendContacts($this->orders);
             shopHelper::workupOrders($this->orders);
         }
@@ -431,18 +431,18 @@ class shopOrderListAction extends waViewAction
             }
         }
 
-        $assigned_contacts_dis = [];
+        $assigned_contacts_ids = [];
         if ($roles === ['all']) {
             $values = shopRightConfig::getOrdersAccessOptions();
             unset($values[shopRightConfig::RIGHT_ORDERS_NONE]);
             $role_ids = array_keys($values);
-            $assigned_contacts_dis = $this->model->query('
+            $assigned_contacts_ids = $this->model->query('
                 SELECT DISTINCT assigned_contact_id FROM shop_order
                 WHERE assigned_contact_id > 0
             ')->fetchAll('assigned_contact_id');
         }
         $assigned_contacts = shopRights::getContactIds('shop', 'orders', $role_ids);
 
-        return array_unique(array_merge(array_keys($assigned_contacts), array_keys($assigned_contacts_dis)));
+        return array_unique(array_merge(array_keys($assigned_contacts), array_keys($assigned_contacts_ids)));
     }
 }

@@ -177,7 +177,7 @@
                             </span>
                             {% } %}
                             <strong class="black semibold">{%#o.order.total_str%}</strong>
-                            {/literal}{if !shopRights::isAssistant()}{literal}
+                            {/literal}{** if !shopRights::isAssistant()}{literal}
                                 {% if ({'new':1,'auth':1,'paid':1,'pickup':1}[o.order.state_id] && (!o.order.assigned_contact || o.order.assigned_to_me)) { %}
                                     <i class="fas fa-circle text-red small custom-ml-2" title="[`New`]"></i>
                                 {% } %}
@@ -193,7 +193,7 @@
                                 {% if (o.order.state_id == 'fulfilling') { %}
                                     <i class="fas fa-circle text-red small custom-ml-2" title="[`New`]"></i>
                                 {% } %}
-                            {/literal}{/if}{literal}
+                            {/literal}{/if **}{literal}
                         </span>
                     </div>
 

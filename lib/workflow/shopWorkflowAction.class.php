@@ -313,7 +313,7 @@ HTML;
         if ($this->state_id) {
             $update['state_id'] = $this->state_id;
         }
-        $update['assigned_contact_id'] = $this->assignmentAutomation($order);
+        $update = $this->assignmentAutomation($order, $update);
         $this->order_model->updateById($order['id'], $update);
         $order = $update + $order;
 
@@ -677,7 +677,14 @@ HTML;
         return $controls;
     }
 
-    protected function assignmentAutomation($order, $is_update = false)
+    /**
+     * @param $order
+     * @param $update
+     * @return array
+     * @throws waDbException
+     * @throws waException
+     */
+    protected function assignmentAutomation($order, $update)
     {
         $compare = function ($a, $b, $op) {
             if ($op === '==') {
@@ -708,7 +715,7 @@ HTML;
                         $user_id = (new shopOrderModel())->query("
                             SELECT wc.id, COUNT(so.assigned_contact_id) AS cnt 
                             FROM wa_contact wc 
-                            LEFT JOIN shop_order so ON so.assigned_contact_id = wc.id
+                            LEFT JOIN shop_order so ON so.assigned_contact_id = wc.id AND so.state_id NOT IN ('completed', 'deleted', 'refunded')
                             WHERE wc.is_user = 1".(isset($user_ids) ? ' AND wc.id IN (?)' : '')." 
                             GROUP BY wc.id
                             ORDER BY cnt, wc.id
@@ -724,14 +731,14 @@ HTML;
         };
 
         if (!shopLicensing::isPremium()) {
-            return null;
+            return $update;
         }
 
         $assign_rules_model = new shopOrderAssignRulesModel();
         $rule = $assign_rules_model->getByField('action_id', $this->getId());
         $assigned_contact_id = ifset($order, 'assigned_contact_id', null);
         if (empty($rule)) {
-            return null;
+            return $update;
         }
 
         if (empty($order['params'])) {
@@ -807,15 +814,17 @@ HTML;
         }
 
         if ($assigned_contact_id) {
-            if ($is_update) {
-                $this->order_model->updateById($order['id'], ['assigned_contact_id' => $assigned_contact_id]);
-            }
             $user_role = shopRights::getUserRole($assigned_contact_id);
             if ($field_name = ifset($user_role, 'role_field', null)) {
-                $this->order_params_model->set($order['id'], [$field_name => $assigned_contact_id], false);
+                if (!empty($update[$field_name])) {
+                    $assigned_contact_id = $update[$field_name];
+                }
+                $update['assigned_contact_id'] = $assigned_contact_id;
+                $update[$field_name] = $assigned_contact_id;
+                $update['params'][$field_name] = $assigned_contact_id;
             }
         }
 
-        return $assigned_contact_id;
+        return $update;
     }
 }

@@ -63,24 +63,25 @@ HTML;
             // counters
             $order_model = new shopOrderModel();
             $state_counters = $order_model->getStateCounters();
-            $pending_counters =
-                (!empty($state_counters['new']) ? $state_counters['new'] : 0) +
-                (!empty($state_counters['processing']) ? $state_counters['processing'] : 0) +
-                (!empty($state_counters['paid']) ? $state_counters['paid'] : 0);
+            $pending_counters = intval(
+                ifset($state_counters, 'new', 0) +
+                ifset($state_counters, 'processing', 0) +
+                ifset($state_counters, 'auth', 0) +
+                ifset($state_counters, 'pickup', 0) +
+                ifset($state_counters, 'paid', 0)
+            );
 
-            $config = wa('shop')->getConfig();
-            $currency = $config->getCurrency();
-            $total_processing = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
-            // update app counter
-            $config->setCount($state_counters['new']);
-
-            $data = json_encode(array(
+            $data = [
                 'state_counters'   => $state_counters,
-                'total_processing' => $total_processing,
                 'common_counters'  => array(
                     'pending_counters' => $pending_counters,
                 ),
-            ));
+            ];
+            if (!shopRights::isAssistant()) {
+                $currency = wa('shop')->getConfig()->getCurrency();
+                $data['total_processing'] = wa_currency_html($order_model->getTotalSalesByInProcessingStates(), $currency, '%k{h}');
+            }
+            $data = json_encode($data);
 
             $script_add_review_widget = '';
             if ($action_id === 'complete') {

@@ -38,9 +38,6 @@
                     <a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str|escape}/{/if}{literal}">
                         <span class="bold custom-mr-4">
                             {%#order.total_str%}
-                            {% if (order.state_id == 'new' && (!order.assigned_contact || order.assigned_to_me)) { %}
-                                <i class="fas fa-circle text-red fa-xs custom-ml-2" title="[`New`]"></i>
-                            {% } %}
                         </span>
                     </a>
                     {% if (order.paid_date) { %}

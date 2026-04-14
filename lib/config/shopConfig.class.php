@@ -163,10 +163,19 @@ class shopConfig extends waAppConfig
     {
         $order_model = new shopOrderModel();
         if (shopRights::isAssistant()) {
-            return $order_model->countOpenAssignedTo(wa()->getUser()->getId());
+            $result = $order_model->countOpenAssignedTo(wa()->getUser()->getId());
         } else {
-            return $order_model->countAwaitingAssignment(wa()->getUser()->getId());
+            $counters = $order_model->getStateCounters();
+            $result = intval(
+                ifset($counters, 'new', 0) +
+                ifset($counters, 'processing', 0) +
+                ifset($counters, 'auth', 0) +
+                ifset($counters, 'pickup', 0) +
+                ifset($counters, 'paid', 0)
+            );
         }
+        $this->setCount($result);
+        return $result;
     }
 
     public function getRouting($route = array(), $dispatch = false)
