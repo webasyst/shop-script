@@ -31,7 +31,9 @@
 
         initEvents() {
             const $submit_mass = this.$wrapper.find('.js-submit-mass');
+            const $submit_mass_icon = $submit_mass.find('.webasyst-magic-wand-ai');
             const $submit_one_by_one = this.$wrapper.find('.js-submit-by-one');
+            const $submit_one_by_one_icon = $submit_one_by_one.find('.webasyst-magic-wand-ai');
             const $button_close = this.$wrapper.find('.js-dialog-close');
 
             const disableSubmit = (disabled = true) => {
@@ -44,6 +46,8 @@
                 $submit_mass.hide();
                 $submit_one_by_one.hide();
                 $button_close.show();
+                $submit_mass_icon.removeClass('shimmer');
+                $submit_one_by_one_icon.removeClass('shimmer');
             };
 
             // with autosaving data
@@ -51,6 +55,7 @@
                 e.preventDefault();
                 disableSubmit();
                 $submit_one_by_one.hide();
+                $submit_mass_icon.addClass('shimmer');
                 this.$form.css('pointer-events', 'none');
                 this.submit({
                     params: {
@@ -65,6 +70,7 @@
                 e.preventDefault();
                 disableSubmit();
                 $submit_mass.hide();
+                $submit_one_by_one_icon.addClass('shimmer');
                 this.$form.css('pointer-events', 'none');
                 this.submit({
                     onHandleResponse: this.initOneByOneDialog.bind(this),

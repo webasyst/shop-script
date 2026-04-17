@@ -12,21 +12,98 @@
 
 {$_features = [
     [
+        "id" => "ai",
+        "noshadow" => true,
+        "ui2only" => true,
+        "title" => _w("Bulk AI descriptions & SEO"),
+        "description" => sprintf(
+            _w("Use the built-in <a %s>Webasyst AI</a> service to generate custom descriptions and promo SEO content for your product listings. Customize the default AI setup to better fit your audience."),
+            sprintf(
+                'href="%s" target="_blank"',
+                _w('https://www.webasyst.com/pricing/#services')
+            )
+        )|cat:' <br><br>'|cat:_w("With the basic version, AI generation is available on individual product level. With premium, generate descriptions for your entire product catalog in seconds."),
+        "image" => [
+            "name" => "image-ai.webp"
+        ]
+    ],
+    [
+        "id" => "ai",
+        "noshadow" => true,
+        "ui2only" => true,
+        "title" => _w("Better AI photo editor"),
+        "description" => sprintf(
+            _w("<a %s>Webasyst AI</a> service helps you easily boost your product images in <b>30+ styles</b>. The premium version significantly reduces AI image generation costs — <code>%s</code> multiplier applies comparing to <code>%s</code> in the basic version — and enables automated bulk AI generation UI."),
+            sprintf(
+                'href="%s" target="_blank"',
+                _w('https://www.webasyst.com/pricing/#services')
+            ),
+            'x5',
+            'x9'
+        ),
+        "image" => [
+            "name" => "image-ai.webp"
+        ]
+    ],
+    [
+        "id" => "teamroles",
+        "noshadow" => true,
+        "ui2only" => true,
+        "title" => _w("Order processing & team role automation"),
+        "description" => _w(
+            "Automate your order processing workflow by automatically assigning orders across your teammates based on order details and current status. Assigned users always see their orders on top of a list making it easier to focus and improve efficiency."
+            )|cat:' <br><br>'|cat:_w("With the basic version, you can manually assign orders to managers, start order fulfillment, ship via couriers. In premium, the entire process can be automated, so Shop-Script handles all assignments based on each user workload."),
+        "image" => [
+            "name" => "image8.webp?v12"
+        ]
+    ],
+    [
         "id" => "kanban",
         "title" => _w("Kanban view for orders"),
-        "description" => _w("See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status.")|cat:'<br><br> '|cat:_w('Available in the new Webasyst 2 UI only.'),
+        "ui2only" => true,
+        "predescription" => '<ul class="chips tags rounded small custom-mb-0"><li><span class="chip"><i class="fas fa-check custom-mr-4"></i>'|cat:_w('By status')|cat:'</span></li><li><span class="chip"><i class="fas fa-check custom-mr-4"></i>'|cat:_w('By manager')|cat:'</span></li></ul>',
+        "description" => _w("See all orders at a glance by status on a kanban board. User filter to focus on specific order segments. Drag an order to quickly change its status."),
         "image" => [
             "name" => "image0.jpg"
         ]
     ],
     [
         "id" => "pos",
-        "noshadow" => true,
-        "soon" => _w("Soon"),
         "title" => _w("Multiple POS locations"),
+        "ui2only" => true,
         "description" => _w("Shop-Script <a href=\"https://www.webasyst.com/mobile/\">mobile app</a> is a next-gen Point Of Sale terminal: quickly create orders, accept payments offline via QR codes and credit cards — all in one app.<br><br> Premium enables advanced POS features such as barcode scanner, multiple store locations, cashier shifts, and more."),
         "image" => [
-            "name" => "image7.webp"
+            "name" => "image7.webp?v12"
+        ]
+    ],
+    [
+        "id" => "pos",
+        "title" => "Сканеры маркировки",
+        "ru_only" => 1,
+        "noshadow" => true,
+        "description" => "Мобильное приложение Shop-Script поддерживает сканеры маркировки для быстрого добавления товаров в заказ (GTIN) и ввода маркировки уже добавленных позиций («Честный ЗНАК). Поддерживается сканирование как камерой телефона/планшета, так и внешними Bluetooth-сканерами. Поддерживаются все современные типы кодов маркировки:",
+        "postdescription" => "<ul>
+<li>QR</li>
+<li>EAN-8</li>
+<li>EAN-13</li>
+<li>GTIN</li>
+<li>UPC</li>
+<li>Code 39</li>
+<li>DataMatrix</li>
+</ul>",
+        "image" => [
+            "name" => "image-scan.webp"
+        ]
+    ],
+    [
+        "id" => "pay",
+        "noshadow" => true,
+        "ui2only" => true,
+        "title" => "Webasyst Pay — выгоднее",
+        "description" => "Принимайте платежи по QR-коду СБП в чекауте без редиректа на сайт платежной системы. Легко экономьте более 2% оборота за счет снижения расходов на интернет-эквайринг. Мгновенное зачисление. Комиссия ниже, конверсия — выше.<br><br> В премиум-версии Shop-Script — более выгодные условия работы и <a href=\"https://www.shop-script.ru/pricing/\">ниже стоимость</a> службы Webasyst Pay.",
+        "ru_only" => 1,
+        "image" => [
+            "name" => "image-pay.webp"
         ]
     ],
     [
@@ -75,16 +152,6 @@
         "description" => _w("Set a minimum quantity for each product below which cannot be added to the shopping cart. For example, 0.3 m for fabrics sold by linear feet, or 0.5 kg for fruits and vegetables, which are sold by weight."),
         "image" => [
             "name" => "image6.jpg"
-        ]
-    ],
-    [
-        "id" => "teamroles",
-        "noshadow" => true,
-        "soon" => _w("Later"),
-        "title" => _w("Multiple managers"),
-        "description" => _w("Improve order processing by automatically scheduling & assigning orders to managers. Control the processing efficiency by each user."),
-        "image" => [
-            "name" => "image8.webp"
         ]
     ],
     [
@@ -159,7 +226,7 @@
                          </div>
                     {else}
                         <div class="s-plan state-caution italic" style="margin-bottom: 15px; color: orangered;">[`No valid license detected.`]</div>
-                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded largest">[`Get license`]</a>
+                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded largest">[`Upgrade to premium`]</a>
                     {/if}
                </div>
             </div>
@@ -177,6 +244,7 @@
                         <h3 class="s-title{if !empty($_feature.soon)} gray{/if}">
                             {if !empty($_feature.soon)}<span style="color: #fff; background: #bbb; border-radius: 4px; padding: 2px 4px;">{$_feature.soon}</span>{/if}
                             {$_feature.title|escape}
+                            {if !empty($_feature.ui2only)}<br><span style="color: #fff; background: #09f; border-radius: 4px; padding: 2px 4px;">[`New UI only`]</span>{/if}
                         </h3>
                         <p class="s-description">{$_feature.description}</p>
                     </div>

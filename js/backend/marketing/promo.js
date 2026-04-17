@@ -518,6 +518,9 @@
             that.rule_name = options["rule_name"];
             that.templates = options["templates"];
             that.urls = options["urls"];
+            that.allowed_styles = options["allowed_styles"] || {};
+            that.locales = options["locales"]|| {};
+            that.promo_id = that.getPromoId();
 
             // DYNAMIC VARS
 
@@ -539,6 +542,8 @@
                     initCountdownSection( $(this) );
                 });
 
+                that.initAiSection($banner_template);
+
                 bannersToggle(true);
             });
 
@@ -547,10 +552,14 @@
                 event.preventDefault();
                 var $self = $(this),
                     $banner = $self.closest(".js-banner-wrapper"),
-                    image_filename = $self.data('filename');
+                    image_filename = $self.data('filename'),
+                    cached_image_filename = $.trim($banner.find(".js-image-filename-field").val());
 
                 if (image_filename) {
                     addRemoveImage(image_filename);
+                }
+                if (cached_image_filename) {
+                    addRemoveCachedImage(cached_image_filename);
                 }
                 $banner.remove();
                 bannersToggle();
@@ -560,15 +569,33 @@
             that.$wrapper.on('change', '.js-image-field', function (e) {
                 var $image_field = $(this),
                     $banner_wrapper = $image_field.parents('.js-banner-wrapper'),
-                    $image_preview = $banner_wrapper.find('.js-image-preview');
+                    file = (this.files ? this.files[0] : null);
 
-                $image_preview.hide().removeAttr('src');
+                that.onImageFieldChange($banner_wrapper, file);
+            });
+
+            that.$wrapper.on("click", ".js-banner-ai-toggle", function(event) {
+                event.preventDefault();
+                that.toggleAiBox($(this).closest(".js-banner-wrapper"));
+            });
+
+            that.$wrapper.on("change", ".js-banner-ai-style", function() {
+                that.updateAiStyleDescription($(this).closest(".js-banner-wrapper"));
+            });
+
+            that.$wrapper.on("click", ".js-banner-ai-generate", function(event) {
+                event.preventDefault();
+                that.generateAiBanner($(this).closest(".js-banner-wrapper"));
             });
 
             setNamesAndFields();
 
             that.$wrapper.find(".s-countdown-section").each( function() {
                 initCountdownSection( $(this) );
+            });
+
+            getBanners().each(function() {
+                that.initAiSection($(this));
             });
 
             // Auto Init
@@ -617,6 +644,15 @@
 
             function addRemoveImage(filename) {
                 that.$wrapper.append('<input type="hidden" name="'+ that.rule_name +'[rule_params][remove_images][]" value="'+ filename +'" />');
+            }
+
+            function addRemoveCachedImage(filename) {
+                filename = (filename || "").replace(/"/g, "&quot;");
+                if (!filename) {
+                    return;
+                }
+
+                that.$wrapper.append('<input type="hidden" name="'+ that.rule_name +'[rule_params][remove_cached_images][]" value="'+ filename +'" />');
             }
 
             function initColorPickers($banner) {
@@ -884,6 +920,293 @@
             }
         };
 
+        BannerRulesSection.prototype.initAiSection = function($banner) {
+            var that = this;
+
+            if (!$banner || !$banner.length || $banner.data("ai-initialized")) {
+                return;
+            }
+
+            $banner.data("ai-initialized", 1);
+            that.updateAiStyleDescription($banner);
+        };
+
+        BannerRulesSection.prototype.getPromoId = function() {
+            var that = this,
+                $promo_id = that.scope && that.scope.$wrapper
+                    ? that.scope.$wrapper.find('input[name="promo[id]"]')
+                    : $();
+
+            return $.trim($promo_id.val() || "");
+        };
+
+        BannerRulesSection.prototype.toggleAiBox = function($banner, show) {
+            var $box = $banner.find(".js-banner-ai-box");
+
+            if (show === undefined) {
+                show = !$box.is(":visible");
+            }
+
+            $box.stop(true, true)[show ? "slideDown" : "slideUp"](200);
+        };
+
+        BannerRulesSection.prototype.updateAiStyleDescription = function($banner) {
+            var that = this,
+                $style = $banner.find(".js-banner-ai-style"),
+                $description = $banner.find(".js-banner-ai-style-description"),
+                style_id = that.getSelectedAiStyle($banner),
+                style = that.allowed_styles[style_id] || {};
+
+            if (style_id && $style.val() !== style_id) {
+                $style.val(style_id);
+            }
+
+            $description.text(style.description || "");
+        };
+
+        BannerRulesSection.prototype.getAvailableAiStyles = function() {
+            var that = this,
+                result = {};
+
+            $.each(that.allowed_styles || {}, function(style_id, style) {
+                if (style_id !== "auto") {
+                    result[style_id] = style;
+                }
+            });
+
+            return result;
+        };
+
+        BannerRulesSection.prototype.getSelectedAiStyle = function($banner) {
+            var that = this,
+                available_styles = that.getAvailableAiStyles(),
+                $style = $banner.find(".js-banner-ai-style"),
+                style_id = $.trim($style.val() || "");
+
+            if (style_id && available_styles[style_id]) {
+                return style_id;
+            }
+
+            $.each(available_styles, function(id) {
+                style_id = id;
+                return false;
+            });
+
+            return style_id;
+        };
+
+        BannerRulesSection.prototype.getAiPrompt = function($banner) {
+            return $.trim($banner.find(".js-banner-ai-prompt").val() || "");
+        };
+
+        BannerRulesSection.prototype.hasAiSourceData = function($banner) {
+            return !!(this.getAiPrompt($banner) || this.getSourceImageFilename($banner) || this.getSelectedImageFile($banner));
+        };
+
+        BannerRulesSection.prototype.getSelectedImageFile = function($banner) {
+            var $field = $banner.find(".js-image-field");
+
+            return ($field[0] && $field[0].files ? $field[0].files[0] : null);
+        };
+
+        BannerRulesSection.prototype.onImageFieldChange = function($banner, file) {
+            var that = this,
+                $image_wrapper = $banner.find(".js-image-wrapper"),
+                $image_preview = $banner.find(".js-image-preview"),
+                cached_filename = $.trim($banner.find(".js-image-filename-field").val());
+
+            that.clearAiError($banner);
+            if (cached_filename) {
+                that.markCachedImageForCleanup(cached_filename);
+            }
+            $banner.find(".js-image-filename-field").val("");
+
+            if (!file) {
+                $image_preview.hide().removeAttr("src");
+                return;
+            }
+
+            if (window.FileReader) {
+                var reader = new FileReader();
+                reader.onload = function(event) {
+                    $image_preview.attr("src", event.target.result).show();
+                    $image_wrapper.show();
+                };
+                reader.readAsDataURL(file);
+            } else {
+                $image_wrapper.show();
+            }
+        };
+
+        BannerRulesSection.prototype.generateAiBanner = function($banner) {
+            var that = this,
+                $button = $banner.find(".js-banner-ai-generate"),
+                $magic_wand_img = $button.find(".webasyst-magic-wand-ai"),
+                $loading = $banner.find(".js-banner-ai-loading"),
+                source_options = null,
+                image_style = that.getSelectedAiStyle($banner),
+                image_prompt = that.getAiPrompt($banner);
+
+            if (!$button.length || $button.prop("disabled")) {
+                return false;
+            }
+
+            that.clearAiError($banner);
+            that.toggleAiBox($banner, true);
+
+            if (!image_style) {
+                that.renderAiError($banner, that.locales['select_banner_style']);
+                return false;
+            }
+
+            if (!that.hasAiSourceData($banner)) {
+                that.renderAiError($banner, that.locales['specify_source']);
+                return false;
+            }
+
+            $button.prop("disabled", true);
+            $magic_wand_img.addClass('shimmer');
+            $loading.show();
+
+            that.prepareAiSourceImage($banner).done(function(options) {
+                source_options = options || {};
+
+                $.ajax({
+                    url: that.urls["ai_generate_banner"],
+                    type: "post",
+                    dataType: "json",
+                    data: {
+                        promo_id: that.getPromoId(),
+                        image_style: image_style,
+                        image_prompt: image_prompt,
+                        source_image_filename: source_options.source_image_filename || "",
+                        delete_source_cache: source_options.delete_source_cache ? 1 : 0
+                    }
+                }).done(function(response) {
+                    var data = (response && response.data ? response.data : null);
+                    if (response && response.status === "ok" && data && data.file_name && data.image_url) {
+                        that.applyGeneratedImage($banner, data);
+                    } else {
+                        that.renderAiError($banner, that.getAiErrorText(response));
+                    }
+                }).fail(function() {
+                    if (source_options && source_options.delete_source_cache && source_options.source_image_filename) {
+                        that.markCachedImageForCleanup(source_options.source_image_filename);
+                    }
+                    that.renderAiError($banner, "Service temporarily unavailable. Please try again later.");
+                }).always(function() {
+                    $button.prop("disabled", false);
+                    $magic_wand_img.removeClass('shimmer');
+                    $loading.hide();
+                });
+            }).fail(function(error_text) {
+                that.renderAiError($banner, error_text || "Service temporarily unavailable. Please try again later.");
+                $button.prop("disabled", false);
+                $magic_wand_img.removeClass('shimmer');
+                $loading.hide();
+            });
+        };
+
+        BannerRulesSection.prototype.prepareAiSourceImage = function($banner) {
+            var that = this,
+                deferred = $.Deferred(),
+                file = that.getSelectedImageFile($banner);
+
+            if (!file) {
+                deferred.resolve({
+                    source_image_filename: that.getSourceImageFilename($banner),
+                    delete_source_cache: false
+                });
+                return deferred.promise();
+            }
+
+            that.uploadImageFile(file).done(function(response) {
+                if (response && response.status === "ok" && response.data && response.data.file_name) {
+                    deferred.resolve({
+                        source_image_filename: response.data.file_name,
+                        delete_source_cache: true
+                    });
+                } else {
+                    deferred.reject(that.getAiErrorText(response));
+                }
+            }).fail(function() {
+                deferred.reject("Service temporarily unavailable. Please try again later.");
+            });
+
+            return deferred.promise();
+        };
+
+        BannerRulesSection.prototype.getSourceImageFilename = function($banner) {
+            var cached_filename = $.trim($banner.find(".js-image-filename-field").val()),
+                original_filename = $.trim($banner.find(".js-banner-url-field").val());
+
+            return cached_filename || original_filename || "";
+        };
+
+        BannerRulesSection.prototype.applyGeneratedImage = function($banner, data) {
+            var $image_wrapper = $banner.find(".js-image-wrapper"),
+                $image_preview = $banner.find(".js-image-preview"),
+                current_cached_filename = $.trim($banner.find(".js-image-filename-field").val());
+
+            if (current_cached_filename && current_cached_filename !== data.file_name) {
+                this.markCachedImageForCleanup(current_cached_filename);
+            }
+            $banner.find(".js-image-field").val("");
+            $banner.find(".js-image-filename-field").val(data.file_name);
+
+            $image_preview.attr("src", data.image_url).show();
+            $image_wrapper.show();
+        };
+
+        BannerRulesSection.prototype.markCachedImageForCleanup = function(filename) {
+            var that = this;
+
+            filename = $.trim(filename);
+            if (!filename) {
+                return;
+            }
+
+            if (that.$wrapper.find('input[name="' + that.rule_name + '[rule_params][remove_cached_images][]"][value="' + filename.replace(/"/g, '\\"') + '"]').length) {
+                return;
+            }
+
+            that.$wrapper.append('<input type="hidden" name="' + that.rule_name + '[rule_params][remove_cached_images][]" value="' + $("<div>").text(filename).html() + '" />');
+        };
+
+        BannerRulesSection.prototype.uploadImageFile = function(file) {
+            var data = new FormData();
+            data.append("image", file);
+
+            return $.ajax({
+                url: this.urls["image_upload_controller"],
+                data: data,
+                type: "post",
+                iframe: true,
+                dataType: "json",
+                cache: false,
+                contentType: false,
+                processData: false
+            });
+        };
+
+        BannerRulesSection.prototype.clearAiError = function($banner) {
+            $banner.find(".js-banner-ai-error").hide().text("");
+        };
+
+        BannerRulesSection.prototype.renderAiError = function($banner, text) {
+            $banner.find(".js-banner-ai-error").text(text).show();
+        };
+
+        BannerRulesSection.prototype.getAiErrorText = function(response) {
+            if (response && $.isArray(response.errors) && response.errors.length) {
+                if (response.errors[0] && response.errors[0].text) {
+                    return response.errors[0].text;
+                }
+            }
+
+            return "Service temporarily unavailable. Please try again later.";
+        };
+
         BannerRulesSection.prototype.onSubmit = function() {
             var that = this;
 
@@ -900,10 +1223,7 @@
                 if (file) {
                     image_count += 1;
 
-                    var data = new FormData();
-                    data.append("image", file);
-
-                    sendImage(data).then( function(response) {
+                    that.uploadImageFile(file).then( function(response) {
                         if (response.status === "ok") {
                             $banner.find('.js-image-filename-field').val(response.data["file_name"]);
                         } else {
@@ -935,19 +1255,6 @@
                         deferred.resolve();
                     }
                 }
-            }
-
-            function sendImage(data) {
-                return $.ajax({
-                    url: that.urls["image_upload_controller"],
-                    data: data,
-                    type: "post",
-                    iframe: true,
-                    dataType: 'json',
-                    cache: false,
-                    contentType: false,
-                    processData: false
-                });
             }
 
             function renderErrors(state, errors) {

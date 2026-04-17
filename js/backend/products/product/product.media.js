@@ -14,6 +14,8 @@
             that.tooltips = options["tooltips"];
             that.locales = options["locales"];
             that.urls = options["urls"];
+            that.allowed_styles = options["allowed_styles"] || {};
+            that.dummy_image_url = options["dummy_image_url"];
 
             // VUE JS MODELS
             that.product = options["product"];
@@ -385,17 +387,23 @@
                     },
 
                     // Работа с фото списком
-                    setPhoto: function(photo) {
+                    setPhoto: function(photo, options) {
                         var self = this;
+
+                        options = options || {};
 
                         $.waDialog({
                             html: that.templates["dialog_media_image"],
+                            esc: false,
                             onOpen: function($dialog, dialog) {
                                 $.wa_shop_products.init.initProductMediaImageDialog({
                                     $wrapper: $dialog,
                                     dialog: dialog,
+                                    product: self.product,
                                     photo: photo,
                                     photos: self.photos,
+                                    initial_mode: options.initial_mode || "enhance",
+                                    allowed_styles: that.allowed_styles,
                                     scope_model: self,
                                     scope: that
                                 });

@@ -41,7 +41,7 @@ class shopAiApiRequest
         return $this;
     }
 
-    public function generate()
+    public function generate($options=[])
     {
         if (!$this->facility) {
             throw new waException('loadFieldsFromApi() must be called before generate()');
@@ -53,7 +53,7 @@ class shopAiApiRequest
 
         $request_data = $this->values;
         $request_data['facility'] = $this->facility;
-        $api_call = $api->serviceCall('AI', $request_data, 'POST');
+        $api_call = $api->serviceCall('AI', $request_data, 'POST', $options);
         if (empty($api_call['response'])) {
             return [
                 'error' => 'unable_to_connect',

@@ -2522,4 +2522,138 @@ SQL;
 
         return [];
     }
+
+    public static function getAllowedProdAiImageStyles()
+    {
+        return [
+            'auto'               => [
+                'title'       => _w('Auto'),
+                'description' => _w('Generates a new image based on the selected product image and the product’s name, category, and description.'),
+            ],
+            'minimalist'         => [
+                'title'       => _w('Studio'),
+                'description' => _w('Minimalistic studio shot that focuses on the product as the hero against a clean, subtle background.'),
+            ],
+            'luxury'             => [
+                'title'       => _w('Luxury'),
+                'description' => _w('Luxury-style studio shot against a dark, dramatic, and expensive-looking background that elevates the product’s premium feel.'),
+            ],
+            'interior'           => [
+                'title'       => _w('Home'),
+                'description' => _w('At-home lifestyle shot that places the product in a cozy home interior.'),
+            ],
+            'office'             => [
+                'title'       => _w('Office'),
+                'description' => _w('At-work lifestyle shot that places the product in a modern office interior.'),
+            ],
+            'outdoors'           => [
+                'title'       => _w('Outdoors'),
+                'description' => _w('Places the product in an outdoor environment and focuses on the connection with nature.'),
+            ],
+            'city'               => [
+                'title'       => _w('City'),
+                'description' => _w('Places the product in an authentic urban environment and emphasizes everyday city life experience.'),
+            ],
+            'handson'            => [
+                'title'       => _w('Hands-on'),
+                'description' => _w('Shows the product being held by a person, with a clean close-up of real-world interaction.'),
+            ],
+            'render'             => [
+                'title'       => _w('3D render'),
+                'description' => _w('Makes the product look like a 3D render. Hyper-clean, innovative, often with floating elements. Sleek futuristic image.'),
+            ],
+            'texture'            => [
+                'title'       => _w('Texture'),
+                'description' => _w('Emphasizes materiality, features close-ups with dramatic side lighting and special focus that reveal the product’s texture.'),
+            ],
+            'macro'              => [
+                'title'       => _w('Macro'),
+                'description' => _w('Emphasizes the product in an extreme macro close-up with overblurred background.'),
+            ],
+            'graphic'            => [
+                'title'       => _w('Graphic'),
+                'description' => _w('Places the product within a vibrant, saturated graphic composition, with a pop art influence.'),
+            ],
+            'cartoon'            => [
+                'title'       => _w('Cartoon'),
+                'description' => _w('Makes the selected product image look like a cartoon. Funny and attractive.'),
+            ],
+            'anime'              => [
+                'title'       => _w('Anime'),
+                'description' => _w('Makes the selected product image appear in the Japanese anime style.'),
+            ],
+            'compare'            => [
+                'title'       => _w('Comparison'),
+                'description' => _w('Places the product next to its not-so-eye-catching alternative/analog.'),
+            ],
+            'celebration'        => [
+                'title'       => _w('Celebration'),
+                'description' => _w('Places the product in an atmosphere of happiness and celebration. Christmas, New Year, birthday, wedding, or any other similar event.'),
+            ],
+            'vacation'           => [
+                'title'       => _w('Vacation'),
+                'description' => _w('Shows the product with a vacation feel; e.g., at the seaside, at a ski resort, outdoors, or while traveling.'),
+            ],
+            'sports'             => [
+                'title'       => _w('Sports'),
+                'description' => _w('Shows the product in a highly dynamic sports setting, captured mid-action.'),
+            ],
+            'cosmetics'          => [
+                'title'       => _w('Cosmetics'),
+                'description' => _w('Conveys a natural, organic feel, ideal for health care or cosmetics.'),
+            ],
+            'children'           => [
+                'title'       => _w('Children'),
+                'description' => _w('Shows a child interacting with the product, emphasizing the feeling of happiness and the joy of play.'),
+            ],
+            'pets'               => [
+                'title'       => _w('Pets'),
+                'description' => _w('Shows the product designed for pets in use, capturing an authentic moment of a pet enjoying it.'),
+            ],
+            'remove_background'  => [
+                'title'       => _w('Remove background'),
+                'description' => _w('Places the product on a clean white background.'),
+            ],
+            'replace_background' => [
+                'title'       => _w('Replace background'),
+                'description' => _w('Replaces the background on the selected product image to fit the product’s name, description, and your custom prompt.'),
+            ],
+            'replace_person'     => [
+                'title'       => _w('Replace person'),
+                'description' => _w('Replaces a human person on the selected image according to your custom prompt.'),
+            ],
+            'enhance'            => [
+                'title'       => _w('Enhance colors'),
+                'description' => _w('Improves the selected product image by making it more vivid and colorful, with the maximum emphasis on the product.'),
+            ],
+            'resolution' => [
+                'title'       => _w('Improve resolution'),
+                'description' => _w('Improves the selected image’s resolution and makes the product appear more appealing and detailed.'),
+            ],
+            'rotate' => [
+                'title'       => _w('Rotate product'),
+                'description' => _w('Rotates the product from 30 to 90 degrees to show it from a slightly different angle.'),
+            ],
+            'portrait' => [
+                'title'       => _w('Portrait of a human'),
+                'description' => _w('Places the product in a composition with a front-facing portrait of a smiling person.'),
+            ],
+            'picture' => [
+                'title'       => _w('Picture on a wall'),
+                'description' => _w('Shows the selected product image as framed artwork within a realistic cozy home interior.'),
+            ],
+            'clothing_ghost'     => [
+                'title'       => _w('Clothing ghost'),
+                'description' => _w('Shows the clothing as if on an invisible mannequin without the variability of a real model’s pose or face.'),
+            ],
+            'clothing_model'     => [
+                'title'       => _w('Clothing model'),
+                'description' => _w('Shows the clothing on a real-looking model like in a professional studio shot.'),
+            ],
+            'clothing_flat'      => [
+                'title'       => _w('Clothing flat'),
+                'description' => _w('Shows the clothing, including its pattern and details, in a top-down flat lay shot.'),
+            ],
+        ];
+    }
 }

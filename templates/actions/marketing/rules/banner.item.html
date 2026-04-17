@@ -11,18 +11,18 @@
 
         <div class="field">
             <div class="name">[`Image`]</div>
-            <div class="value">
+            <div class="value s-banner-upload-wrapper">
 
                 <div class="s-image-wrapper js-image-wrapper"{if empty($banner.image)} style="display: none;"{/if}>
                     <img class="js-image-preview" src="{$banner.image|default:""|escape}" alt="">
                 </div>
 
-                {* Control for upload a new image *}
+                {* Control for uploading a new image *}
                 <div class="js-image-field-wrapper">
                     <div class="upload">
                         <label class="link">
                             <i class="fas fa-file-upload"></i>
-                            <span>[`Choose file`]</span>
+                            <span>[`Upload file`]</span>
                             <input class="js-image-field" autocomplete="off" type="file" accept=".gif,.jpg,.jpeg,.png,.webp">
                         </label>
                     </div>
@@ -38,10 +38,66 @@
 
                 <script>
                     ( function($) {
-                        $(".js-image-field-wrapper").waUpload()
+                        $(".js-image-field-wrapper").waUpload({
+                            is_uploadbox: true
+                        })
                     })(jQuery);
                 </script>
 
+            </div>
+        </div>
+
+        <div class="field">
+            <div class="value submit">
+                <div class="small">
+                    <span>[`or`]</span>
+                    <button class="button small nobutton js-banner-ai-toggle" type="button">
+                        <span class="icon webasyst-magic-wand-ai"></span>
+                        [`generate banner with AI`] &rsaquo;
+                    </button>
+                </div>
+                <div class="box rounded s-ai-box js-banner-ai-box" style="display: none;">
+                    {$default_ai_style_id = ''}
+                    {$default_ai_style_description = ''}
+                    {foreach $allowed_ai_styles as $style_id => $style}
+                        {if $style_id !== 'auto'}
+                            {$default_ai_style_id = $style_id}
+                            {$default_ai_style_description = $style.description|default:''}
+                            {break}
+                        {/if}
+                    {/foreach}
+                    <div class="custom-mb-8 flexbox vertical space-4">
+                        <span>[`Select style`]</span>
+                        <select class="small js-banner-ai-style">
+                            {foreach $allowed_ai_styles as $style_id => $style}
+                                {if $style_id !== 'auto'}
+                                    <option value="{$style_id|escape}"{if $style_id === $default_ai_style_id} selected{/if}>{$style.title|escape}</option>
+                                {/if}
+                            {/foreach}
+                        </select>
+                    </div>
+                    <div class="custom-my-8">
+                        <p class="hint js-banner-ai-style-description">{$default_ai_style_description|escape}</p>
+                        <textarea class="full-width small js-banner-ai-prompt" placeholder="{_w("Describe what should be there on a banner...")|escape}"></textarea>
+                    </div>
+                    <div class="custom-mt-8">
+                        <button class="button small short purple-gradient js-banner-ai-generate" type="button">
+                            <span class="s-icon">
+                                <span class="icon webasyst-magic-wand-ai"></span>
+                            </span>
+                            <span class="s-name">[`Generate banner with AI`]</span>
+                        </button>
+                        <span class="custom-ml-8 hint js-banner-ai-loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            [`May take a couple of minutes...`]
+                        </span>
+                    </div>
+                    <p class="hint custom-mb-0">
+                        {sprintf('[`%s prompt cost multiplier applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
+                        {if !$_is_premium}<a href="{$wa_app_url}?action=settings#/premium/" class="bold" style="color: var(--accent-color); text-decoration: none !important;">[`Upgrade to premium to reduce costs`]&nbsp;&rsaquo;</a>{/if}
+                    </p>
+                    <p class="state-error-hint js-banner-ai-error" style="display: none;"></p>
+                </div>
             </div>
         </div>
 

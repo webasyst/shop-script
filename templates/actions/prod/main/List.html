@@ -248,6 +248,15 @@
 {* ШАБЛОНЫ *}
 {$_templates = []}
 
+{capture assign="_media_image_delete_confirm"}{include file="../dialogs/media_image_delete_confirm.html" inline}{/capture}
+{$_templates["dialog_media_image_delete_confirm"] = $_media_image_delete_confirm}
+
+{capture assign="_media_image_dialog"}{include file="../dialogs/media_image_dialog.html" inline}{/capture}
+{$_templates["dialog_media_image"] = $_media_image_dialog}
+
+{capture assign="_media_image_unsaved_changes_confirm"}{include file="../dialogs/media_image_unsaved_changes_confirm.html" inline}{/capture}
+{$_templates["dialog_media_image_unsaved_changes_confirm"] = $_media_image_unsaved_changes_confirm}
+
 {* ПОДСКАЗКИ *}
 {$_tooltips = [
     "products-list-date" => [
@@ -283,6 +292,10 @@
         "html" => _w("Table: product & variant")|escape,
         "position" => "top-right",
         "class" => "inline"
+    ],
+    "product-media-dialog-1" => [
+        "id" => "product-media-dialog-1",
+        "html" => _w("Enter a description that will be used in the TITLE and in META tags used by search systems.")
     ]
 ]}
 
@@ -306,7 +319,17 @@
         _w("%d variant", "%d variants", 2, false),
         _w("%d variant", "%d variants", 5, false)
     ],
-    "select_category" => _w("Please select a category")
+    "select_category" => _w("Please select a category"),
+    "use_in_sku_forms" => [
+        _w("Used in %d variant.", "Used in %d variants.", 1, false),
+        _w("Used in %d variant.", "Used in %d variants.", 2, false),
+        _w("Used in %d variant.", "Used in %d variants.", 5, false)
+    ],
+    "ai_generate_image_error" => _w("Unable to generate an image."),
+    "ai_generate_image_only_selected" => _w("AI photo editor is available only for explicitly selected products."),
+    "ai_improve_all_selected" => _w("Generate for all"),
+    "ai_improve_all_selected_hint" => _w("for <strong>%d</strong> selected products"),
+    "ai_abort_process" => _w("Abort process")
 ]}
 
 {* includes will update templates/components array *}
@@ -319,6 +342,11 @@
 {include file="./dialogs/errors.html" scope="parent" inline}
 {include file="./dialogs/list.column_manager.html" scope="parent" inline}
 {include file="./components/products/empty_content.html" scope="parent" inline}
+
+{$_globals_components = $wa->globals("components")}
+{if !empty($_globals_components)}
+    {$_components = array_merge($_globals_components, $_components)}
+{/if}
 
 <div class="s-products-list-page" id="js-products-list-page">
     <div class="s-page-wrapper" id="js-vue-section" style="visibility: hidden;">
@@ -465,6 +493,10 @@
                 type: "js",
                 uri: "{$wa_app_static_url}js/backend/products/main/main.list.js?v={$wa->version()}"
             }, {
+                id: "wa-shop-products-product-media-image-js",
+                type: "js",
+                uri: "{$wa_app_static_url}js/backend/products/product/dialogs/product.media.image.js?v={$wa->version()}"
+            }, {
                 id: "wa-content-color-picker-js",
                 type: "js",
                 uri: "{$wa_url}wa-content/js/farbtastic/farbtastic.js?v={$wa->version(true)}"
@@ -481,6 +513,7 @@
                     templates: {$_templates|json_encode},
                     tooltips: {$_tooltips|json_encode},
                     locales: {$_locales|json_encode},
+                    allowed_styles: {$allowed_styles|json_encode},
                     urls: {
                         "filter_rule_add"           : "{$wa_app_url}?module=prod&action=filterAddRule",
                         "filter_rule_delete"        : "{$wa_app_url}?module=prod&action=filterDeleteRule",
@@ -512,8 +545,13 @@
                         "feature_get"               : "{$wa_app_url}?module=prod&action=features",
                         "features_get"              : "{$wa_app_url}?module=prod&action=getFeatures",
                         "tags_get"                  : "{$wa_app_url}?module=prod&action=getTags",
-                        "product_bulk_add"          : "{$wa_app_url}?module=prod&action=imagesProducts"
+                        "product_bulk_add"          : "{$wa_app_url}?module=prod&action=imagesProducts",
+                        "save_photo_changes"        : "{$wa_app_url}?module=prod&action=saveImageDetails",
+                        "ai_generate_image"         : "{$wa_app_url}?module=prod&action=aiGenerateImage",
+                        "delete_images"             : "{$wa_app_url}?module=prod&action=deleteImage",
+                        "mass_ai_generate_image"    : "{$wa_app_url}?module=prod&action=massAiGenerateImage"
                     },
+                    dummy_image_url      : "{$wa_url}wa-content/img/wa-ai/webasyst-wand-ai-light.svg",
 
                     paging: {
                         page : {$page},

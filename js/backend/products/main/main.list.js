@@ -15,6 +15,8 @@
             that.tooltips   = options["tooltips"];
             that.locales    = options["locales"];
             that.urls       = options["urls"];
+            that.allowed_styles = options["allowed_styles"] || {};
+            that.dummy_image_url = options["dummy_image_url"];
 
             // VUE VARS
             that.paging               = options["paging"];
@@ -8204,8 +8206,6 @@
         Page.prototype.callMassAction = function(action, products, products_selection) {
             var that = this;
 
-            console.log(products_selection, action.id);
-
             if (action.states.is_locked) { return false; }
 
             var product_ids = [],
@@ -8223,6 +8223,59 @@
             }
 
             switch (action.id) {
+                case "ai_generate_image":
+                    dialog_data = {
+                        product_ids: products.map(product => product.id)
+                    };
+
+                    action.states.is_locked = true;
+                    $.post(that.urls["mass_ai_generate_image"], dialog_data, "json")
+                        .always( function() {
+                            action.states.is_locked = false;
+                        })
+                        .done( function(response) {
+                            var dialog_products = (response && response.data && response.data.products ? response.data.products : []);
+
+                            if (!(response && response.status === "ok" && dialog_products.length)) {
+                                $.waDialog.alert({
+                                    title: that.locales["ai_generate_image_error"],
+                                    button_title: 'OK',
+                                    button_class: 'warning'
+                                });
+                                return;
+                            }
+
+                            $.waDialog({
+                                html: that.templates["dialog_media_image"],
+                                esc: false,
+                                onOpen: function($dialog, dialog) {
+                                    $.wa_shop_products.init.initProductMediaImageDialog({
+                                        $wrapper: $dialog,
+                                        dialog: dialog,
+                                        products: dialog_products,
+                                        initial_mode: "enhance",
+                                        mode: "mass_products",
+                                        allowed_styles: that.allowed_styles,
+                                        scope: {
+                                            templates: that.templates,
+                                            components: that.components,
+                                            locales: that.locales,
+                                            urls: that.urls,
+                                            dummy_image_url: that.dummy_image_url
+                                        }
+                                    });
+                                }
+                            });
+                        })
+                        .fail( function() {
+                            $.waDialog.alert({
+                                title: that.locales["ai_generate_image_error"],
+                                button_title: 'OK',
+                                button_class: 'warning'
+                            });
+                        });
+                    break;
+
                 case "export_csv":
                     var redirect_url = action.redirect_url;
                     if (is_all_products) {

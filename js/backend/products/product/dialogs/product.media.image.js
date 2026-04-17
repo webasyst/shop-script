@@ -10,10 +10,15 @@
             that.dialog = options["dialog"];
 
             // CONST
+            that.mode = options["mode"] || "single_product";
+            that.product = options["product"];
             that.photo = options["photo"];
             that.photos = options["photos"];
+            that.products = options["products"] || [];
+            that.initial_mode = options["initial_mode"] || "enhance";
             that.scope = options["scope"];
             that.scope_model = options["scope_model"];
+            that.allowed_styles = options["allowed_styles"] || {};
 
             // DYNAMIC VARS
 
@@ -31,31 +36,233 @@
 
             var $section = that.$wrapper.find("#js-vue-node");
 
-            var photos = $.wa.clone(that.photos),
-                photo = null;
+            var products = [],
+                product = null,
+                photos = [],
+                photo = null,
+                photos_for_slider = null,
+                ai_progressbar = null,
+                ai_progress_timer = null,
+                dummy_photo = createDummyPhoto();
 
-            // Format photos
-            $.each(photos, function(i, _photo) {
+            function normalizePhotoForDialog(_photo) {
+                _photo.id = String(_photo.id);
                 _photo.is_changed = false;
                 _photo.image_is_changed = false;
+                return _photo;
+            }
 
-                if (_photo.id === that.photo.id) {
-                    photo = _photo;
+            function normalizePhotoForRoot(_photo) {
+                _photo.id = String(_photo.id);
+                _photo.expanded = false;
+                _photo.is_checked = false;
+                _photo.is_moving = false;
+                if (typeof _photo.description !== "string") { _photo.description = ""; }
+                _photo.description_before = _photo.description;
+                return _photo;
+            }
+
+            function normalizeProductForDialog(_product) {
+                _product.id = String(_product.id);
+                _product.image_id = (_product.image_id ? String(_product.image_id) : null);
+                _product.photos = $.map((_product.photos || []), function(_photo) {
+                    return normalizePhotoForDialog(_photo);
+                });
+                _product.ai_style = _product.ai_style || "auto";
+                _product.ai_prompt = _product.ai_prompt || "";
+                _product.ai_loading = false;
+                _product.ai_error = "";
+
+                return _product;
+            }
+
+            function getPlainAiError(value) {
+                if (!value) {
+                    return "";
                 }
-            });
+
+                var div = document.createElement("div");
+                div.innerHTML = String(value);
+
+                return (div.textContent || div.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+            }
+
+            function getAiErrorHtml(value) {
+                var container, fragment, result;
+
+                if (!value) {
+                    return "";
+                }
+
+                container = document.createElement("div");
+                container.innerHTML = String(value);
+                fragment = document.createDocumentFragment();
+
+                appendNodes(container.childNodes, fragment);
+
+                result = document.createElement("div");
+                result.appendChild(fragment);
+
+                return result.innerHTML;
+
+                function appendNodes(nodes, target) {
+                    Array.prototype.forEach.call(nodes, function(node) {
+                        appendNode(node, target);
+                    });
+                }
+
+                function appendNode(node, target) {
+                    var element, href, protocol;
+
+                    if (!node) {
+                        return;
+                    }
+
+                    if (node.nodeType === 3) {
+                        appendTextWithBreaks(node.textContent, target);
+                        return;
+                    }
+
+                    if (node.nodeType !== 1) {
+                        return;
+                    }
+
+                    if (node.tagName === "BR") {
+                        target.appendChild(document.createElement("br"));
+                        return;
+                    }
+
+                    if (node.tagName === "A") {
+                        href = node.getAttribute("href") || "";
+
+                        if (href) {
+                            href = href.trim();
+                            protocol = "";
+
+                            if (!/^(\/|#)/.test(href)) {
+                                try {
+                                    protocol = new URL(href, window.location.origin).protocol;
+                                } catch (e) {
+                                    protocol = "";
+                                }
+                            }
+
+                            if (/^(\/|#)/.test(href) || protocol === "http:" || protocol === "https:") {
+                                element = document.createElement("a");
+                                element.setAttribute("href", href);
+                                element.setAttribute("target", "_blank");
+                                element.setAttribute("rel", "noopener noreferrer");
+                                appendNodes(node.childNodes, element);
+                                target.appendChild(element);
+                                return;
+                            }
+                        }
+                    }
+
+                    appendNodes(node.childNodes, target);
+                }
+
+                function appendTextWithBreaks(text, target) {
+                    var parts;
+
+                    if (!text) {
+                        return;
+                    }
+
+                    parts = String(text).split(/\r?\n/);
+
+                    parts.forEach( function(part, index) {
+                        if (index > 0) {
+                            target.appendChild(document.createElement("br"));
+                        }
+
+                        if (part) {
+                            target.appendChild(document.createTextNode(part));
+                        }
+                    });
+                }
+            }
+
+            function getProductPhoto(_product, photo_id) {
+                if (!_product) {
+                    return null;
+                }
+
+                if (photo_id) {
+                    photo_id = String(photo_id);
+                    return _product.photos.filter( function(_photo) {
+                        return _photo.id === photo_id;
+                    })[0] || null;
+                }
+
+                if (_product.image_id) {
+                    return _product.photos.filter( function(_photo) {
+                        return _photo.id === _product.image_id;
+                    })[0] || null;
+                }
+
+                return _product.photos[0] || null;
+            }
+
+            if (that.mode === "mass_products") {
+                products = $.map($.wa.clone(that.products), function(_product) {
+                    return normalizeProductForDialog(_product);
+                });
+                product = products[0] || null;
+                photos = (product ? product.photos : []);
+                photo = (that.initial_mode === "generate" ? dummy_photo : getProductPhoto(product, that.photo && that.photo.id));
+            } else {
+                photos = $.wa.clone(that.photos);
+
+                $.each(photos, function(i, _photo) {
+                    _photo = normalizePhotoForDialog(_photo);
+
+                    if (that.photo && _photo.id === String(that.photo.id)) {
+                        photo = _photo;
+                    }
+                });
+            }
+
+            photos_for_slider = photos.concat([dummy_photo]);
+
+            if (that.initial_mode === "generate") {
+                photo = dummy_photo;
+            } else if (!photo) {
+                photo = photos[0] || dummy_photo;
+            }
 
             return Vue.createApp({
                 data() {
                     return {
+                        mode: that.mode,
+                        products: products,
+                        product: product,
                         photo: photo,
                         photos: photos,
+                        photos_for_slider: photos_for_slider,
+                        dummy_photo: dummy_photo,
                         image: null,            // Промежуточные данные для рендера в канвасе
                         //
                         edit_mode: false,       // Режим редактирования
                         is_changed: false,      // Наличие изменений в одном из фото
                         photo_is_ready: false,  // Фотка загрузилась и готова к работе
                         //
-                        is_locked: false        // Маркер сохранения
+                        is_locked: false,       // Маркер сохранения
+                        allowed_styles: that.allowed_styles,
+                        ai_style: "auto",
+                        ai_prompt: "",
+                        ai_loading: false,
+                        ai_error: "",
+                        is_mass_generating: false,
+                        is_mass_cancel_requested: false,
+                        mass_generation_queue: [],
+                        mass_generation_index: -1,
+                        mass_generation_errors: {},
+                        mass_generation_source: null,
+                        ai_progress_percentage: 0,
+                        ai_progress_started_at: null
                     }
                 },
                 emits: ["success", "cancel"],
@@ -430,28 +637,413 @@
                     }
                 },
                 computed: {
+                    is_mass_mode: function() {
+                        return this.mode === "mass_products";
+                    },
+                    is_dummy_selected: function() {
+                        return !!(this.photo && this.photo.is_dummy);
+                    },
                     is_prev_disabled: function() {
                         var self = this;
-                        var photo_index = self.photos.indexOf(self.photo);
+                        var photo_index = self.photos_for_slider.indexOf(self.photo);
                         return (photo_index === 0);
                     },
                     is_next_disabled: function() {
                         var self = this;
-                        var photo_index = self.photos.indexOf(self.photo);
-                        return (photo_index === photos.length - 1);
+                        var photo_index = self.photos_for_slider.indexOf(self.photo);
+                        return (photo_index === self.photos_for_slider.length - 1);
                     },
                     use_in_sku_html: function() {
                         var self = this,
-                            count = self.photo.uses_count;
+                            count = (self.photo && self.photo.uses_count ? self.photo.uses_count : 0);
 
                         var locale = $.wa.locale_plural(count, that.scope.locales["use_in_sku_forms"], false);
 
                         return locale.replace("%d", "<span class=\"bold color-gray\">" + count + "</span>");
+                    },
+                    ai_style_data: function() {
+                        var self = this;
+
+                        return self.allowed_styles[self.ai_style] || {};
+                    },
+                    ai_style_description: function() {
+                        var self = this;
+
+                        return self.ai_style_data.description || "";
+                    },
+                    mass_generate_products_count: function() {
+                        return (this.is_mass_mode ? this.products.length : 0);
+                    },
+                    mass_generate_button_text: function() {
+                        var self = this,
+                            template = that.scope.locales["ai_improve_all_selected"] || "Generate for all";
+
+                        return template.replace("%d", self.mass_generate_products_count);
+                    },
+                    mass_generate_hint_text: function() {
+                        var self = this,
+                            template = that.scope.locales["ai_improve_all_selected_hint"] || "for <strong>%d</strong> selected products";
+
+                        return template.replace("%d", self.mass_generate_products_count);
+                    },
+                    mass_cancel_button_text: function() {
+                        return that.scope.locales["ai_abort_process"] || "Abort process";
+                    },
+                    ai_error_html: function() {
+                        return getAiErrorHtml(this.ai_error);
                     }
                 },
                 methods: {
+                    getPlainAiError: function(value) {
+                        return getPlainAiError(value);
+                    },
+                    getProductPreview: function(product) {
+                        var self = this;
+
+                        if (!product || !product.photos || !product.photos.length) {
+                            return self.dummy_photo;
+                        }
+
+                        if (product.image_id) {
+                            return product.photos.filter( function(photo) {
+                                return photo.id === String(product.image_id);
+                            })[0] || product.photos[0];
+                        }
+
+                        return product.photos[0];
+                    },
+                    syncAiStateToProduct: function() {
+                        var self = this;
+
+                        if (!self.product) {
+                            return;
+                        }
+
+                        self.product.ai_style = self.ai_style;
+                        self.product.ai_prompt = self.ai_prompt;
+                        self.product.ai_loading = self.ai_loading;
+                        self.product.ai_error = self.ai_error;
+                    },
+                    syncAiStateFromProduct: function(product) {
+                        var self = this;
+
+                        self.ai_style = (product ? product.ai_style : "auto") || "auto";
+                        self.ai_prompt = (product ? product.ai_prompt : "") || "";
+                        self.ai_loading = !!(product && product.ai_loading);
+                        self.ai_error = (product ? product.ai_error : "") || "";
+                    },
+                    getOriginalProduct: function(product_id) {
+                        var self = this;
+
+                        if (!self.is_mass_mode) {
+                            return null;
+                        }
+
+                        product_id = String(product_id);
+
+                        return that.products.filter( function(product) {
+                            return String(product.id) === product_id;
+                        })[0] || null;
+                    },
+                    getOriginalPhoto: function(product_id, photo_id) {
+                        var product = this.getOriginalProduct(product_id);
+                        if (!product) {
+                            return null;
+                        }
+
+                        photo_id = String(photo_id);
+
+                        return (product.photos || []).filter( function(photo) {
+                            return String(photo.id) === photo_id;
+                        })[0] || null;
+                    },
+                    setCurrentPhoto: function(photo) {
+                        var self = this;
+
+                        self.photo = photo;
+                        self.edit_mode = false;
+                        self.photo_is_ready = !!(photo && photo.is_dummy);
+                        self.image = null;
+                        self.ai_error = (self.product ? self.product.ai_error : "") || "";
+                        that.dialog.resize();
+                    },
+                    setActiveProduct: function(product, photo_id, options) {
+                        var self = this,
+                            next_photo = null;
+
+                        options = options || {};
+
+                        self.product = product;
+                        self.photos = (product ? product.photos : []);
+                        self.photos_for_slider = self.photos.concat([self.dummy_photo]);
+                        self.is_changed = false;
+                        self.syncAiStateFromProduct(product);
+
+                        if (product) {
+                            if (options.force_dummy) {
+                                next_photo = self.dummy_photo;
+                            }
+
+                            if (!next_photo && typeof options.photo_index === "number" && options.photo_index >= 0) {
+                                next_photo = product.photos[options.photo_index] || product.photos[0] || null;
+                            }
+
+                            if (!next_photo && photo_id) {
+                                next_photo = product.photos.filter( function(_photo) {
+                                    return _photo.id === String(photo_id);
+                                })[0] || null;
+                            }
+
+                            if (!next_photo && product.image_id) {
+                                next_photo = product.photos.filter( function(_photo) {
+                                    return _photo.id === String(product.image_id);
+                                })[0] || null;
+                            }
+
+                            if (!next_photo) {
+                                next_photo = product.photos[0] || self.dummy_photo;
+                            }
+                        } else {
+                            next_photo = self.dummy_photo;
+                        }
+
+                        self.setCurrentPhoto(next_photo);
+                    },
+                    getPhotoPosition: function(photo) {
+                        var self = this;
+
+                        if (!photo || photo.is_dummy) {
+                            return -1;
+                        }
+
+                        return self.photos.indexOf(photo);
+                    },
+                    buildMassGenerationQueue: function() {
+                        var self = this,
+                            result = [],
+                            start_index = -1;
+
+                        if (!self.is_mass_mode || !self.products.length) {
+                            return result;
+                        }
+
+                        if (self.product) {
+                            $.each(self.products, function(index, product) {
+                                if (String(product.id) === String(self.product.id)) {
+                                    start_index = index;
+                                    return false;
+                                }
+                            });
+                        }
+
+                        if (start_index < 0) {
+                            start_index = 0;
+                        }
+
+                        $.each(self.products, function(i, product) {
+                            if (i >= start_index) {
+                                result.push(product);
+                            }
+                        });
+
+                        $.each(self.products, function(i, product) {
+                            if (i < start_index) {
+                                result.push(product);
+                            }
+                        });
+
+                        return result;
+                    },
+                    getMassGenerationSource: function() {
+                        var self = this,
+                            photo_index = self.getPhotoPosition(self.photo),
+                            is_new = self.is_dummy_selected || photo_index < 0;
+
+                        return {
+                            is_new: is_new,
+                            photo_index: (is_new ? -1 : photo_index),
+                            ai_style: self.ai_style || "auto",
+                            ai_prompt: self.ai_prompt || ""
+                        };
+                    },
+                    applyMassGenerationContext: function(product, source) {
+                        var self = this;
+
+                        if (!product) {
+                            return false;
+                        }
+
+                        self.setActiveProduct(product, null, {
+                            force_dummy: !!source.is_new,
+                            photo_index: (source.is_new ? null : source.photo_index)
+                        });
+
+                        self.ai_style = source.ai_style;
+                        self.ai_prompt = source.ai_prompt;
+                        self.ai_error = (product.ai_error || "");
+                        self.syncAiStateToProduct();
+
+                        return true;
+                    },
+                    finishMassAiGenerate: function() {
+                        this.is_mass_generating = false;
+                        this.is_mass_cancel_requested = false;
+                        this.mass_generation_queue = [];
+                        this.mass_generation_index = -1;
+                        this.mass_generation_source = null;
+                    },
+                    hasMassGenerationError: function(product) {
+                        var product_id = (product ? String(product.id) : "");
+
+                        return !!(product_id && this.mass_generation_errors[product_id]);
+                    },
+                    cancelMassAiGenerate: function() {
+                        if (!this.is_mass_generating) {
+                            return false;
+                        }
+
+                        this.is_mass_cancel_requested = true;
+                        return true;
+                    },
+                    closeDialog: function() {
+                        if (this.is_mass_generating) {
+                            this.cancelMassAiGenerate();
+                        }
+
+                        that.dialog.close();
+                    },
+                    processMassAiGenerateStep: function(index) {
+                        var self = this,
+                            source = self.mass_generation_source,
+                            product = self.mass_generation_queue[index],
+                            is_new = false;
+
+                        if (!self.is_mass_generating || !source || !product) {
+                            self.finishMassAiGenerate();
+                            return false;
+                        }
+
+                        self.mass_generation_index = index;
+                        self.applyMassGenerationContext(product, source);
+                        is_new = (source.is_new || self.is_dummy_selected);
+
+                        return self.runAiGeneration({
+                            is_new: is_new
+                        }).then( function() {
+                            delete self.mass_generation_errors[String(product.id)];
+                            return self.processMassAiGenerateNext(index + 1);
+                        }, function(error_data) {
+                            var error_text = (error_data && error_data.error ? error_data.error : that.scope.locales["ai_generate_image_error"]);
+
+                            self.mass_generation_errors[String(product.id)] = error_text;
+                            product.ai_error = error_text;
+                            if (self.product && String(self.product.id) === String(product.id)) {
+                                self.ai_error = error_text;
+                            }
+
+                            return self.processMassAiGenerateNext(index + 1);
+                        });
+                    },
+                    processMassAiGenerateNext: function(next_index) {
+                        var self = this;
+
+                        if (!self.is_mass_generating) {
+                            return false;
+                        }
+
+                        if (self.is_mass_cancel_requested || next_index >= self.mass_generation_queue.length) {
+                            self.finishMassAiGenerate();
+                            that.dialog.resize();
+                            return true;
+                        }
+
+                        return self.processMassAiGenerateStep(next_index);
+                    },
+                    startMassAiGenerate: function() {
+                        var self = this,
+                            queue = self.buildMassGenerationQueue();
+
+                        if (!self.is_mass_mode || self.ai_loading || self.is_mass_generating || self.is_locked || !self.product || self.photo.is_changed || !queue.length) {
+                            return false;
+                        }
+
+                        self.mass_generation_errors = {};
+                        $.each(self.products, function(i, product) {
+                            product.ai_error = "";
+                        });
+                        self.mass_generation_queue = queue;
+                        self.mass_generation_index = 0;
+                        self.mass_generation_source = self.getMassGenerationSource();
+                        self.is_mass_cancel_requested = false;
+                        self.is_mass_generating = true;
+
+                        return self.processMassAiGenerateStep(0);
+                    },
+                    confirmContextChange: function(onContinue) {
+                        var self = this;
+
+                        if (!(self.photo && self.photo.is_changed)) {
+                            onContinue();
+                            return;
+                        }
+
+                        that.dialog.hide();
+
+                        $.waDialog({
+                            html: that.scope.templates["dialog_media_image_unsaved_changes_confirm"],
+                            onOpen: function($dialog, dialog) {
+                                $dialog.on("click", ".js-save-button", function(event) {
+                                    event.preventDefault();
+
+                                    var loading = "<span class=\"icon top\" style='margin-right: .5rem;'><i class=\"fas fa-spinner fa-spin\"></i></span>";
+
+                                    var $button = $(this).attr("disabled", true),
+                                        $loading = $(loading).prependTo($button);
+
+                                    that.save()
+                                        .always( function() {
+                                            $button.attr("disabled", false);
+                                            $loading.remove();
+                                        })
+                                        .done( function() {
+                                            onContinue();
+                                            dialog.close();
+                                        });
+                                });
+
+                                $dialog.on("click", ".js-leave-button", function(event) {
+                                    event.preventDefault();
+
+                                    var photo_original = (self.is_mass_mode
+                                        ? self.getOriginalPhoto(self.product.id, self.photo.id)
+                                        : that.photos.filter( function(photo) {
+                                            return (photo.id === self.photo.id);
+                                        })[0]);
+
+                                    if (photo_original) {
+                                        self.photo.url = photo_original.url;
+                                        self.photo.description = photo_original.description;
+                                    }
+                                    self.photo.is_changed = self.photo.image_is_changed = false;
+
+                                    onContinue();
+                                    dialog.close();
+                                });
+                            },
+                            onClose: function() {
+                                that.dialog.show();
+                            }
+                        });
+                    },
                     onPhotoLoad: function(event) {
                         var self = this;
+
+                        if (self.is_dummy_selected) {
+                            self.image = null;
+                            self.photo_is_ready = true;
+                            that.dialog.resize();
+                            return;
+                        }
 
                         var clone_image = event.target.cloneNode(true);
                         clone_image.width = clone_image.naturalWidth;
@@ -462,9 +1054,9 @@
 
                         that.dialog.resize();
                     },
-
                     cropUse: function () {
                         var self = this;
+                        if (self.is_dummy_selected || self.is_mass_generating) { return false; }
                         self.edit_mode = true;
 
                         self.$nextTick( function() {
@@ -489,19 +1081,18 @@
                             that.dialog.resize();
                         });
                     },
-
                     deletePhoto: function() {
                         var self = this;
 
+                        if (self.is_dummy_selected || self.is_mass_generating) { return false; }
+
                         that.dialog.hide();
 
-                        var request_xhr = null,
-                            data = getData(photos);
+                        var request_xhr = null;
 
                         $.waDialog({
                             html: that.scope.templates["dialog_media_image_delete_confirm"],
                             onOpen: function($dialog, dialog) {
-
                                 var $section = $dialog.find(".js-vue-node");
 
                                 Vue.createApp({
@@ -533,11 +1124,17 @@
                                         })
                                         .done( function() {
                                             removePhoto();
-                                            $('#wa-app .js-product-save').trigger("click");
-                                            $('#wa-app').one('wa_loaded wa_load_fail', function () {
+
+                                            if (self.is_mass_mode) {
                                                 $loading.remove();
                                                 dialog.close();
-                                            });
+                                            } else {
+                                                $('#wa-app .js-product-save').trigger("click");
+                                                $('#wa-app').one('wa_loaded wa_load_fail', function () {
+                                                    $loading.remove();
+                                                    dialog.close();
+                                                });
+                                            }
                                         })
                                         .fail( function () {
                                             $loading.remove();
@@ -546,7 +1143,7 @@
                             },
                             onClose: function() {
                                 that.dialog.show();
-                                if (!self.photos.length) {
+                                if (!self.photos.length && !self.is_mass_mode) {
                                     that.dialog.close();
                                 }
                             }
@@ -555,7 +1152,10 @@
                         function request() {
                             var deferred = $.Deferred();
 
-                            request_xhr = $.post(that.scope.urls["delete_images"], data, "json")
+                            request_xhr = $.post(that.scope.urls["delete_images"], [{
+                                name: "id[]",
+                                value: self.photo.id
+                            }], "json")
                                 .done( function(response) {
                                     if (response.status === "ok") {
                                         deferred.resolve();
@@ -573,103 +1173,289 @@
                             return deferred.promise();
                         }
 
-                        function getData(photos) {
-                            return [
-                                {
-                                    name: "id[]",
-                                    value: self.photo.id
-                                }
-                            ];
-                        }
-
                         function removePhoto() {
-                            var index = self.photos.indexOf(self.photo);
+                            var index = self.photos.indexOf(self.photo),
+                                slider_index = self.photos_for_slider.indexOf(self.photo),
+                                original_photos = (self.is_mass_mode
+                                    ? ((self.getOriginalProduct(self.product.id) || {}).photos || [])
+                                    : that.photos);
 
-                            that.photos.splice(index, 1);
-                            self.photos.splice(index, 1);
+                            if (index >= 0) {
+                                self.photos.splice(index, 1);
+                            }
+
+                            $.each(original_photos, function(i, photo) {
+                                if (String(photo.id) === String(self.photo.id)) {
+                                    original_photos.splice(i, 1);
+                                    return false;
+                                }
+                            });
+
+                            if (slider_index >= 0) {
+                                self.photos_for_slider.splice(slider_index, 1);
+                            }
+
+                            if (self.product && String(self.product.image_id) === String(self.photo.id)) {
+                                self.product.image_id = (self.photos[0] ? self.photos[0].id : null);
+                            }
 
                             if (self.photos.length) {
                                 self.changePhoto(self.photos[index + (self.photos.length < index + 1 ? -1 : 0)]);
+                            } else {
+                                self.photos_for_slider = [self.dummy_photo];
+                                self.changePhoto(self.dummy_photo);
                             }
                         }
+                    },
+                    selectProduct: function(product) {
+                        var self = this;
+
+                        if (!self.is_mass_mode || !product || self.ai_loading || self.is_mass_generating || self.is_locked || (self.product && self.product.id === product.id)) {
+                            return;
+                        }
+
+                        self.confirmContextChange( function() {
+                            self.setActiveProduct(product);
+                        });
                     },
                     changePhoto: function(photo) {
                         var self = this;
 
-                        if (self.photo.is_changed) {
-                            that.dialog.hide();
-
-                            $.waDialog({
-                                html: that.scope.templates["dialog_media_image_unsaved_changes_confirm"],
-                                onOpen: function($dialog, dialog) {
-                                    $dialog.on("click", ".js-save-button", function(event) {
-                                        event.preventDefault();
-
-                                        var loading = "<span class=\"icon top\" style='margin-right: .5rem;'><i class=\"fas fa-spinner fa-spin\"></i></span>";
-
-                                        var $button = $(this).attr("disabled", true),
-                                            $loading = $(loading).prependTo($button);
-
-                                        that.save()
-                                            .always( function() {
-                                                $button.attr("disabled", false);
-                                                $loading.remove();
-                                            })
-                                            .done( function() {
-                                                changePhoto();
-                                                dialog.close();
-                                            });
-                                    });
-
-                                    $dialog.on("click", ".js-leave-button", function(event) {
-                                        event.preventDefault();
-
-                                        var photo_original = that.photos.filter( function(photo) {
-                                            return (photo.id === self.photo.id);
-                                        })[0];
-
-                                        self.photo.url = photo_original.url;
-                                        self.photo.description = photo_original.description;
-                                        self.photo.is_changed = self.photo.image_is_changed = false;
-
-                                        changePhoto();
-                                        dialog.close();
-                                    });
-                                },
-                                onClose: function() {
-                                    that.dialog.show();
-                                }
-                            });
-
-                        } else {
-                            changePhoto();
+                        if (self.is_mass_generating) {
+                            return false;
                         }
 
-                        function changePhoto() {
-                            self.photo = photo;
-                        }
+                        self.confirmContextChange( function() {
+                            self.setCurrentPhoto(photo);
+                        });
                     },
                     prevPhoto: function() {
                         var self = this,
-                            photo_index = self.photos.indexOf(self.photo);
+                            photo_index = self.photos_for_slider.indexOf(self.photo);
 
                         if (photo_index > 0) {
-                            self.changePhoto(self.photos[photo_index - 1]);
+                            self.changePhoto(self.photos_for_slider[photo_index - 1]);
                         }
                     },
                     nextPhoto: function() {
                         var self = this,
-                            photo_index = self.photos.indexOf(self.photo);
+                            photo_index = self.photos_for_slider.indexOf(self.photo);
 
-                        if (photo_index < self.photos.length - 1) {
-                            self.changePhoto(self.photos[photo_index + 1]);
+                        if (photo_index < self.photos_for_slider.length - 1) {
+                            self.changePhoto(self.photos_for_slider[photo_index + 1]);
                         }
                     },
+                    generateAiImageNew: function() {
+                        return this.doGenerate(true);
+                    },
+                    generateAiImage: function() {
+                        return this.doGenerate(false);
+                    },
+                    doGenerate: function(is_new) {
+                        return this.runAiGeneration({
+                            is_new: is_new
+                        });
+                    },
+                    runAiGeneration: function(options) {
+                        var self = this;
 
+                        options = options || {};
+
+                        var is_new = !!options.is_new,
+                            deferred = $.Deferred();
+
+                        if (self.ai_loading || self.photo.is_changed || (!is_new && self.is_dummy_selected)) {
+                            return false;
+                        }
+
+                        self.ai_error = "";
+                        self.ai_loading = true;
+                        self.syncAiStateToProduct();
+                        self.startAiProgress();
+
+                        $.post(that.scope.urls["ai_generate_image"], {
+                            image_id: is_new ? '' : self.photo.id,
+                            product_id: (self.product ? self.product.id : that.product.id),
+                            image_style: self.ai_style || "auto",
+                            image_prompt: self.ai_prompt || ""
+                        }, "json")
+                            .done( function(response) {
+                                var image = (response && response.data && response.data.image ? response.data.image : null);
+                                if (response && response.status === "ok" && image) {
+                                    var root_photo = normalizePhotoForRoot($.wa.clone(image)),
+                                        dialog_photo = normalizePhotoForDialog($.wa.clone(image));
+
+                                    if (self.is_mass_mode) {
+                                        var original_product = self.getOriginalProduct(self.product.id);
+                                        if (original_product) {
+                                            if (!$.isArray(original_product.photos)) {
+                                                original_product.photos = [];
+                                            }
+                                            original_product.photos.unshift(root_photo);
+                                            original_product.image_id = root_photo.id;
+                                        }
+                                    } else {
+                                        that.photos.push(root_photo);
+                                    }
+
+                                    if (self.is_mass_mode) {
+                                        self.photos.unshift(dialog_photo);
+                                        self.photos_for_slider = self.photos.concat([self.dummy_photo]);
+                                        if (self.product) {
+                                            self.product.image_id = dialog_photo.id;
+                                        }
+                                    } else {
+                                        self.photos.push(dialog_photo);
+                                        self.photos_for_slider.splice(self.photos_for_slider.length - 1, 0, dialog_photo);
+                                        if (self.product && !self.product.image_id) {
+                                            self.product.image_id = dialog_photo.id;
+                                        }
+                                    }
+                                    self.setCurrentPhoto(dialog_photo);
+                                    deferred.resolve({
+                                        product_id: (self.product ? self.product.id : that.product.id),
+                                        image: dialog_photo
+                                    });
+                                } else {
+                                    self.ai_error = getErrorText(response);
+                                    self.syncAiStateToProduct();
+                                    deferred.reject({
+                                        product_id: (self.product ? self.product.id : that.product.id),
+                                        error: self.ai_error
+                                    });
+                                }
+                            })
+                            .fail( function() {
+                                self.ai_error = that.scope.locales["ai_generate_image_error"];
+                                self.syncAiStateToProduct();
+                                deferred.reject({
+                                    product_id: (self.product ? self.product.id : that.product.id),
+                                    error: self.ai_error
+                                });
+                            })
+                            .always( function() {
+                                self.stopAiProgress();
+                                self.ai_loading = false;
+                                self.syncAiStateToProduct();
+                                that.dialog.resize();
+                            });
+
+                        return deferred.promise();
+
+                        function getErrorText(response) {
+                            if (!response) {
+                                return that.scope.locales["ai_generate_image_error"];
+                            }
+
+                            if ($.isArray(response.errors) && response.errors.length) {
+                                return response.errors
+                                    .map( function(error) {
+                                        return error.text || error.error_description || error.error || "";
+                                    })
+                                    .filter(Boolean)
+                                    .join("\n");
+                            }
+
+                            return that.scope.locales["ai_generate_image_error"];
+                        }
+                    },
+                    initAiProgressbar: function() {
+                        var self = this,
+                            $wrapper = $(self.$el).find(".js-ai-progressbar");
+
+                        if (!$wrapper.length) {
+                            ai_progressbar = null;
+                            return null;
+                        }
+
+                        if (!$wrapper.data("progressbar")) {
+                            $wrapper.waProgressbar({
+                                type: "circle",
+                                "stroke-width": 4.8,
+                                "display-text": false
+                            });
+                        }
+
+                        ai_progressbar = $wrapper.data("progressbar") || null;
+
+                        return ai_progressbar;
+                    },
+                    startAiProgress: function() {
+                        var self = this;
+
+                        self.stopAiProgress();
+
+                        self.ai_progress_percentage = 0;
+                        self.ai_progress_started_at = Date.now();
+
+                        self.$nextTick( function() {
+                            if (!self.ai_loading || !self.ai_progress_started_at) {
+                                return;
+                            }
+
+                            self.initAiProgressbar();
+                            self.syncAiProgress();
+
+                            ai_progress_timer = setInterval( function() {
+                                self.syncAiProgress();
+                            }, 250);
+                        });
+                    },
+                    syncAiProgress: function() {
+                        var self = this;
+
+                        if (!self.ai_loading || !self.ai_progress_started_at) {
+                            return false;
+                        }
+
+                        if (!$.contains(document, self.$el)) {
+                            self.stopAiProgress();
+                            return false;
+                        }
+
+                        var instance = (ai_progressbar || self.initAiProgressbar());
+
+                        if (!instance) {
+                            return false;
+                        }
+
+                        var elapsed = Date.now() - self.ai_progress_started_at,
+                            percentage = Math.min(90, (elapsed / 72000) * 90),
+                            display_percentage = Math.floor(percentage);
+
+                        if (percentage >= 90) {
+                            percentage = 90;
+                            display_percentage = 90;
+
+                            if (ai_progress_timer) {
+                                clearInterval(ai_progress_timer);
+                                ai_progress_timer = null;
+                            }
+                        }
+
+                        self.ai_progress_percentage = display_percentage;
+                        instance.set({
+                            percentage: percentage,
+                            text: display_percentage + "%"
+                        });
+
+                        return true;
+                    },
+                    stopAiProgress: function() {
+                        var self = this;
+
+                        if (ai_progress_timer) {
+                            clearInterval(ai_progress_timer);
+                            ai_progress_timer = null;
+                        }
+
+                        self.ai_progress_started_at = null;
+                        ai_progressbar = null;
+                    },
                     rotateImage: function(degrees) {
                         var self = this;
 
-                        if (!self.image) { return false; }
+                        if (!self.image || self.is_dummy_selected || self.is_mass_generating) { return false; }
 
                         var canvas = document.createElement("canvas"),
                             context = canvas.getContext("2d"),
@@ -697,12 +1483,17 @@
                     },
                     restoreImage: function() {
                         var self = this;
+                        if (self.is_dummy_selected || self.is_mass_generating) { return false; }
                         self.photo.url = self.photo.url_backup;
                         self.photo.image_is_changed = true;
                         self.photo.is_changed = self.is_changed = true;
                     },
-
                     save: function() {
+                        if (this.is_mass_generating) {
+                            return false;
+                        }
+
+                        this.syncAiStateToProduct();
                         that.save()
                             .done( function() {
                                 that.dialog.close();
@@ -710,12 +1501,15 @@
                     }
                 },
                 created: function () {
+                    if (this.product) {
+                        this.syncAiStateFromProduct(this.product);
+                    }
                     $section.css("visibility", "");
                 },
                 mounted: function () {
                     var self = this;
 
-                    $(self.$el).on("input", function() {
+                    $(self.$el).on("input", ".s-description-section textarea", function() {
                         self.photo.is_changed = self.is_changed = true;
                     });
 
@@ -772,8 +1566,27 @@
                             $next_button.attr("disabled", !(list_scroll - list_left - list_w > 0));
                         }
                     }
+                },
+                beforeUnmount: function () {
+                    this.stopAiProgress();
+                    this.finishMassAiGenerate();
                 }
             }).mount($section[0]);
+
+            function createDummyPhoto() {
+                return normalizePhotoForDialog({
+                    id: "__dummy__",
+                    name: "",
+                    description: "",
+                    url: that.scope.dummy_image_url,
+                    url_backup: that.scope.dummy_image_url,
+                    width: null,
+                    height: null,
+                    size: "",
+                    uses_count: 0,
+                    is_dummy: true
+                });
+            }
         };
 
         Dialog.prototype.save = function() {
@@ -864,15 +1677,31 @@
             }
 
             function update() {
-                var root_photos = $.wa.construct(that.photos, "id");
+                var root_photos = null;
+
+                if (that.mode === "mass_products") {
+                    var root_product = that.products.filter( function(product) {
+                        return String(product.id) === String(vue_model.product.id);
+                    })[0];
+                    root_photos = $.wa.construct((root_product ? root_product.photos : []), "id");
+                } else {
+                    root_photos = $.wa.construct(that.photos, "id");
+                }
 
                 $.each(vue_model.photos, function(i, photo) {
                     if (photo.is_changed) {
                         var root_photo = root_photos[photo.id];
-                        root_photo.url = photo.url;
-                        root_photo.description = photo.description;
+                        if (root_photo) {
+                            root_photo.url = photo.url;
+                            root_photo.description = photo.description;
+                        }
+
+                        photo.is_changed = false;
+                        photo.image_is_changed = false;
                     }
                 });
+
+                vue_model.is_changed = false;
             }
         };
 

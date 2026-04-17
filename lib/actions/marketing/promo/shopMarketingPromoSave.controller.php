@@ -762,6 +762,12 @@ class shopMarketingPromoSaveController extends waJsonController
                 $this->removeBannerImage($filename);
             }
         }
+
+        if (!empty($rule['rule_params']['remove_cached_images'])) {
+            foreach ($rule['rule_params']['remove_cached_images'] as $filename) {
+                $this->removeBannerCacheImage($filename);
+            }
+        }
     }
 
     protected function saveRoutes()
@@ -788,7 +794,16 @@ class shopMarketingPromoSaveController extends waJsonController
     {
         if (!empty($rule['rule_params']['banners'])) {
             foreach ($rule['rule_params']['banners'] as $banner) {
-                $this->removeBannerImage($banner['image_filename']);
+                if (!empty($banner['image_filename'])) {
+                    $this->removeBannerImage($banner['image_filename']);
+                    $this->removeBannerCacheImage($banner['image_filename']);
+                }
+            }
+        }
+
+        if (!empty($rule['rule_params']['remove_cached_images'])) {
+            foreach ($rule['rule_params']['remove_cached_images'] as $filename) {
+                $this->removeBannerCacheImage($filename);
             }
         }
     }
@@ -828,6 +843,19 @@ class shopMarketingPromoSaveController extends waJsonController
             if (preg_match($filename_regexp, $file)) {
                 waFiles::delete($image_dir.$file, true);
             }
+        }
+    }
+
+    private function removeBannerCacheImage($filename)
+    {
+        $filename = basename((string) $filename);
+        if ($filename === '') {
+            return;
+        }
+
+        $file_path = $this->getPromoBannerCacheDir() . $filename;
+        if (file_exists($file_path)) {
+            waFiles::delete($file_path, true);
         }
     }
 

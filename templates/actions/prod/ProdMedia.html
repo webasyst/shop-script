@@ -38,7 +38,7 @@
     <div class="vue-component-loading-file">
         <div class="wa-progressbar-wrapper" v-bind:class="{ 'has-error' : !!errors.length }">
             <template v-if="!errors.length">
-                <div class="wa-progressbar" style="display: inline-block;"></div>
+                <div class="spinner custom-p-48"></div>
             </template>
             <template v-else>
                 <div class="s-error-icon">
@@ -292,6 +292,17 @@
                             </div>*}
                         </div>
 
+                        <div class="s-photo-wrapper">
+                            <div class="s-photo-label"></div>
+                            <div class="s-photo-block">
+                                <div class="s-photo cursor-pointer is-dummy"
+                                     v-on:click.prevent="setPhoto(null, { initial_mode: 'generate' })">
+                                    <i class="dummy-img"></i>
+                                    <p class="dummy-description">[`Generate new image with AI`]</p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div v-for="file in files" v-bind:key="file.id" v-bind:data-id="file.id" class="s-photo-wrapper is-new">
                             <div class="s-photo-label"></div>
                             <component-loading-file v-bind:file="file" v-on:photo_added="onAddedPhoto"></component-loading-file>
@@ -365,8 +376,13 @@
                             {_w("Used in %d variant.", "Used in %d variants.", 1, false)|json_encode},
                             {_w("Used in %d variant.", "Used in %d variants.", 2, false)|json_encode},
                             {_w("Used in %d variant.", "Used in %d variants.", 5, false)|json_encode}
-                        ]
+                        ],
+                        "ai_generate_image_error": {_w("Unable to generate an image.")|json_encode}
+                        ,"ai_improve_all_selected": {_w("Generate for all")|json_encode}
+                        ,"ai_improve_all_selected_hint": {_w("for <strong>%d</strong> selected products")|json_encode}
+                        ,"ai_abort_process": {_w("Abort process")|json_encode}
                     },
+                    allowed_styles: {$allowed_styles|json_encode},
                     urls: {
                         "save": "{$wa_app_url}?module=prod&action=saveMedia",
                         "video_add": "{$wa_app_url}?module=prod&action=saveVideo",
@@ -374,8 +390,11 @@
                         "change_image_description": "{$wa_app_url}?module=prod&action=saveImageDetails",
                         "add_product_image": "{$wa_app_url}?module=prod&action=imageUpload",
                         "save_photo_changes": "{$wa_app_url}?module=prod&action=saveImageDetails",
+                        "ai_generate_image": "{$wa_app_url}?module=prod&action=aiGenerateImage",
                         "delete_images": "{$wa_app_url}?module=prod&action=deleteImage"
                     },
+
+                    dummy_image_url: "{$wa_url}wa-content/img/wa-ai/webasyst-wand-ai-light.svg",
 
                     max_file_size: {$_max_file_size|json_encode},
                     max_post_size: {$_max_post_size|json_encode},

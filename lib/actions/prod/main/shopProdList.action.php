@@ -214,6 +214,7 @@ class shopProdListAction extends waViewAction
 
             "mass_actions"         => $this->getMassActions(),
             "backend_prod_list"    => $backend_prod_list,
+            "allowed_styles"       => shopHelper::getAllowedProdAiImageStyles(),
         ]);
         $this->setTemplate('templates/actions/prod/main/List.html');
         $this->setLayout(new shopBackendProductsListSectionLayout());
@@ -1163,9 +1164,15 @@ class shopProdListAction extends waViewAction
 
         $result = [
             "first" => [
-                "id" => "",
+                "id" => "waai",
                 "name" => "",
                 "actions" => [
+                    [
+                        "id" => "ai_generate_image",
+                        "name" => _w("AI photo editor"),
+                        "icon" => '<i class="icon webasyst-magic-wand-ai"></i>',
+                        "action_url" => '',
+                    ],
                     [
                         "id" => "ai_generate",
                         "name" => _w("AI descriptions & SEO"),

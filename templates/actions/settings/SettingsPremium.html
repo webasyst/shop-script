@@ -21,7 +21,24 @@
                 'href="%s" target="_blank"',
                 _w('https://www.webasyst.com/pricing/#services')
             )
-        )|cat:' <br><br>'|cat:_w("With the basic version, AI generation is available on individual product leve. With premium, generate descriptions for your entire product catalog in seconds."),
+        )|cat:' <br><br>'|cat:_w("With the basic version, AI generation is available on individual product level. With premium, generate descriptions for your entire product catalog in seconds."),
+        "image" => [
+            "name" => "image-ai.webp"
+        ]
+    ],
+    [
+        "id" => "ai",
+        "noshadow" => true,
+        "title" => _w("Better AI photo editor"),
+        "description" => sprintf(
+            _w("<a %s>Webasyst AI</a> service helps you easily boost your product images in <b>30+ styles</b>. The premium version significantly reduces AI image generation costs — <code>%s</code> multiplier applies comparing to <code>%s</code> in the basic version — and enables automated bulk AI generation UI."),
+            sprintf(
+                'href="%s" target="_blank"',
+                _w('https://www.webasyst.com/pricing/#services')
+            ),
+            'x5',
+            'x9'
+        ),
         "image" => [
             "name" => "image-ai.webp"
         ]
@@ -76,7 +93,7 @@
     [
         "id" => "pay",
         "noshadow" => true,
-        "title" => "Webasyst Pay выгоднее",
+        "title" => "Webasyst Pay — выгоднее",
         "description" => "Принимайте платежи по QR-коду СБП в чекауте без редиректа на сайт платежной системы. Легко экономьте более 2% оборота за счет снижения расходов на интернет-эквайринг. Мгновенное зачисление. Комиссия ниже, конверсия — выше.<br><br> В премиум-версии Shop-Script — более выгодные условия работы и <a href=\"https://www.shop-script.ru/pricing/\">ниже стоимость</a> службы Webasyst Pay.",
         "ru_only" => 1,
         "image" => [
@@ -206,7 +223,7 @@
                          </div>
                     {else}
                         <div class="s-plan state-caution italic custom-mb-16">[`No valid license detected.`]</div>
-                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded largest">[`Get license`]</a>
+                        <a href="{$_buy_premium_link_url|escape}" class="button green rounded largest">[`Upgrade to premium`]</a>
                     {/if}
                </div>
             </div>

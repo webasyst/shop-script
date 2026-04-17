@@ -88,8 +88,8 @@ class shopOrdersAction extends shopOrderListAction
                     && (($rights === true) || !empty($rights[$action_id]))
                 ) {
                     $actions[$action_id] = [
-                        'name'                 => ifset($action['name'], ''),
-                        'style'                => ifset($action['options']['style']),
+                        'name'                 => ifset($action, 'name', ''),
+                        'style'                => ifset($action, 'options', 'style', null),
                         'available_for_states' => [],       // for what states action is available
                     ];
                 }
@@ -98,7 +98,13 @@ class shopOrdersAction extends shopOrderListAction
 
         foreach ($available_states as $state_id => $state) {
             $state_names[$state_id]['name'] = waLocale::fromArray($state['name']);
-            $state_names[$state_id]['options'] = $state['options'];
+            $state_names[$state_id]['options'] = ifset($state, 'options', [
+                'icon' => '',
+                'style' => [
+                    'color' => 'var(--text-color)',
+                    'font-weight' => 'normal',
+                ],
+            ]);
 
             if (isset($state['available_actions']) && is_array($state['available_actions'])) {
                 foreach ($state['available_actions'] as $action_id) {

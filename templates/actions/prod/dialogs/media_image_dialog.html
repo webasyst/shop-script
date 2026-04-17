@@ -84,17 +84,43 @@
                 </template>
                 <template v-else>
                     <div class="s-slider-table tablebox fixed space-24">
+                        <div class="s-column-sidebar" v-if="is_mass_mode" v-bind:class="{ 'is-mass-mode': is_mass_mode }">
+                            <div class="s-products-section">
+                                <div class="menu">
+                                    <a href="javascript:void(0);"
+                                    class="s-product-item flexbox vertical middle space-8 custom-py-4"
+                                    v-for="_product in products"
+                                    v-bind:key="_product.id"
+                                    v-bind:class="{ 'selected': product && product.id === _product.id, 'state-error-hint': hasMassGenerationError(_product) }"
+                                    v-bind:title="hasMassGenerationError(_product) ? getPlainAiError(_product.ai_error) : ''"
+                                    v-on:click.prevent="selectProduct(_product)">
+                                        <span class="s-photo-wrapper">
+                                            <span class="s-photo"
+                                                v-bind:style="{ 'background-image': getProductPreview(_product).is_dummy ? 'var(--wa-ai-icon)' : 'url(' + getProductPreview(_product).url + ')', 'background-size': getProductPreview(_product).is_dummy ? '50% 50%' : '' }"></span>
+                                        </span>
+                                        <span class="wide small">
+                                            <span v-text="_product.name"></span>
+                                            <span class="icon baseline size-10 text-red custom-ml-4" v-if="hasMassGenerationError(_product)"><i class="fas fa-exclamation-triangle"></i></span>
+                                        </span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="s-column-slider">
 
                             <div class="s-slider-section">
-                                <div class="s-photo-section">
+                                <div class="s-photo-section" :class="{ 'ai-progress': ai_loading }">
                                     <div class="s-photo-wrapper">
-                                        <img class="s-photo" v-bind:src="photo.url" alt="" v-on:load="onPhotoLoad">
+                                        <img class="s-photo" :class="{ 'is-dummy': photo.is_dummy }" v-bind:src="photo.url" alt="" v-on:load="onPhotoLoad">
+                                        <p v-if="photo.is_dummy" class="dummy-description">
+                                            [`Generate new image with AI`]
+                                        </p>
                                     </div>
 
                                     <div class="s-slider-actions left">
                                         <button class="button nobutton gray circle" type="button"
-                                            v-bind:disabled="is_prev_disabled"
+                                            v-bind:disabled="is_prev_disabled || is_mass_generating"
                                             v-on:click.prevent="prevPhoto">
                                             <span class="s-icon"><i class="fas fa-chevron-circle-left"></i></span>
                                         </button>
@@ -102,32 +128,40 @@
 
                                     <div class="s-slider-actions right">
                                         <button class="button nobutton gray circle" type="button"
-                                            v-bind:disabled="is_next_disabled"
+                                            v-bind:disabled="is_next_disabled || is_mass_generating"
                                             v-on:click.prevent="nextPhoto">
                                             <span class="s-icon"><i class="fas fa-chevron-circle-right"></i></span>
                                         </button>
                                     </div>
+
+                                    <div class="s-photo-ai-progressbar" v-if="ai_loading">
+                                        <div class="progressbar js-ai-progressbar"></div>
+                                        <p>[`May take a couple of minutes...`]</p>
+                                    </div>
                                 </div>
 
-                                <div class="s-photos-list-wrapper js-photos-list-wrapper">
+                                <div class="s-photos-list-wrapper js-photos-list-wrapper"
+                                     v-bind:style="{ 'opacity': (is_mass_generating ? '.6' : ''), 'pointer-events': (is_mass_generating ? 'none' : '') }">
                                     <div class="s-slider-actions">
-                                        <button class="button outlined js-prev-move" type="button">
+                                        <button class="button outlined js-prev-move" type="button"
+                                                v-bind:disabled="is_mass_generating">
                                             <i class="fas fa-chevron-left"></i>
                                         </button>
                                     </div>
 
                                     <div class="s-photos-list">
-                                        <template v-for="_photo in photos">
+                                        <template v-for="_photo in photos_for_slider">
                                             <div class="s-photo-wrapper"
                                                  v-bind:class="{ 'is-active': _photo.id === photo.id }"
                                                  v-on:click.prevent="changePhoto(_photo)">
-                                                <div class="s-photo" v-bind:style="{ 'background-image': 'url(' + _photo.url+ ')'}"></div>
+                                                <div class="s-photo" :class="{ 'is-dummy': _photo.is_dummy }" v-bind:style="{ 'background-image': _photo.is_dummy ? 'var(--wa-ai-icon)' : 'url(' + _photo.url+ ')', 'background-size': _photo.is_dummy ? '50% 50%' : '', 'background-color': _photo.is_dummy ? 'transparent' : ''}"></div>
                                             </div>
                                         </template>
                                     </div>
 
                                     <div class="s-slider-actions">
-                                        <button class="button outlined js-next-move" type="button">
+                                        <button class="button outlined js-next-move" type="button"
+                                                v-bind:disabled="is_mass_generating">
                                             <i class="fas fa-chevron-right"></i>
                                         </button>
                                     </div>
@@ -136,13 +170,125 @@
 
                         </div>
                         <div class="s-column-sidebar">
-
                             <div class="s-edit-section">
-                                <h5>[`Editing`]</h5>
+                                <div class="box rounded s-ai-box">
+                                    <h5>
+                                        <i class="icon webasyst-magic-wand-ai"></i>
+                                        [`AI photo editor`]
+                                    </h5>
+
+                                    {$_mltplr = 9}
+                                    {$_is_premium = false}
+                                    {if shopLicensing::isPremium()}{$_mltplr = 5}{$_is_premium = true}{/if}
+                                    <div class="list">
+                                        <div class="custom-mb-8 flexbox vertical space-4">
+                                            <span>[`Select style`]</span>
+                                            <select class="small"
+                                                    v-model="ai_style"
+                                                    v-bind:disabled="ai_loading || is_mass_generating">
+                                                <option v-for="(style, style_id) in allowed_styles"
+                                                        v-bind:key="style_id"
+                                                        v-bind:value="style_id"
+                                                        v-text="style.title"></option>
+                                            </select>
+                                        </div>
+                                        <div class="custom-my-8 s-ai-prompt-section">
+                                            <p class="small" v-if="ai_style_description" v-text="ai_style_description"></p>
+                                            <textarea class="full-width small"
+                                                      v-model="ai_prompt"
+                                                      v-bind:disabled="ai_loading || is_mass_generating"
+                                                      placeholder="{_w("What would you like to see on a new image...")|escape}"></textarea>
+                                        </div>
+                                        <div class="custom-mt-8" v-if="!is_dummy_selected">
+                                            <button class="button small short purple-gradient"
+                                                    v-bind:disabled="ai_loading || is_mass_generating || photo.is_changed"
+                                                    v-on:click.prevent="generateAiImage">
+                                                <span class="s-icon">
+                                                    <span class="icon webasyst-magic-wand-ai" :class="{ 'shimmer': ai_loading && !is_mass_generating }"></span>
+                                                </span>
+                                                <span class="s-name">[`Improve image with AI`]</span>
+                                            </button>
+                                            <p class="hint">
+                                                [`Webasyst AI will use this product image as the source for a new image in the selected style.`]
+                                            </p>
+                                            <p class="hint">
+                                                {sprintf('[`%s prompt cost multiplier applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
+                                                {if !$_is_premium}<a href="{$wa_app_url}?action=settings#/premium/" class="bold" style="color: var(--accent-color); text-decoration: none !important;">[`Upgrade to premium to reduce costs`]&nbsp;&rsaquo;</a>{/if}
+                                            </p>
+                                            <template v-if="is_mass_mode">
+                                                <hr>
+                                                <button class="button small short white nowrap"{if !$_is_premium} disabled{/if}
+                                                        v-bind:disabled="ai_loading || is_mass_generating || photo.is_changed || !mass_generate_products_count"
+                                                        v-on:click.prevent="startMassAiGenerate">
+                                                    <span class="s-icon">
+                                                        <span class="icon webasyst-magic-wand-ai" :class="{ 'shimmer': is_mass_generating }"></span>
+                                                    </span>
+                                                    <span class="s-name" v-text="mass_generate_button_text"></span>
+                                                </button>
+                                                <button class="button small short outlined red custom-mt-8"{if !$_is_premium} disabled{/if}
+                                                        v-if="is_mass_generating"
+                                                        v-on:click.prevent="cancelMassAiGenerate">
+                                                    <span class="s-name" v-text="mass_cancel_button_text"></span>
+                                                </button>
+                                                <p class="small custom-mt-8" v-html="mass_generate_hint_text"></p>
+                                                {if !$_is_premium}
+                                                    <p class="hint text-dark-gray">[`Upgrade to premium will immediately unlock this feature.`] <a href="{$wa_app_url}?action=settings#/premium/" class="text-blue">[`What’s more in premium?`]</a>
+                                                    </p>
+                                                {else}
+                                                <p class="hint">
+                                                    [`This will process all selected products one by one and auto-set new generated images to the first (default) position for each product respectively.`]
+                                                </p>
+                                                {/if}
+                                            </template>
+                                        </div>
+                                        <div class="custom-mt-8" v-if="is_dummy_selected">
+                                            <button class="button small short purple-gradient"
+                                                    v-bind:disabled="ai_loading || is_mass_generating || photo.is_changed"
+                                                    v-on:click.prevent="generateAiImageNew">
+                                                <span class="s-icon">
+                                                    <span class="icon webasyst-magic-wand-ai" :class="{ 'shimmer': ai_loading && !is_mass_generating }"></span>
+                                                </span>
+                                                <span class="s-name">[`Create image with AI`]</span>
+                                            </button>
+                                            <p class="hint">
+                                                [`Webasyst AI will generate new product image from scratch based on the selected style, product info, and your custom prompt.`]
+                                            </p>
+                                            <p class="hint">
+                                                {sprintf('[`%s prompt cost multiplier applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
+                                                {if !$_is_premium}<a href="{$wa_app_url}?action=settings#/premium/" class="bold" style="color: var(--accent-color); text-decoration: none !important;">[`Upgrade to premium to reduce costs`]&nbsp;&rsaquo;</a>{/if}
+                                            </p>
+                                            <template v-if="is_mass_mode">
+                                                <hr>
+                                                <button class="button small short white nowrap"
+                                                        v-bind:disabled="ai_loading || is_mass_generating || photo.is_changed || !mass_generate_products_count"
+                                                        v-on:click.prevent="startMassAiGenerate">
+                                                    <span class="s-icon">
+                                                        <span class="icon webasyst-magic-wand-ai" :class="{ 'shimmer': is_mass_generating }"></span>
+                                                    </span>
+                                                    <span class="s-name" v-text="mass_generate_button_text"></span>
+                                                </button>
+                                                <button class="button small short outlined red custom-mt-8"
+                                                        v-if="is_mass_generating"
+                                                        v-on:click.prevent="cancelMassAiGenerate">
+                                                    <span class="s-name" v-text="mass_cancel_button_text"></span>
+                                                </button>
+                                                <p class="hint">
+                                                    [`This will process all selected products one by one and auto-set new generated images to the first (default) position for each product respectively.`]
+                                                </p>
+                                            </template>
+                                        </div>
+
+                                        <div class="state-caution-hint custom-mt-8" v-if="photo.is_changed">
+                                            [`Save changes prior to new image generation.`]
+                                        </div>
+                                        <div class="state-error-hint custom-mt-8" v-if="ai_error" v-html="ai_error_html"></div>
+                                    </div>
+                                </div>
+                                <h5 class="custom-mt-16">[`Editing`]</h5>
                                 <div class="list">
                                     <div class="custom-mb-8">
                                         <button class="button small short outlined"
-                                            v-bind:disabled="!photo_is_ready"
+                                            v-bind:disabled="!photo_is_ready || is_dummy_selected || is_mass_generating"
                                             v-on:click.prevent="rotateImage(-90)">
                                             <span class="s-icon"><i class="fas fa-undo"></i></span>
                                             <span class="s-name"> [`Rotate counterclockwise`]</span>
@@ -150,7 +296,7 @@
                                     </div>
                                     <div class="custom-my-8">
                                         <button class="button small short outlined"
-                                            v-bind:disabled="!photo_is_ready"
+                                            v-bind:disabled="!photo_is_ready || is_dummy_selected || is_mass_generating"
                                             v-on:click.prevent="rotateImage(90)">
                                             <span class="s-icon"><i class="fas fa-redo"></i></span>
                                             <span class="s-name"> [`Rotate clockwise`]</span>
@@ -158,6 +304,7 @@
                                     </div>
                                     <div class="custom-my-8">
                                         <button class="button small short outlined"
+                                            v-bind:disabled="is_dummy_selected || is_mass_generating"
                                             v-on:click.prevent="cropUse">
                                             <span class="s-icon"><i class="fas fa-crop"></i></span>
                                             <span class="s-name"> [`Crop`]</span>
@@ -165,7 +312,7 @@
                                     </div>
                                     <div class="custom-my-8">
                                         <button class="button small wa-short gray outlined"
-                                            v-bind:disabled="(photo.url === photo.url_backup)"
+                                            v-bind:disabled="is_dummy_selected || is_mass_generating || (photo.url === photo.url_backup)"
                                             v-on:click.prevent="restoreImage">
                                             <span class="s-icon"><i class="fas fa-history"></i></span>
                                             <span class="s-name"> [`Revert to original`]</span>
@@ -173,6 +320,7 @@
                                     </div>
                                     <div class="custom-mt-8">
                                         <button class="button small wa-short red outlined"
+                                            v-bind:disabled="is_dummy_selected || is_mass_generating"
                                             v-on:click.prevent="deletePhoto">
                                             <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
                                             <span class="s-name"> [`Delete image`]</span>
@@ -181,7 +329,7 @@
                                 </div>
                             </div>
 
-                            <div class="s-description-section">
+                            <div class="s-description-section" v-if="!is_dummy_selected">
                                 <h5>
                                     <span class="s-title">[`Description`] </span>
                                     <span class="text-light-gray">([`TITLE & Alt`]) </span>
@@ -189,7 +337,7 @@
                                 </h5>
 
                                 <div class="s-textarea-wrapper">
-                                    <textarea class="full-width" v-model="photo.description"></textarea>
+                                    <textarea class="full-width" v-model="photo.description" v-bind:disabled="is_mass_generating"></textarea>
                                 </div>
 
                                 {*<template v-if="photo.uses_count > 0">
@@ -197,7 +345,7 @@
                                 </template>*}
                             </div>
 
-                            <div class="s-details-section">
+                            <div class="s-details-section" v-if="!is_dummy_selected">
                                 <h5>[`Original image`]</h5>
                                 <p>
                                     <a class="s-download-link" v-bind:href="photo.url_backup" target="_blank">
@@ -217,12 +365,12 @@
 
                             <div class="s-actions-wrapper inlinebox top space-16">
                                 <button class="button green" type="button"
-                                        v-bind:disabled="!is_changed || is_locked"
+                                        v-bind:disabled="!is_changed || is_locked || is_mass_generating"
                                         v-on:click.prevent="save">
                                     <span class="s-icon" v-if="is_locked"><i class="fas fa-spinner fa-spin"></i></span>
                                     <span class="s-name">[`Save`]</span>
                                 </button>
-                                <button class="button gray js-dialog-close" type="button">[`Cancel`]</button>
+                                <button class="button light-gray" type="button" v-on:click.prevent="closeDialog">[`Close`]</button>
                             </div>
 
                         </div>

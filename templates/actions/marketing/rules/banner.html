@@ -13,7 +13,13 @@
     {/if}
 {/if}
 
+{$_mltplr = 9}
+{$_is_premium = false}
+{if shopLicensing::isPremium()}{$_mltplr = 5}{$_is_premium = true}{/if}
+
 {/strip}
+
+{$allowed_ai_styles = shopHelper::getAllowedProdAiImageStyles()}
 
 <div class="s-banner-rule-section js-banner-rule-section fields" id="js-banner-rule-section-{$_uniqid}">
     <div class="s-section-header">
@@ -32,7 +38,7 @@
             {if !empty($rule.rule_params.banners)}
                 {foreach $rule.rule_params.banners as $_i => $_banner}
                     {$_banner = $rule.rule_params.banners[$_i]|default:[]}
-                    {include file="./banner.item.html" banner=$_banner rule_name=$_rule_name inline}
+                    {include file="./banner.item.html" banner=$_banner rule_name=$_rule_name allowed_ai_styles=$allowed_ai_styles inline}
                 {/foreach}
             {/if}
         </div>
@@ -42,7 +48,7 @@
 
     <input class="js-rule-type" type="hidden" name="{$_rule_name}[rule_type]" value="banner">
 
-    {capture assign="_banner_item_template"}{include file="./banner.item.html"}{/capture}
+    {capture assign="_banner_item_template"}{include file="./banner.item.html" allowed_ai_styles=$allowed_ai_styles}{/capture}
     {capture assign="_banner_confirm_dialog_template"}{include file="./banner_delete.dialog.html"}{/capture}
     {$_templates = [
         'banner_item_template'  => $_banner_item_template,
@@ -59,10 +65,17 @@
                 var banner_rule_section = controller.initBannerRulesSection({
                     $wrapper: $wrapper,
                     rule_name: {$_rule_name|json_encode},
+                    promo_id: {if !empty($promo.id)}{$promo.id|json_encode}{else}null{/if},
                     urls: {
-                        "image_upload_controller": "{$wa_app_url}?module=marketingPromoBannerUpload"
+                        "image_upload_controller": "{$wa_app_url}?module=marketingPromoBannerUpload",
+                        "ai_generate_banner": "{$wa_app_url}?module=marketingPromoAiGenerateBanner"
                     },
-                    templates: {$_templates|json_encode}
+                    allowed_styles: {$allowed_ai_styles|json_encode},
+                    templates: {$_templates|json_encode},
+                    locales: {
+                        'select_banner_style': {_w("Select banner style.")|json_encode},
+                        'specify_source': {_w("Please describe in few words what should be there on a banner.")|json_encode},
+                    }
                 });
 
                 controller.initRuleSection({

@@ -44,7 +44,7 @@
                 <template v-for="group in actions">
                     <section v-if="group.actions.length" class="s-group-wrapper">
                         <h1 class="s-group-heading heading" v-text="group.name"></h1>
-                        <ul class="menu custom-mt-0">
+                        <ul class="menu custom-mt-0" :class="{ 'box rounded s-ai-box': (group.id=='waai') }">
                             <template v-for="action in group.actions">
                                 <li class="s-action-wrapper">
                                     <a class="s-action" v-on:click.prevent="callAction(action)">

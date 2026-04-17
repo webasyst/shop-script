@@ -29,7 +29,8 @@ class shopProdMediaAction extends waViewAction
         $this->view->assign([
             'frontend_urls'     => $frontend_urls,
             'product'           => $product,
-            'formatted_product' => self::formatProduct($product),
+            'formatted_product' => self::formatProductForImageDialog($product),
+            'allowed_styles'    => shopHelper::getAllowedProdAiImageStyles(),
             'backend_prod_content_event' => $backend_prod_content_event,
             'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
         ]);
@@ -46,7 +47,7 @@ class shopProdMediaAction extends waViewAction
      * @throws waDbException
      * @throws waException
      */
-    protected function formatProduct($product)
+    public static function formatProductForImageDialog($product)
     {
         $photos = self::getPhotos($product);
 
@@ -91,6 +92,7 @@ class shopProdMediaAction extends waViewAction
 
         return [
             "id"          => $product["id"],
+            "name"        => $product["name"],
             "video"       => ( ! empty( $product["video"] ) ? $product["video"] : null ),
             "image_id"    => $product["image_id"],
             "photo"       => $photo,
@@ -104,7 +106,7 @@ class shopProdMediaAction extends waViewAction
      * @return array
      * @throws waException
      */
-    protected function getPhotos($product)
+    public static function getPhotos($product)
     {
         $result = [];
 
