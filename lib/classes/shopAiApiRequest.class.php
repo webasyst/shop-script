@@ -53,6 +53,10 @@ class shopAiApiRequest
 
         $request_data = $this->values;
         $request_data['facility'] = $this->facility;
+        if (!isset($request_data['locale'])) {
+            // locale may be used for error messages
+            $request_data['locale'] = wa()->getLocale();
+        }
         $api_call = $api->serviceCall('AI', $request_data, 'POST', $options);
         if (empty($api_call['response'])) {
             return [
@@ -135,7 +139,11 @@ class shopAiApiRequest
             $app_settings_model = new waAppSettingsModel();
             $values = $app_settings_model->get('shop', 'ai_fields');
             if ($values) {
-                $this->setFieldValues(json_decode($values, true));
+                $values = json_decode($values, true);
+                if ($values && !isset($this->fields['locale'])) {
+                    unset($values['locale']);
+                }
+                $this->setFieldValues($values);
             }
         }
 

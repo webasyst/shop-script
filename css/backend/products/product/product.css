@@ -2422,6 +2422,7 @@ button.purple-gradient,
 .s-product-media-image-dialog .s-slider-table > .s-column-sidebar.is-mass-mode .s-products-section .menu {
   overflow-y: auto;
   max-height: calc(100cqh - 5rem);
+  scrollbar-width: thin;
 }
 .s-product-media-image-dialog .s-slider-table > .s-column-sidebar.is-mass-mode .s-products-section .menu .s-product-item {
   color: var(--gray);

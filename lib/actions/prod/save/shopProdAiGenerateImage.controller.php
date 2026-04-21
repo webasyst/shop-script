@@ -46,7 +46,27 @@ class shopProdAiGenerateImageController extends waJsonController
             if (!is_readable($source_image_path)) {
                 throw new waException(_w('Product image file not found.'), 404);
             }
-            $image_data_url = 'data:' . waFiles::getMimeType('.' . $image_info['ext']) . ';base64,' . base64_encode(file_get_contents($source_image_path));
+            // Resize image if too large
+            $tmp_image_path = null;
+            if (filesize($source_image_path) > 1000000) {
+                try {
+                    $image = @waImage::factory($source_image_path);
+                    if ($image->width + $image->height > 3500 && ($image->width > 2000 || $image->height > 2000)) {
+                        @$image->resize(2000, 2000);
+                        $tmp_image_path = tempnam(wa()->getTempPath('upload', 'shop'), 'aiimg').'.'.$image->getExt();
+                        @$image->save($tmp_image_path, 92);
+                    }
+                    unset($image);
+                } catch (Throwable $e) {
+                    unset($image, $tmp_image_path);
+                }
+            }
+            $image_data_url = 'data:' . waFiles::getMimeType('.' . $image_info['ext']) . ';base64,' . base64_encode(file_get_contents(
+                ifset($tmp_image_path, $source_image_path)
+            ));
+            if ($tmp_image_path) {
+                waFiles::delete($tmp_image_path);
+            }
         }
 
         $this->getStorage()->close();
@@ -67,6 +87,9 @@ class shopProdAiGenerateImageController extends waJsonController
                 $request->setFieldValue('image', $image_data_url);
             }
 
+            if (function_exists('set_time_limit')) {
+                @set_time_limit(299);
+            }
             $response = $request->generate([
                 'timeout' => 280,
             ]);

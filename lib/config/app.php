@@ -12,7 +12,7 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '12.3.0', // beta
+    'version'          => '12.3.0',
     'critical'         => '12.3.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,

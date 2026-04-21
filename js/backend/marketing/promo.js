@@ -1189,12 +1189,108 @@
             });
         };
 
+        BannerRulesSection.prototype.getAiErrorHtml = function(value) {
+            var container, fragment, result;
+
+            if (!value) {
+                return "";
+            }
+
+            container = document.createElement("div");
+            container.innerHTML = String(value);
+            fragment = document.createDocumentFragment();
+
+            appendNodes(container.childNodes, fragment);
+
+            result = document.createElement("div");
+            result.appendChild(fragment);
+
+            return result.innerHTML;
+
+            function appendNodes(nodes, target) {
+                Array.prototype.forEach.call(nodes, function(node) {
+                    appendNode(node, target);
+                });
+            }
+
+            function appendNode(node, target) {
+                var element, href, protocol;
+
+                if (!node) {
+                    return;
+                }
+
+                if (node.nodeType === 3) {
+                    appendTextWithBreaks(node.textContent, target);
+                    return;
+                }
+
+                if (node.nodeType !== 1) {
+                    return;
+                }
+
+                if (node.tagName === "BR") {
+                    target.appendChild(document.createElement("br"));
+                    return;
+                }
+
+                if (node.tagName === "A") {
+                    href = node.getAttribute("href") || "";
+
+                    if (href) {
+                        href = href.trim();
+                        protocol = "";
+
+                        if (!/^(\/|#)/.test(href)) {
+                            try {
+                                protocol = new URL(href, window.location.origin).protocol;
+                            } catch (e) {
+                                protocol = "";
+                            }
+                        }
+
+                        if (/^(\/|#)/.test(href) || protocol === "http:" || protocol === "https:") {
+                            element = document.createElement("a");
+                            element.setAttribute("href", href);
+                            element.setAttribute("target", "_blank");
+                            element.setAttribute("rel", "noopener noreferrer");
+                            appendNodes(node.childNodes, element);
+                            target.appendChild(element);
+                            return;
+                        }
+                    }
+                }
+
+                appendNodes(node.childNodes, target);
+            }
+
+            function appendTextWithBreaks(text, target) {
+                var parts;
+
+                if (!text) {
+                    return;
+                }
+
+                parts = String(text).split(/\r?\n/);
+
+                parts.forEach(function(part, index) {
+                    if (index > 0) {
+                        target.appendChild(document.createElement("br"));
+                    }
+
+                    if (part) {
+                        target.appendChild(document.createTextNode(part));
+                    }
+                });
+            }
+        };
+
         BannerRulesSection.prototype.clearAiError = function($banner) {
-            $banner.find(".js-banner-ai-error").hide().text("");
+            $banner.find(".js-banner-ai-error").hide().empty();
         };
 
         BannerRulesSection.prototype.renderAiError = function($banner, text) {
-            $banner.find(".js-banner-ai-error").text(text).show();
+            $banner.find(".js-banner-ai-error").html(this.getAiErrorHtml(text)).show();
         };
 
         BannerRulesSection.prototype.getAiErrorText = function(response) {
