@@ -551,8 +551,8 @@ JS;
     private function redirectInSales($url, $get, $routing, $demo = false)
     {
         $redirect = null;
-        if (preg_match('@^/?collection/(.+)$@', $url, $matches)) {
-            if (preg_match('@^([^/])/product/(.+)$@', $matches[1], $product_matches)) {
+        if (preg_match('@^/?collection/([^/]+(/[^/]+)*)/?$@', $url, $matches)) {
+            if (preg_match('@^([^/]+)/product/([^/]+)/?$@', $matches[1], $product_matches)) {
                 if ($p = $demo ? self::$demo_product : $this->productModel()->getByField('url', $product_matches[2])) {
                     $redirect = $this->getProductUrl($p, $demo);
                 }
@@ -561,8 +561,9 @@ JS;
                     $redirect = $this->getCategoryUrl($c);
                 }
             }
-        } elseif (preg_match('@^/?page/([^/]+)$@', $url, $matches)) {
-            if ($p = $demo ? array('url' => '%page_url%') : $this->pageModel()->getByField('url', $matches[1])) {
+        } elseif (preg_match('@^/?page/([^/]+(/[^/]+)*)/?$@', $url, $matches)) {
+            $page = $this->pageModel()->select('*')->where('url IN(s:urls)', array('urls' => array($matches[1], $matches[1].'/')))->fetch();
+            if ($p = $demo ? array('url' => '%page_url%') : $page) {
                 $redirect = $this->getPageUrl($p, $demo);
             }
         }
@@ -614,7 +615,7 @@ JS;
 
     private function getPageUrl($p, $demo = false)
     {
-        return wa()->getRouteUrl('shop/frontend').$p['url'].'/';
+        return wa()->getRouteUrl('shop/frontend').$p['url'];
     }
 
     private function getCategoryUrl($c)
