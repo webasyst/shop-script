@@ -24,7 +24,7 @@
         {/if}
     {/foreach}
 
-    {if $theme_settings.category_nav_mode == 'dropdown' || $wa->isMobile()}
+    {if ($theme_settings.category_nav_mode == 'dropdown' || $wa->isMobile()) && count($categories)}
         <ul class="pages flyout-nav is-dropdown-nav">
 
             {* DROPDOWN "Shop by Department" navigation *}
@@ -172,4 +172,3 @@
             {/if}
         </ul>
     {/if}
-

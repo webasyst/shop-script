@@ -11,26 +11,28 @@
     {$_name = _w("Promo does not exist.")}
 {/if}
 
-{$_tabs = [
-    "rules" => [
-        "id"   => "rules",
-        "name" => _w("Tools & Smart rules")
-    ],
+{$_tabs = $available_rule_types|array_merge:[
     "orders" => [
         "id"   => "orders",
         "name" => _w("Orders")
     ],
-    "costs"  => [
+    "costs" => [
         "id"   => "costs",
         "name" => _w("Costs")
     ]
 ]}
-{$_active_tab_id = "rules"}
+
+{$_active_tab_id = "banner"}
 {if array_key_exists(waRequest::request("tab"), $_tabs)}
     {$_active_tab_id = waRequest::request("tab")}
 {/if}
 
 {$_pattern = '[0-9]{2}:[0-9]{2}'}
+
+{$_rule_types = []}
+{foreach $promo.rules as $_rule}
+    {$_rule_types[$_rule.rule_type][] = $_rule.id}
+{/foreach}
 
 <div class="article wider">
 <div class="article-body">
@@ -58,7 +60,7 @@
     {else}
         <form>
             {* HEADER *}
-            <header class="s-page-header flexbox space-12 custom-mb-32">
+            <header class="s-page-header flexbox space-12 custom-mb-16">
                 <div class="s-column s-title-column">
                     <h1 class="s-title flexbox">
                         <a href="{$marketing_url}" class="back"><i class="fas fa-arrow-circle-left custom-mr-4"></i></a>
@@ -101,104 +103,106 @@
                         <div class="s-hint-wrapper js-hint-wrapper"></div>
                     </div>
 
-                    <div class="s-block transparent custom-mb-0 s-indicators-section">
-                        <table class="s-indicators-table">
-                            <thead>
-                                <tr>
-                                    <th></th>
-                                    <th>[`Sales`]</th>
-                                    <th>[`Orders`]</th>
-                                    <th>[`Average order`]</th>
-                                    <th>
-                                        [`ROI`]
-                                        <span class="wa-tooltip" data-wa-tooltip-content="[`Return On Investment for the selected period = Profit / Marketing costs`]">
-                                            <i class="fas fa-info-circle text-dark-gray small top"></i>
-                                        </span>
-                                    </th>
-                                    <th>[`Profit`]</th>
-                                    <th>[`Expenses`]</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr class="s-current-indicators">
-                                    <th class="bold">[`This promo`]</th>
-                                    <td>
-                                        <div class="s-indicator-block is-green larger">
-                                            <div class="s-background" style="width: {$promo_totals.sales_percent|round}%;"></div>
-                                            <span class="s-price">{shop_currency_html($promo_totals.sales)}</span>
-                                            <span class="s-percent">{$promo_totals.sales_percent|round}%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="s-indicator-block larger">
-                                            <div class="s-background" style="width: {$promo_totals.order_count_percent|round}%;"></div>
-                                            <span class="s-orders">{$promo_totals.order_count|round}</span>
-                                            <span class="s-percent">{$promo_totals.order_count_percent|round}%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="s-indicator-block larger">
-                                            {$_width = $promo_totals.avg_order_percent}
-                                            {if $_width > 100}{$_width = 100}{/if}
+                    <div class="s-block transparent custom-mb-0 s-indicators-section s-grid custom-mt-16">
+                        <div class="table-scrollable-x">
+                            <table class="s-indicators-table nowrap">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>[`Sales`]</th>
+                                        <th>[`Orders`]</th>
+                                        <th>[`Average order`]</th>
+                                        <th>
+                                            [`ROI`]
+                                            <span class="wa-tooltip" data-wa-tooltip-content="[`Return On Investment for the selected period = Profit / Marketing costs`]">
+                                                <i class="fas fa-info-circle text-dark-gray small top"></i>
+                                            </span>
+                                        </th>
+                                        <th>[`Profit`]</th>
+                                        <th>[`Expenses`]</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="s-current-indicators">
+                                        <th class="bold">[`This promo`]</th>
+                                        <td>
+                                            <div class="s-indicator-block is-green larger">
+                                                <div class="s-background" style="width: {$promo_totals.sales_percent|round}%;"></div>
+                                                <span class="s-price">{shop_currency_html($promo_totals.sales)}</span>
+                                                <span class="s-percent">{$promo_totals.sales_percent|round}%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="s-indicator-block larger">
+                                                <div class="s-background" style="width: {$promo_totals.order_count_percent|round}%;"></div>
+                                                <span class="s-orders">{$promo_totals.order_count|round}</span>
+                                                <span class="s-percent">{$promo_totals.order_count_percent|round}%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="s-indicator-block larger">
+                                                {$_width = $promo_totals.avg_order_percent}
+                                                {if $_width > 100}{$_width = 100}{/if}
 
-                                            <div class="s-background" style="width: {$_width|round}%;"></div>
-                                            <span class="s-price">{shop_currency_html($promo_totals.avg_order)}</span>
-                                            <span class="s-percent">{$promo_totals.avg_order_percent|round}%</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="s-roi larger">{if !empty($promo_totals.roi)}{$promo_totals.roi}%{else}—{/if}</span>
-                                    </td>
-                                    <td>
-                                        <span class="s-price larger">{shop_currency_html($promo_totals.profit)}</span>
-                                    </td>
-                                    <td>
-                                        <span class="s-price larger">{shop_currency_html($promo_totals.expense)}</span>
-                                    </td>
-                                </tr>
-                                <tr class="s-total-indicators">
-                                    <th>
-                                        [`Overall`]
-                                        <span class="wa-tooltip" data-wa-tooltip-content="[`Data of all paid orders received from storefronts enabled for this promo, including orders not matching the promo’s settings`]">
-                                            <i class="fas fa-info-circle text-dark-gray small top"></i>
-                                        </span>
-                                    </th>
-                                    <td>
-                                        <div class="s-indicator-block is-blue large">
-                                            <div class="s-background" style="width: 100%;"></div>
-                                            <span class="s-price">{shop_currency_html($overall_totals.sales)}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="s-indicator-block large">
-                                            <div class="s-background" style="width: 100%;"></div>
-                                            <span class="s-orders">{$overall_totals.order_count|round}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <div class="s-indicator-block large">
-                                            {$_width = 100}
-                                            {if $promo_totals.avg_order_percent > $_width}
-                                                {$_width = ($overall_totals.avg_order*100/$promo_totals.avg_order)}
-                                            {/if}
+                                                <div class="s-background" style="width: {$_width|round}%;"></div>
+                                                <span class="s-price">{shop_currency_html($promo_totals.avg_order)}</span>
+                                                <span class="s-percent">{$promo_totals.avg_order_percent|round}%</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <span class="s-roi larger">{if !empty($promo_totals.roi)}{$promo_totals.roi}%{else}—{/if}</span>
+                                        </td>
+                                        <td>
+                                            <span class="s-price larger">{shop_currency_html($promo_totals.profit)}</span>
+                                        </td>
+                                        <td>
+                                            <span class="s-price larger">{shop_currency_html($promo_totals.expense)}</span>
+                                        </td>
+                                    </tr>
+                                    <tr class="s-total-indicators">
+                                        <th>
+                                            [`Overall`]
+                                            <span class="wa-tooltip" data-wa-tooltip-content="[`Data of all paid orders received from storefronts enabled for this promo, including orders not matching the promo’s settings`]">
+                                                <i class="fas fa-info-circle text-dark-gray small top"></i>
+                                            </span>
+                                        </th>
+                                        <td>
+                                            <div class="s-indicator-block is-blue large">
+                                                <div class="s-background" style="width: calc(100% + 1rem);"></div>
+                                                <span class="s-price">{shop_currency_html($overall_totals.sales)}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="s-indicator-block large">
+                                                <div class="s-background" style="width: calc(100% + 1rem);"></div>
+                                                <span class="s-orders">{$overall_totals.order_count|round}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="s-indicator-block large">
+                                                {$_width = 100}
+                                                {if $promo_totals.avg_order_percent > $_width}
+                                                    {$_width = ($overall_totals.avg_order*100/$promo_totals.avg_order)}
+                                                {/if}
 
-                                            <div class="s-background" style="width: {$_width|round}%;"></div>
-                                            <span class="s-price">{shop_currency_html($overall_totals.avg_order)}</span>
-                                        </div>
-                                    </td>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                    <td>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
+                                                <div class="s-background" style="width: {$_width|round}%;"></div>
+                                                <span class="s-price">{shop_currency_html($overall_totals.avg_order)}</span>
+                                            </div>
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>
+                                        </td>
+                                        <td>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 {/if}
 
-                <div class="s-options-section fields">
+                <div class="s-options-section fields custom-mt-16">
                 <div class="fields-group">
                     {* Name *}
                     <div class="field">
@@ -341,93 +345,86 @@
 
                         </div>
                     </div>
-                </div>
-                <div class="fields-group"{if empty($storefronts) || count($storefronts) <= 1} style="display: none;"{/if}>
-                    <div class="s-storefronts-section">
-                        <div class="flexbox middle">
-                            <h6 class="wide custom-mb-4"><span>[`Storefronts`] (<span class="js-counter">{$storefronts_count|escape}</span>)</span></h6>
-                            <div class="s-visible">
-                                <a class="inline-link js-show-all" href="javascript:void(0);"><b><i class="fas fa-cog"></i> [`Options`]</b></a>
-                            </div>
-                        </div>
-                        <div class="s-hidden">
-                            <div class="field">
-                                <div class="name">[`Use only in selected storefronts`]</div>
-                                <div class="value">
-                                    {$some_storefronts = false}
-                                    {if !empty($promo["id"]) && empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
-                                        {$some_storefronts = true}
-                                    {/if}
-                                    <span class="switch smaller" id="js-storefront-switch">
-                                        <input type="checkbox" {if $some_storefronts}checked{/if}>
-                                    </span>
-                                    <div class="hint js-storefront-hint">[`By default used on all storefronts`]</div>
-                                    <div class="s-radio-list custom-mt-48">
-                                        {$all_storefronts_count = $storefronts|default:[]|count}
-                                        <div class="s-radio-wrapper">
-                                            <label class="s-radio-label hidden">
-                                                <span class="wa-radio">
-                                                    <input class="s-radio js-storefront-group-field js-storefront-all-field" type="radio" value="1"
-                                                            name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]"
-                                                            data-storefront-count="{$all_storefronts_count}"
-                                                            {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}
-                                                    >
-                                                    <span></span>
-                                                </span>
-                                                <span class="s-text">[`Use in all storefronts`]</span>
-                                            </label>
-                                        </div>
-                                        <div class="s-radio-wrapper">
-                                            <label class="s-radio-label hidden">
-                                                <input class="s-radio js-storefront-group-field js-storefront-mass-field" type="radio" value="0"
-                                                        name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]" {if $all_storefronts_count == 0}disabled{/if}
-                                                        {if $some_storefronts}checked{/if}
-                                                >
-                                                <span class="s-text">[`Use only in selected storefronts`]</span>
-                                            </label>
 
-                                            <ul class="chips small js-storefront-list {if !$some_storefronts}hidden{/if}">
+                    <div class="field">
+                        <div class="name">
+                            <span>[`Storefronts`] (<span class="js-counter">{$storefronts_count|escape}</span>)</span>
+                        </div>
+                        <div class="value">
+                            <div class="s-storefronts-section">
+                                {$some_storefronts = false}
+                                {if !empty($promo["id"]) && empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}
+                                    {$some_storefronts = true}
+                                {/if}
+                                <span class="switch smaller" id="js-storefront-switch">
+                                    <input type="checkbox" {if $some_storefronts}checked{/if}>
+                                </span>
+                                <div class="hint js-storefront-hint">[`By default used on all storefronts`]</div>
+                                <div class="s-radio-list custom-mt-4 s-grid">
+                                    {$all_storefronts_count = $storefronts|default:[]|count}
+                                    <div class="s-radio-wrapper">
+                                        <label class="s-radio-label hidden">
+                                            <span class="wa-radio">
+                                                <input class="s-radio js-storefront-group-field js-storefront-all-field" type="radio" value="1"
+                                                        name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]"
+                                                        data-storefront-count="{$all_storefronts_count}"
+                                                        {if empty($promo["id"]) || !empty($promo["routes"][shopPromoRoutesModel::FLAG_ALL])}checked{/if}
+                                                >
+                                                <span></span>
+                                            </span>
+                                            <span class="s-text">[`Use in all storefronts`]</span>
+                                        </label>
+                                    </div>
+                                    <div class="s-radio-wrapper table-scrollable-x">
+                                        <label class="s-radio-label hidden">
+                                            <input class="s-radio js-storefront-group-field js-storefront-mass-field" type="radio" value="0"
+                                                    name="storefronts[{shopPromoRoutesModel::FLAG_ALL}]" {if $all_storefronts_count == 0}disabled{/if}
+                                                    {if $some_storefronts}checked{/if}
+                                            >
+                                            <span class="s-text">[`Use only in selected storefronts`]</span>
+                                        </label>
+
+                                        <ul class="chips small js-storefront-list {if !$some_storefronts}hidden{/if}">
+                                            <li>
+                                                <label class="chip s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                    <span class="wa-checkbox">
+                                                        <input class="s-checkbox js-storefront-mass-toggle" type="checkbox" {if $all_storefronts_checked}checked{/if}>
+                                                        <span>
+                                                            <span class="icon">
+                                                                <i class="fas fa-check"></i>
+                                                            </span>
+                                                        </span>
+                                                    </span>
+                                                    <span class="s-text">[`Select all`]</span>
+                                                </label>
+                                            </li>
+                                            {foreach $storefronts as $_id => $_storefront}
+                                                {$_is_active = false}
+                                                {if $some_storefronts && !empty($promo["routes"][$_storefront])}
+                                                    {$_is_active = true}
+                                                {/if}
                                                 <li>
-                                                    <label class="chip s-checkbox-wrapper s-all-checkbox-wrapper">
+                                                    <label class="chip s-checkbox-wrapper">
                                                         <span class="wa-checkbox">
-                                                            <input class="s-checkbox js-storefront-mass-toggle" type="checkbox" {if $all_storefronts_checked}checked{/if}>
+                                                            <input class="s-checkbox js-storefront-toggle" type="checkbox" name="storefronts[{$_storefront|escape}]" value="1" {if !empty($_is_active)}checked{/if}>
                                                             <span>
                                                                 <span class="icon">
                                                                     <i class="fas fa-check"></i>
                                                                 </span>
                                                             </span>
                                                         </span>
-                                                        <span class="s-text">[`Select all`]</span>
+                                                        <span class="s-text">{waIdna::dec($_storefront|escape)}</span>
                                                     </label>
                                                 </li>
-                                                {foreach $storefronts as $_id => $_storefront}
-                                                    {$_is_active = false}
-                                                    {if $some_storefronts && !empty($promo["routes"][$_storefront])}
-                                                        {$_is_active = true}
-                                                    {/if}
-                                                    <li>
-                                                        <label class="chip s-checkbox-wrapper">
-                                                            <span class="wa-checkbox">
-                                                                <input class="s-checkbox js-storefront-toggle" type="checkbox" name="storefronts[{$_storefront|escape}]" value="1" {if !empty($_is_active)}checked{/if}>
-                                                                <span>
-                                                                    <span class="icon">
-                                                                        <i class="fas fa-check"></i>
-                                                                    </span>
-                                                                </span>
-                                                            </span>
-                                                            <span class="s-text">{waIdna::dec($_storefront|escape)}</span>
-                                                        </label>
-                                                    </li>
-                                                {/foreach}
-                                            </ul>
-                                        </div>
+                                            {/foreach}
+                                        </ul>
                                     </div>
                                 </div>
                             </div>
-
                         </div>
                     </div>
                 </div>
+
                 {if $has_additional_html}
                 <div class="fields-group">
                     {foreach $additional_html.info_section as $_html}
@@ -437,74 +434,51 @@
                 {/if}
                 </div>
 
-                <div class="s-tabs-section">
-                    <div class="s-section-header">
-                        {strip}
+                <div class="s-tabs-section custom-px-20 custom-px-8-mobile">
+                    <div class="s-section-header s-grid">
                         <ul class="tabs js-toggle-list">
-                            {foreach $_tabs as $_tab}
-                                <li class="js-toggle {if $_tab.id === $_active_tab_id}selected{/if}" data-id="{$_tab.id|escape}">
-                                    <a href="{$marketing_url}promo/{if !empty($promo.id)}{$promo.id|escape}{else}create{/if}/?tab={$_tab.id|urlencode}" class="js-disable-router">{$_tab.name|escape}</a>
+                            {foreach $_tabs as $_id => $_tab}
+                                <li class="js-toggle{if $_id === $_active_tab_id} selected{/if}" data-id="{$_id|escape}"
+                                    {if isset($_tab.type)}
+                                        data-rule="1"
+                                        data-max-count="{$_tab.max_count|default:''|escape}"
+                                        {if isset($_rule_types[$_tab.type])}
+                                            data-rule-ids="{$_rule_types[$_tab.type]|join:','}"
+                                        {/if}
+                                    {/if}
+                                >
+                                    <a href="{$marketing_url}promo/{if !empty($promo.id)}{$promo.id|escape}{else}create{/if}/?tab={$_id|urlencode}" class="js-disable-router">
+                                        {if isset($_tab.css_class)}
+                                            <i class="{$_tab.css_class|escape}"></i>
+                                        {/if}
+                                        {$_tab.name|escape}
+                                    </a>
                                 </li>
                             {/foreach}
                         </ul>
-                        {/strip}
                     </div>
 
                     <div class="s-section-body">
                         <div class="s-content js-content" data-id="orders" style="{if $_active_tab_id === "orders"}display: block;{/if}">
-
                             <div class="s-orders-section js-orders-section"></div>
-
                         </div>
+
                         <div class="s-content js-content" data-id="costs" style="{if $_active_tab_id === "costs"}display: block;{/if}">
-
                             <div class="s-costs-section js-costs-section"></div>
-
                         </div>
-                        <div class="s-content js-content" data-id="rules"  style="{if $_active_tab_id === "rules"}display: block;{/if}">
+
+                        <div class="s-content js-content" data-id="rules" style="{if !in_array($_active_tab_id, ['orders', 'costs'])}display: block;{/if}">
+                            {*
                             <p class="small">
                                 {if empty($promo.id)}<b>[`Promo is a combination of tools and smart rules defining your marketing focus.`]</b> {/if}
                                 [`Add tools to run this promo campaign and to define when placed orders must be associated with this promo.`]
                             </p>
-
+                            *}
+                            <button class="js-create-rule button light-gray small rounded" type="button" data-rule-type="" style="display: none;">
+                                <i class="fas fa-plus-circle text-green"></i>
+                                [`Add tool`]
+                            </button>
                             <div class="s-rules-section js-rules-section">
-
-                                <div class="s-rule-section">
-                                    <header class="s-section-header">
-
-                                        <div class="s-table-box middle">
-                                            <div class="s-column">
-                                                <div class="dropdown js-dropdown">
-                                                    <a href="javascript:void(0);" class="dropdown-toggle button small rounded light-gray">
-                                                        <i class="fas fa-plus-circle text-green"></i> [`Add tool`]
-                                                    </a>
-                                                    <div class="dropdown-body">
-                                                        <ul class="menu s-add-rules-list js-add-rules-list">
-                                                            {foreach $available_rule_types as $_rule}
-                                                                <li>
-                                                                    <a class="js-create-rule" href="javascript:void(0);" data-rule-type="{$_rule.type|escape}" data-max-count="{$_rule.max_count|default:""|escape}">
-                                                                        {$_rule.name|escape}
-                                                                    </a>
-                                                                </li>
-                                                            {/foreach}
-                                                            <li class="s-empty-message">
-                                                                <a class="s-message" href="javascript:void(0);">[`All available tools already added`]</a>
-                                                            </li>
-                                                        </ul>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="s-column">
-                                                <div class="s-actions is-hidden">
-                                                    <a class="inline-link js-cancel-edit-rule" href="javascript:void(0);">[`Cancel`]</a>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </header>
-                                    <div class="s-section-body js-section-body"></div>
-                                    <div class="s-section-footer js-section-footer"></div>
-                                </div>
-
                                 {strip}
                                 {function name="_render_rule" _rule=[]}
                                     {if !empty($_rule)}
@@ -520,24 +494,13 @@
                                         <header class="s-section-header">
                                             <div class="s-table-box middle">
                                                 <div class="s-column">
-                                                    <h5 class="s-title js-title">{if !empty($_rule_type_data)}<i class="{$wa->shop->convertIcon($_rule_type_data.css_class)}"></i>{$_rule_type_data.name|escape}{else}{$_rule.rule_type}{/if}</h5>
-                                                </div>
-                                                <div class="s-column">
-                                                    <div class="s-actions">
-
-                                                        <a class="button rounded smaller light-gray s-visible-action js-edit-rule" href="javascript:void(0);">
-                                                            <i class="fas fa-pencil-alt text-blue"></i> [`Edit`]
+                                                    <div class="js-actions s-actions">
+                                                        <a class="button rounded smaller light-gray js-delete-rule" href="javascript:void(0);" style="display: none;">
+                                                            <i class="fas fa-trash-alt text-red"></i> <span class="desktop-and-tablet-only">[`Delete`]</span>
                                                         </a>
-
-                                                        <a class="button rounded smaller light-gray s-hidden-action js-cancel-edit-rule" href="javascript:void(0);">
+                                                        <a class="button rounded smaller light-gray s-hidden-action js-cancel-edit-rule" href="javascript:void(0);" style="display: none;">
                                                             [`Cancel`]
                                                         </a>
-
-                                                        {if !empty($_rule.id)}
-                                                            <a class="button rounded smaller light-gray js-delete-rule" href="javascript:void(0);">
-                                                                <i class="fas fa-trash-alt text-red"></i> [`Delete`]
-                                                            </a>
-                                                        {/if}
                                                     </div>
                                                 </div>
                                             </div>
@@ -552,10 +515,6 @@
                                 {capture assign="_new_rule_template"}
                                     {_render_rule _rule=[]}
                                 {/capture}
-
-                                {foreach $promo.rules as $_rule}
-                                    {_render_rule _rule=$_rule}
-                                {/foreach}
                             </div>
                         </div>
                     </div>
@@ -672,6 +631,26 @@
             </div>
         {/capture}
 
+        {capture assign="_unsaved_tool_data_dialog"}
+            <div class="dialog">
+                <div class="dialog-background"></div>
+                <div class="dialog-body">
+                    <div class="dialog-header">
+                        <h3>[`В инструменте есть несохраненные данные.`]</h3>
+                    </div>
+                    <div class="dialog-content">
+                        <div class="dialog-content-indent">
+                            <p>[`Вы собираетесь покинуть таб инструмента без сохранения введенных данных. Вы уверены?`]</p>
+                        </div>
+                    </div>
+                    <div class="dialog-footer">
+                        <button class="js-submit button warning" type="button">[`Yes`]</button>
+                        <button class="js-dialog-close button light-gray" type="button">[`Cancel`]</button>
+                    </div>
+                </div>
+            </div>
+        {/capture}
+
         <script>
             ( function($) { "use strict";
                 var sources = [{
@@ -725,7 +704,8 @@
                             "clone_confirm": {$_clone_confirm|json_encode},
                             "delete_confirm": {$_delete_confirm|json_encode},
                             "new_rule_template": {$_new_rule_template|json_encode},
-                            "unsaved_data_dialog": {$_unsaved_data_dialog|json_encode}
+                            "unsaved_data_dialog": {$_unsaved_data_dialog|json_encode},
+                            "unsaved_tool_data_dialog": {$_unsaved_tool_data_dialog|json_encode}
                         },
                         locales: {
                             "days": {_w("d")|json_encode},

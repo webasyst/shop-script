@@ -107,6 +107,21 @@
                                     <td>
                                         <a href="products/{$sku.product_id}/" class="s-product-name" target="_blank">{$sku.product_name|escape}</a>
                                         <span class="s-sku-name hint">{$sku.sku_code|escape}{if $sku.sku_code && $sku.name}, {/if}{if $sku.name}{$sku.name|escape}{/if}</span>
+                                        {if !empty($transfer.stock_from.id)}
+                                            <div class="s-sku-stock small">
+                                                {if isset($sku.stock_from_count_html)}
+                                                    {if $sku.stock_from_count == 0}
+                                                        <i class="fas fa-home text-red"></i>
+                                                        <span>[`Out of stock`]</span>
+                                                    {else}
+                                                        {$sku.stock_from_count_html}
+                                                    {/if}
+                                                {else}
+                                                    <i class="fas fa-home text-green"></i>
+                                                    <span>[`In stock`]</span>
+                                                {/if}
+                                            </div>
+                                        {/if}
                                     </td>
                                     <td class="nowrap align-right">
                                         <span class="gray">&times;</span>

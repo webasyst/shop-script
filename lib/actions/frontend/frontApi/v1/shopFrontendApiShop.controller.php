@@ -54,6 +54,8 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             'shop_country'          => $shop_config->getGeneralSettings('country'),
             'shop_version'          => wa('shop')->getVersion(),
             'shop_schedule'         => (new shopFrontApiScheduleFormatter())->format($shop_config->getSchedule()),
+            'shipping_mode'         => ifempty($checkout_config, 'shipping', 'mode', shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT),
+            'shipping_locations'    => $this->getShippingLocations($checkout_config),
             'locale'                => wa()->getLocale(),
             'customer_agreement'    => [
                 'setting' => ifset($checkout_config, 'customer', 'service_agreement', ''), // 'checkbox' | 'notice' | ''
@@ -149,5 +151,35 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
         } catch (Throwable $e) {
             return null;
         }
+    }
+
+    protected function getShippingLocations(shopCheckoutConfig $checkout_config): array
+    {
+        if (ifempty($checkout_config, 'shipping', 'mode', null) != shopCheckoutConfig::SHIPPING_MODE_TYPE_MINIMUM) {
+            $cfg_locations = [
+                [
+                    'name'    => '',
+                    'enabled' => true,
+                ] + ifempty($checkout_config, 'shipping', 'fixed_delivery_area', []) + [
+                    'country' => null,
+                    'region' => null,
+                    'city' => null,
+                ],
+            ];
+        } else {
+            $cfg_locations = ifempty($checkout_config, 'shipping', 'locations_list', []);
+        }
+
+        $cfg_locations = array_map(function($loc) {
+            return array_intersect_key($loc, [
+                "name" => 1,
+                "country" => 1,
+                "region" => 1,
+                "city" => 1,
+            ]);
+        }, array_filter($cfg_locations, function($loc) {
+            return !empty($loc['enabled']);
+        }));
+        return $cfg_locations;
     }
 }

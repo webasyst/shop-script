@@ -1,12 +1,12 @@
 :root {
-  --wa-delivery-type-active-bg: light-dark(color-mix(in srgb, var(--accent-color) 100%, white 100%), color-mix(in srgb, var(--accent-color) 100%, black 100%));
+  --wa-delivery-type-active-bg: light-dark(color-mix(in srgb, var(--accent-color) 0%, white 100%), color-mix(in srgb, var(--accent-color) 30%, black 100%));
   --wa-delivery-type-hover-bg: light-dark(var(--gray6), var(--black_tr_8));
   --wa-order-dialog-header-border: light-dark(#e9ecef, #333333);
 }
 
 @supports not (color: light-dark(white, black)) {
   :root {
-    --wa-delivery-type-active-bg: color-mix(in srgb, var(--accent-color) 100%, white 100%);
+    --wa-delivery-type-active-bg: color-mix(in srgb, var(--accent-color) 0%, white 100%);
     --wa-delivery-type-hover-bg: var(--gray6);
     --wa-order-dialog-header-border: #e9ecef;
   }
@@ -468,8 +468,8 @@ html.is-order-page .container {
   font-size: 14px;
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-dropdown.is-locked > .wa-dropdown-toggle {
-  background-color: var(--gray6) !important;
-  color: var(--gray4);
+  background-color: var(--input-disabled-bg-color, var(--gray6)) !important;
+  color: var(--input-disabled-color, var(--gray4));
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-dropdown > .wa-dropdown-toggle {
   padding: 11px 12px;
@@ -722,6 +722,33 @@ html.is-order-page .container {
   color: var(--text-color);
   white-space: nowrap;
 }
+
+@media screen and (max-width: 760px) {
+  .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body {
+    display: grid;
+    grid-template-columns: min-content repeat(2, 1fr);
+  }
+  .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-image {
+    grid-row: 1 / 3;
+    margin: 0 1rem 0 0;
+  }
+  .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-details {
+    margin-bottom: .75rem;
+  }
+  .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-details {
+    grid-column: 2 / 4;
+  }
+  .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-quantity {
+    grid-column: 2 / 2;
+    padding-left: 0;
+  }
+  .s-order-page .s-order-section > .s-section-body .wa-cart-body .wa-product .wa-product-body .wa-column-price {
+    margin-top: .25rem;
+    padding-right: .25rem;
+    justify-self: end;
+  }
+}
+
 .s-order-page .s-order-section > .s-section-body .wa-cart-body select {
   background-repeat: no-repeat !important;
   border: 1px solid var(--input-border-color) !important;
@@ -891,15 +918,21 @@ body:not(:has(.wa-order-layout)) .wa-order-dialog.wa-shipping-pickup-dialog .wa-
 .wa-tooltip:not(.custom):before {
   border-bottom-color: var(--black-auto) !important;
 }
-.wa-dropdown > .wa-dropdown-area {
-  background: var(--white-auto) !important;
+.s-order-page .wa-dropdown > .wa-dropdown-area {
+  background: var(--bg-color-accent, #fff);
+  border: 1px solid var(--input-border-color) !important;
+  border-radius: var(--element-border-radius);
 }
-.wa-dropdown > .wa-dropdown-area > .wa-dropdown-item:hover {
-  background: var(--input-bg-color) !important;
+.s-order-page .wa-dropdown.is-opened > .wa-dropdown-toggle:after {
+  border-color: unset;
 }
-.wa-dropdown > .wa-dropdown-area:hover {
-  border-color: #efefef !important;
+.s-order-page .wa-dropdown > .wa-dropdown-area > .wa-dropdown-item {
+  border-top: 1px solid var(--input-border-color);
 }
+.s-order-page .wa-dropdown > .wa-dropdown-area > .wa-dropdown-item:hover {
+  background: var(--input-bg-color);
+}
+
 body:has(.wa-order-layout) {
   color: #000;
 }
@@ -907,7 +940,10 @@ body:has(.wa-order-layout) {
   background: #fff !important;
 }
 .s-order-page .s-order-section > .s-section-body .wa-form-body .wa-name {
-  color: var(--gray1);
+  color: var(--accent-color, var(--gray1));
+}
+.s-order-page .wa-order-form-wrapper .wa-step-shipping-section .wa-delivery-variants-section .wa-delivery-variant .wa-price {
+  color: var(--text-color);
 }
 .wa-order-layout .s-order-page .s-order-section > .s-section-header > .s-header {
   color: #444;
@@ -1002,4 +1038,11 @@ z-index: 998;
   background-color: transparent;
   line-height: 1.5;
   padding: 0.6rem 0.75rem;
+}
+
+.wa-order-dialog.wa-channel-confirmation-dialog .wa-field-wrapper.with-content {
+  width: 100%;
+}
+.wa-order-dialog.wa-channel-confirmation-dialog .wa-field-wrapper.with-content input[type="text"] {
+  width: 65%;
 }

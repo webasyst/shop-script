@@ -213,9 +213,12 @@ class shopCategoryProductsModel extends waModel implements shopProductStorageInt
         WHERE cp.product_id = i:id ORDER BY c.left_key";
         $data = $this->query($sql, array('id' => $product['id']))->fetchAll('id');
         if ($data && !empty($data[$product['category_id']])) {
-            if (wa()->getEnv() == 'frontend' && waRequest::param('url_type') == 1) {
+            if (wa()->getEnv() == 'frontend') {
                 foreach ($data as &$row) {
-                    $row['full_url'] = $row['url'];
+                    if (waRequest::param('url_type') == 1) {
+                        $row['full_url'] = $row['url'];
+                    }
+                    $row['thumb'] = shopCategoryHelper::getThumbInfo($row);
                 }
                 unset($row);
             }

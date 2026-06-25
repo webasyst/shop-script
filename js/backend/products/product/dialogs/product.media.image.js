@@ -262,7 +262,8 @@
                         mass_generation_errors: {},
                         mass_generation_source: null,
                         ai_progress_percentage: 0,
-                        ai_progress_started_at: null
+                        ai_progress_started_at: null,
+                        ai_generation_mode: photo.is_dummy ? 'create' : 'improve',
                     }
                 },
                 emits: ["success", "cancel"],
@@ -634,6 +635,20 @@
 
                             that.dialog.resize();
                         }
+                    },
+                    "component-generation-mode": {
+                        props: ["mode", "photos", "dummy_photo", "onSelectPhoto"],
+                        template: that.scope.components["component-generation-mode"],
+                        methods: {
+                            selectAiDummy: function() {
+                                const self = this;
+                                self.onSelectPhoto(self.dummy_photo);
+                            },
+                            selectFirstPhoto: function() {
+                                const self = this;
+                                self.onSelectPhoto(self.photos[0]);
+                            }
+                        }
                     }
                 },
                 computed: {
@@ -765,6 +780,7 @@
                         self.photo_is_ready = !!(photo && photo.is_dummy);
                         self.image = null;
                         self.ai_error = (self.product ? self.product.ai_error : "") || "";
+                        self.ai_generation_mode = photo.is_dummy ? 'create' : 'improve';
                         that.dialog.resize();
                     },
                     setActiveProduct: function(product, photo_id, options) {

@@ -43,6 +43,9 @@ return array(
     'image_sizes'            => array(
         '0x320'
     ),
+    'category_image_sizes'   => array(
+        '192x192', '96x96', '384x384',
+    ),
     'image_max_size'         => 1000,
     'image_sharpen'          => 1,
     'image_thumbs_on_demand' => 1,

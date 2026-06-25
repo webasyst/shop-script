@@ -7,6 +7,34 @@ class shopTransferSkusController extends waController
         $this->render($this->getData());
     }
 
+    public function getSkus(array $sku_ids, $stock_id)
+    {
+        $stock_id = (int) $stock_id;
+
+        $model = new waModel();
+
+        $sql_map = array(
+            "SELECT" => "s.id, s.name, s.count, p.id AS product_id, p.name AS product_name, p.image_id, p.currency, s.price, s.purchase_price, s.sku AS sku_code, s.image_id AS sku_image_id ",
+            "FROM"   => "`shop_product` p ",
+            "JOIN"   => array("`shop_product_skus` s ON p.id = s.product_id "),
+            'LEFT JOIN' => array(),
+            "WHERE"  => "s.id IN (:SKU_IDS) ",
+        );
+
+        if ($stock_id) {
+            $sql_map['SELECT'] .= ", ps.stock_id, ps.count AS stock_count, st.name AS stock_name";
+            $sql_map['LEFT JOIN'][] = "`shop_product_stocks` ps ON ps.sku_id = s.id ";
+            $sql_map['LEFT JOIN'][] = "`shop_stock` st ON ps.stock_id = st.id";
+            $sql_map['WHERE']  .= "AND ps.stock_id = {$stock_id}";
+        }
+
+        $sql = $this->stringifySql($sql_map, [':SKU_IDS' => implode(', ', $sku_ids)]);
+        $skus = $model->query($sql)->fetchAll('id');
+
+        $skus = self::workupSkus($skus);
+        return array_values($skus);
+    }
+
     public function findSkus($term, $stock_id, $offset = 0, $limit = 10)
     {
         $stock_id = (int) $stock_id;
@@ -147,13 +175,14 @@ class shopTransferSkusController extends waController
                     if(wa()->whichUI() == '2.0') {
                         $icon_class = 'fas fa-circle text-red';
                     }
-                    $stock_message = ' <i class="'.$icon_class.'"></i><span class="small s-stock-warning-none">' . sprintf(_w('Not in stock on %s'), $stock_name) . '</span> ';
+                    $stock_message = ' <i class="'.$icon_class.'"></i><span class="small s-stock-warning-none custom-ml-4">' . sprintf(_w('Not in stock on %s'), $stock_name) . '</span> ';
                 } else {
                     $stock_message = ' ' . shopHelper::getStockCountIcon($stock_count, $stock_id, true) . ' ';
                 }
             }
 
             $wrapp_class = $sku['disabled'] ? 's-sku-disabled' : '';
+            $sku['stock_html'] = $stock_message;
             $sku['label'] = "<span class='{$wrapp_class}'>{$sku['product_name_e']} <span class='hint'>".($sku['name_e'] ? $sku['name_e'] : $sku['sku_code'])."</span> {$stock_message}</span>";
 
             $name = $sku['product_name'] . ($sku['name'] ? ' (' . $sku['name'] . ')' : '');
@@ -175,10 +204,13 @@ class shopTransferSkusController extends waController
 
     public function getData()
     {
-        $result = $this->findSkus(
-            $this->getRequest()->get('term'),
-            $this->getRequest()->get('stock_id')
-        );
+        $sku_ids = $this->getRequest()->get('sku_ids');
+        $stock_id = $this->getRequest()->get('stock_id');
+        if ($sku_ids) {
+            $result = $this->getSkus($sku_ids, $stock_id);
+        } else {
+            $result = $this->findSkus($this->getRequest()->get('term'), $stock_id);
+        }
 
         if ($result) {
             $currency = $this->getRequest()->get('currency', '', 'string');

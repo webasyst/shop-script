@@ -61,14 +61,6 @@
 
     </div>
 
-    {if !empty($config["shipping"]["service_agreement"])}
-        <footer class="wa-form-footer js-form-footer js-invisible-content" style="display: none;">
-            <div class="wa-line">
-                {$config["shipping"]["service_agreement_hint"]|default:""}
-            </div>
-        </footer>
-    {/if}
-
     {strip}
     {capture assign="_loading_template"}
         <div class="s-loading-animation">

@@ -16,9 +16,15 @@ class shopSettingsPaymentAction extends waViewAction
             'all' => true,
             'list_storefronts' => true,
         ]);
-        foreach ($instances as &$instance) {
+        foreach ($instances as $merchant_id => &$instance) {
             $wa_pay_instance_exists = $wa_pay_instance_exists || $instance['plugin'] === 'pay';
             $instance['installed'] = $instance['plugin'] === 'pay' || isset($plugins[$instance['plugin']]);
+            if ($instance['plugin'] === 'pay' && !empty($instance['status'])) {
+                $settings = shopPayment::getInstance()->getSettings($instance['plugin'], $merchant_id);
+                if ('empty' === ifset($settings, 'provider', 'empty')) {
+                    $instance['wa_pay_is_not_set_up_warning'] = true;
+                }
+            }
             unset($instance);
         }
         if ($wa_pay_instance_exists && !isset($plugins['pay'])) {

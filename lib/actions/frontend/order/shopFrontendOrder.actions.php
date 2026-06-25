@@ -200,6 +200,19 @@ class shopFrontendOrderActions extends waJsonActions
                 );
             }
             if (
+                ifset($data, 'result', 'region', 'service_agreement', false)
+                && ifempty($config, 'shipping', 'service_agreement', false)
+            ) {
+                wa('webasyst');
+                webasystHelper::logAgreementAcceptance(
+                    'shipping_agreement',
+                    ifset($config, 'shipping', 'service_agreement_hint', ''),
+                    $config['shipping']['service_agreement'] == '1' ? 'notice ' : $config['shipping']['service_agreement'],
+                    ifset($order, 'contact_id', null),
+                    'shop'
+                );
+            }
+            if (
                 ifset($data, 'result', 'confirm', 'terms', false)
                 &&  ifempty($config, 'confirmation', 'terms', false)
             ) {

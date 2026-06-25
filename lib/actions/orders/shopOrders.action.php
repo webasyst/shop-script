@@ -26,6 +26,7 @@ class shopOrdersAction extends shopOrderListAction
             if ($filter_state_id) {
                 $available_states = array_intersect_key($available_states, array_flip($filter_state_id));
             }
+            $this->collection->orderBy(['id' => 'desc']);
             foreach ($available_states as $state_id => $state) {
                 $temp_where = "o.state_id = '$state_id'";
                 $this->collection->addWhere($temp_where);
@@ -37,6 +38,7 @@ class shopOrdersAction extends shopOrderListAction
             if (shopRights::isAssistant()) {
                 throw new waException(_w('Access denied'), 403);
             }
+            $this->collection->orderBy(['id' => 'desc']);
             foreach ($this->getAssignedUsers() as $_assigned_user_id) {
                 $temp_where = "o.assigned_contact_id = '$_assigned_user_id'";
                 $this->collection->addWhere($temp_where);
@@ -169,7 +171,7 @@ class shopOrdersAction extends shopOrderListAction
             }
         }
 
-        list($show_mobile_ad, $show_premium_ad, $show_wa_pay_ad) = $this->shouldShowAds();
+        list($show_mobile_ad, $show_premium_ad, $show_wa_pay_ad, $show_ai_ad) = $this->shouldShowAds();
 
         $currency =  $config->getCurrency();
         if (wa()->whichUI() != '1.3' && !shopRights::isAssistant()) {
@@ -200,6 +202,7 @@ class shopOrdersAction extends shopOrderListAction
             'show_mobile_ad'       => $show_mobile_ad,
             'show_premium_ad'      => $show_premium_ad,
             'show_wa_pay_ad'       => $show_wa_pay_ad,
+            'show_ai_ad'           => $show_ai_ad,
             'is_orders_empty'      => !($this->model->countAll()),
             'orders_sales_html'    => ifset($orders_sales_html),
         ]);
@@ -210,22 +213,32 @@ class shopOrdersAction extends shopOrderListAction
         // WA Pay ad has priority; show if required
         $show_wa_pay = $this->shouldShowWaPayAd();
         if ($show_wa_pay) {
-            return [false, false, $show_wa_pay];
+            return [false, false, $show_wa_pay, false];
         }
 
-        list($show_premium_ad, $when_premium_add_hidden) = $this->shouldShowPremiumAd();
+        list($show_premium_ad, $when_premium_ad_hidden) = $this->shouldShowPremiumAd();
         if ($show_premium_ad) {
-            return [false, $show_premium_ad, false];
+            return [false, $show_premium_ad, false, false];
         }
-
         // three days after premium ad is hidden, show no ads
-        if ($when_premium_add_hidden && time() - $when_premium_add_hidden <= 3*24*3600) {
-            return [false, false, false];
+        if ($when_premium_ad_hidden && time() - $when_premium_ad_hidden <= 3*24*3600) {
+            return [false, false, false, false];
         }
 
-        list($show_mobile_ad, $when_mobile_add_hidden) = $this->shouldShowMobileAd();
+        list($show_mobile_ad, $when_mobile_ad_hidden) = $this->shouldShowMobileAd();
+        if ($show_mobile_ad) {
+            return [$show_mobile_ad, false, false, false];
+        }
+        if ($when_mobile_ad_hidden && time() - $when_mobile_ad_hidden <= 2*24*3600) {
+            return [false, false, false, false];
+        }
 
-        return [$show_mobile_ad, false, false];
+        list($show_ai_ad, $when_ai_ad_hidden) = $this->shouldShowAiAd();
+        if ($show_ai_ad) {
+            return [false, false, false, $show_ai_ad];
+        }
+
+        return [false, false, false, false];
     }
 
     protected function shouldShowMobileAd()
@@ -265,32 +278,23 @@ class shopOrdersAction extends shopOrderListAction
             return false;
         }
 
-        $show_wa_pay_ad = true;
-        $pay_promotion_enabled = shopHelper::waPayPromotionEnabled();
         $hide_wa_pay_ad_till = wa()->getUser()->getSettings('shop', 'hide_wa_pay_ad_till', null);
         if ($hide_wa_pay_ad_till && (strtotime($hide_wa_pay_ad_till) > time())) {
-            $show_wa_pay_ad = false;
-        }
-
-        // <<<<< temp for release SS 12.0
-        if (empty($hide_wa_pay_ad_till)) {
-            (new waContactSettingsModel())->set(
-                wa()->getUser()->getId(),
-                'shop',
-                'hide_wa_pay_ad_till',
-                date('Y-m-d', strtotime('+'.mt_rand(1, 10).' days'))
-            );
             return false;
         }
-        // end temp >>>>>
 
-        if ($pay_promotion_enabled && $show_wa_pay_ad) {
-            return true;
-        }
-
-        return false;
+        return shopHelper::waPayPromotionEnabled();
     }
 
+    protected function shouldShowAiAd()
+    {
+        $hide_ad_till = wa()->getUser()->getSettings('shop', 'hide_ai_ad_till', null);
+        if ($hide_ad_till && ( ( $ts = strtotime($hide_ad_till)) > time())) {
+            return [false, $ts - shopBackendSidebarMenuSaveStateController::HIDE_AI_AD_DAYS*24*3600];
+        }
+        return [true, null];
+    }
+    
     protected function getLastUpdateDatetime($orders)
     {
         if (!$orders) {

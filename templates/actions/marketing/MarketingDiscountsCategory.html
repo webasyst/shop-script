@@ -77,6 +77,8 @@
         ( function($) { "use strict";
             $.shop.marketing.setTitle({_w("By customer category")|json_encode});
 
+            window.initMobileSidebar && window.initMobileSidebar();
+
             const sources = [{
                 id: "wa-shop-marketing-discounts-js",
                 type: "js",

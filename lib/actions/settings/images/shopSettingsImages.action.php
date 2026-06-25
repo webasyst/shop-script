@@ -18,10 +18,10 @@ class shopSettingsImagesAction extends waViewAction
             'system' => $this->formatSizes($this->getConfig()->getImageSizes('system')),
             'custom' => $this->formatSizes((array)$this->settings['image_sizes'])
         );
-        $has_required_files = shopRepairActions::createProductsRequiredFiles();
+        $has_required_files = (new shopInstaller())->ensureThumbPhp('products');
         $this->view->assign(array(
             'settings' => $this->settings,
-            'has_required_files' => $has_required_files
+            'has_required_files' => $has_required_files,
         ));
     }
 
@@ -138,14 +138,5 @@ class shopSettingsImagesAction extends waViewAction
         }
 
         waUtils::varExportToFile($settings, $config_file);
-    }
-
-    /**
-     * @deprecated since 8.12.0
-     * @see shopRepairActions::createProductsRequiredFiles()
-     */
-    public function createRequiredFilesForGeneration()
-    {
-        return shopRepairActions::createProductsRequiredFiles();
     }
 }

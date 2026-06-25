@@ -112,7 +112,7 @@
                 <th>
                     <div class="s-compare-item">
                         <a class="image-link" href="{$wa->getUrl('/frontend/product/', ['product_url' => $p.url])}">
-                            {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':strip_tags($p.summary)|escape])}
+                            {$wa->shop->productImgHtml($p, '96x96', ['itemprop' => 'image', 'id' => 'product-image', 'default' => "`$wa_theme_url`img/dummy96.png", 'title' => $p.name|cat:' ':$p.summary|strip_tags|escape])}
                         </a>
                         <div class="name-wrapper">
                             <a class="name-link"

@@ -138,7 +138,7 @@ class shopWorkflowPayAction extends shopWorkflowAction
             shopProductStocksLogModel::clearContext();
         }
 
-        $this->setPackageState(waShipping::STATE_DRAFT, $order, array('log' => true));
+        $this->setPackageState(waShipping::STATE_DRAFT, $order_id, array('log' => true));
 
         return $data;
     }

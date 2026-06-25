@@ -346,7 +346,7 @@ class shopMarketingPromoSaveController extends waJsonController
         $cache_dir = $this->getPromoBannerCacheDir();
         $rule_errors = [];
 
-        if (shopRepairActions::createPromosRequiredFiles() == false) {
+        if (!(new shopInstaller())->ensureThumbPhp('promos')) {
             $rule_errors[] = [
                 'id'   => 'rule_error',
                 'text' => _w('Image thumbnails cannot be generated because required system files are missing in <em>wa-data/public/shop/promos/</em> directory.')

@@ -12,6 +12,16 @@ class shopSalesChannelParamsModel extends waModel
         return $params;
     }
 
+    public function getOne(int $id, string $name): ?string
+    {
+        $row = $this->getByField([
+            'channel_id' => $id,
+            'name' => $name,
+        ]);
+
+        return $row ? $row['value'] : null;
+    }
+
     public function set(int $id, array $params)
     {
         // candidate to delete

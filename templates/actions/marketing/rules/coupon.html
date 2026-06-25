@@ -64,7 +64,7 @@
         </div>
         <div class="s-actions-column">
             <a class="s-action" href="{$marketing_url}coupons/{$_coupon.id|default:"%coupon_id%"}/" target="_blank">
-                <i class="fas fa-cog settings"></i> [`Coupon settings`]
+                <i class="fas fa-cog settings"></i> <span class="desktop-and-tablet-only">[`Coupon settings`]</span>
             </a>
         </div>
     </div>
@@ -80,7 +80,7 @@
 {/strip}
 
 <div class="s-coupon-rule-section js-coupon-rule-section" id="js-coupon-rule-section-{$_uniqid}">
-    <p class="hint">
+    <p class="small gray">
         [`Select coupons for this promo. Orders with selected coupons will be automatically associated with this promo.`]
     </p>
 

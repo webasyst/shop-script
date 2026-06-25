@@ -49,7 +49,18 @@
                 var url = $this.data("url");
                 if (url) {
                     $content_1.hide();
-                    $content_2.html('<i class="fas fa-spinner wa-animation-spin loading"></i>').show().load(url);
+                    $content_2.html('<i class="fas fa-spinner wa-animation-spin loading"></i>').show()
+                        .load(url, () => {
+                            if ($.mobileSidebar) {
+                                let $heading = $('#affiliate-settings-plugin h1');
+                                if (!$heading.length) {
+                                    $heading = $('#affiliate-settings-plugin .i-store-wrapper').addClass('custom-mt-8-mobile');
+                                }
+
+                                const $button = $.mobileSidebar.$defaultButtonBack.insertBefore($heading);
+                                $.mobileSidebar.setButtonBack($button);
+                            }
+                        });
                 } else {
                     $content_1.show();
                     $content_2.hide();

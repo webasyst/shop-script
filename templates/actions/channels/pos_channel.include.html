@@ -165,26 +165,8 @@
                     </p>
                 </div>
             </div>
-
-            <div class="field">
-                <div class="name"></div>
-                <div class="value">
-                    <div class="flexbox middle">
-                        <div class="wide">
-                            <input type="submit" class="button green" value="[`Save`]">
-                        </div>
-                        {if !empty($channel.id)}
-                        <div class="nowrap">
-                            <button class="button red outlined js-delete-button" type="button">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                        {/if}
-                    </div>
-                    <div class="js-place-for-errors custom-mt-4"></div>
-                </div>
-            </div>
         </div>
+        {include file="./channel.footer.include.html" inline}
     </form>
 </div>
 
@@ -192,7 +174,6 @@
 <script>
     $(function () {
         "use strict";
-        const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
         const spinner_html = '<span class="spinner" />';
         const $form = $('#js-sales-channel-form');
         const $place_for_errors = $form.find('.js-place-for-errors');
@@ -318,26 +299,6 @@
             // After successfull save of a new channel, redirect to its proper URL containing id
             $form.on('save_success', function (evt, data) {
                 window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
-            });
-        {else}
-            const channel_id = {$channel.id|json_encode};
-            const $delete_button = $form.find('.js-delete-button');
-            $delete_button.on('click', function (e) {
-                e.preventDefault();
-                $.waDialog.confirm({
-                    title: {_w("Delete permanently?")|json_encode},
-                    success_button_title: {_w("Delete")|json_encode},
-                    success_button_class: 'danger',
-                    cancel_button_title: {_w("Cancel")|json_encode},
-                    cancel_button_class: 'light-gray',
-                    onSuccess: function() {
-                        $delete_button.prop('disabled', true).after(spinner_html);
-                        $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
-                            $submit_button.prop('disabled', false).siblings('.spinner').remove();
-                            window.location = {$wa_app_url|json_encode} + '?action=plugins#/';
-                        });
-                    }
-                });
             });
         {/if}
     });

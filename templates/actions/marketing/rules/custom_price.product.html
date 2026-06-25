@@ -19,7 +19,6 @@
     {$_sku_enabled = true}
 
     {$_render_sku_id = true}
-    {$_render_images = true}
     {$_render_name = true}
     {$_render_details = true}
     {$_render_prices = true}
@@ -33,7 +32,6 @@
         {$_render_fields = false}
 
     {elseif $_type === "sku"}
-        {$_render_images = false}
         {$_render_name = false}
         {$_render_delete_actions = false}
     {/if}
@@ -64,15 +62,23 @@
     <tr class="s-product-wrapper {if empty($_sku_enabled)}is-disabled{/if}" data-id="{$product.id}" {if !empty($_render_sku_id)}data-sku-id="{$_sku.id}"{/if}>
         {* IMAGE *}
         <td class="s-image-column">
-            {if !empty($_render_images) && !empty($product.images)}
-                {$_product_images = $product.images|array_values}
-                {$_product_image = $_product_images.0}
-                {if !empty($_product_image.url_crop)}
-                    <div class="s-image-wrapper">
-                        <img class="s-image" src="{$_product_image.url_crop|escape}" alt=""/>
-                    </div>
+            {if !empty($product.images)}
+                {if empty($_render_sku_id) || count($product.skus) <= 1}
+                    {$_product_images = $product.images|array_values}
+                    {$_product_image = $_product_images.0}
+                {elseif $_sku.image_id && !empty($product.images[$_sku.image_id])}
+                    {$_product_image = $product.images[$_sku.image_id]}
+                {/if}
+                {if !empty($_product_image)}
+                    {$_image_url_crop = $_product_image.url_crop}
                 {/if}
             {/if}
+            {if empty($_image_url_crop)}
+                {$_image_url_crop = "{$wa_app_static_url}img/image-dummy.svg"}
+            {/if}
+            <div class="s-image-wrapper">
+                <img class="s-image" src="{$_image_url_crop|escape}" alt=""/>
+            </div>
         </td>
 
         {* NAME *}

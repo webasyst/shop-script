@@ -26,7 +26,7 @@ class shopFrontendApiOrderCreateController extends shopFrontendApiOrderCalculate
                     'departure_datetime' => shopDepartureDateTimeFacade::getDeparture($config['schedule'])->getDepartureDateTime(),
                 ] + $this->getOrderParamsFromOrder($data['order']) + $this->getOrderParamsFromRequest() + ifempty($data, 'order', 'params', []),
 
-            'comment'  => ifset($data, 'result', 'confirm', 'comment', ''),
+            'comment'  => waRequest::request('comment', '', waRequest::TYPE_STRING_TRIM),
             'shipping' => $data['order']['shipping'],
 
             'customer' => $contact_field_values,

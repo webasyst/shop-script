@@ -51,7 +51,11 @@ class shopFrontendCategoryAction extends shopFrontendAction
         if (!$category || (!empty($routes) && !in_array($route, $routes))) {
             throw new waException(_w('Category not found.'), 404);
         }
-        $category['subcategories'] = $category_model->getSubcategories($category, $route);
+        $category['thumb'] = shopCategoryHelper::getThumbInfo($category);
+        $category['subcategories'] = array_map(function($c) {
+            return $c + ['thumb' => shopCategoryHelper::getThumbInfo($c)];
+        }, $category_model->getSubcategories($category, $route));
+        
         $category_url = wa()->getRouteUrl('shop/frontend/category', array('category_url' => '%CATEGORY_URL%'));
         foreach ($category['subcategories'] as &$sc) {
             $sc['url'] = str_replace('%CATEGORY_URL%', waRequest::param('url_type') == 1 ? $sc['url'] : $sc['full_url'], $category_url);

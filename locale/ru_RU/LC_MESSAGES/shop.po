@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.8\n"
+"X-Generator: Poedit 3.4.2\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -13585,9 +13585,6 @@ msgstr "Необязательно. Используйте для автомат
 msgid "Promo is a combination of tools and smart rules defining your marketing focus."
 msgstr "Акция — это комбинация настроенных инструментов и правил, определяющих вашу маркетинговую цель."
 
-msgid "Tools & Smart rules"
-msgstr "Инструменты и правила"
-
 msgid "Active now"
 msgstr "Активна"
 
@@ -13828,14 +13825,17 @@ msgstr "Отлично, спасибо"
 msgid "The transfer cannot be edited as all products have already been written off the source stock."
 msgstr "Редактирование трансфера недоступно, потому что все товары уже списаны с исходного склада."
 
-msgid "Migrate my products"
-msgstr "Перенести мои товары"
+msgid "Migrate from another platform"
+msgstr "Перенести с другой платформы"
 
 msgid "Start from scratch"
 msgstr "Начать с нуля"
 
 msgid "Add demo products"
 msgstr "Добавить демотовары"
+
+msgid "No demo products please"
+msgstr "Спасибо, не надо никаких товаров"
 
 msgid "Install the free ‘<em>Migrate to Shop-Script</em>’ plugin to view available quick import options."
 msgstr "Установите бесплатный плагин «<em>Переход на Shop-Script</em>», чтобы увидеть доступные возможности быстрого импорта."
@@ -14225,7 +14225,7 @@ msgid "Consult your theme developer in case of any questions."
 msgstr "Свяжитесь с разработчиком вашей темы при возникновении вопросов."
 
 msgid "Pickup locations"
-msgstr "Точки выдачи"
+msgstr "Пункты выдачи"
 
 msgid "Available for pickup today"
 msgstr "Доступно для выдачи сегодня"
@@ -14255,7 +14255,7 @@ msgid "Basic mini-app UI"
 msgstr "Базовый интерфейс мини-приложения"
 
 msgid "Customize the mini-app layout and colors to align with your branding."
-msgstr "Настройте макет мини-приложения и цвета оформления в соответствии с символикой бренда."
+msgstr "Настройте основное оформление и цвета мини-приложения для соответствия вашему бренду."
 
 msgid "Required. The selected stock is used for all orders processed via this point of sale; i.e., those with payment via the mobile POS and with in-store pickup."
 msgstr "Обязательно. Выбранный склад используется для всех заказов, связанных с этой точкой продаж, т. е. с оплатой через мобильную кассу и выдачей в магазине."
@@ -14624,46 +14624,46 @@ msgid "Unknown image format."
 msgstr "Неизвестный формат изображения."
 
 msgid "Generates a new image based on the selected product image and the product’s name, category, and description."
-msgstr "Создает новое изображение на основании выбранного изображения товара, а также названия, описания и категории товара."
+msgstr "Генерация на основании выбранного изображения и базовых свойств товара: названия, описания и категории."
 
 msgid "Studio"
-msgstr "Студия"
+msgstr "В фотостудии на светлом фоне"
 
 msgid "Minimalistic studio shot that focuses on the product as the hero against a clean, subtle background."
 msgstr "Минималистичный студийный снимок с главным фокусом на товаре, изображенном на чистом, мягком фоне."
 
 msgid "Luxury"
-msgstr "Роскошь"
+msgstr "Черная роскошь"
 
 msgid "Luxury-style studio shot against a dark, dramatic, and expensive-looking background that elevates the product’s premium feel."
 msgstr "Студийный снимок в роскошном стиле на темном, эффектном и дорого выглядящем фоне, который подчеркивает премиальный характер товара."
 
 msgid "Home"
-msgstr "Дом"
+msgstr "В домашнем интерьере"
 
 msgid "At-home lifestyle shot that places the product in a cozy home interior."
 msgstr "Снимок в домашней обстановке, демонстрирующий товар в уютном домашнем интерьере."
 
 msgid "Office"
-msgstr "Офис"
+msgstr "В офисном интерьере"
 
 msgid "At-work lifestyle shot that places the product in a modern office interior."
 msgstr "Снимок, демонстрирующий товар на рабочем месте, в современном офисном интерьере."
 
 msgid "Outdoors"
-msgstr "Природа"
+msgstr "На природе"
 
 msgid "Places the product in an outdoor environment and focuses on the connection with nature."
 msgstr "Показывает товар на открытом воздухе и акцентирует внимание на связи с природой."
 
 msgid "City"
-msgstr "Город"
+msgstr "В городе"
 
 msgid "Places the product in an authentic urban environment and emphasizes everyday city life experience."
 msgstr "Помещает товар в реалистичной городской среде и делает акцент на повседневной городской жизни."
 
 msgid "Hands-on"
-msgstr "В руках"
+msgstr "Обзор в руках"
 
 msgid "Shows the product being held by a person, with a clean close-up of real-world interaction."
 msgstr "Показывает крупным планом, как человек держит товар в руках, демонстрируя взаимодействие с ним в реальных условиях."
@@ -14705,7 +14705,7 @@ msgid "Makes the selected product image appear in the Japanese anime style."
 msgstr "Преобразует выбранное изображение товара в стиле японского аниме."
 
 msgid "Comparison"
-msgstr "Сравнение"
+msgstr "Сравнение с аналогом"
 
 msgid "Places the product next to its not-so-eye-catching alternative/analog."
 msgstr "Показывает товар рядом с его не столь привлекающим внимание аналогом."
@@ -14827,5 +14827,98 @@ msgstr "Сгенерировать баннер с ИИ"
 msgid "Banner image not found."
 msgstr "Не найдено изображение для баннера."
 
-msgid "Please describe in few words what should be there on a banner."
+msgid "Please describe in a few words what should be there on a banner."
 msgstr "Пожалуйста, опишите в нескольких словах, что должно быть на баннере."
+
+msgid "Improve any product photo in seconds with built-in AI photo generator."
+msgstr "Улучшайте фото любых товаров во встроенном ИИ-фотошопе."
+
+msgid "Finalize setup to start accepting online payments"
+msgstr "Завершите настройку СБП, чтобы принимать платежи онлайн"
+
+msgid "Category thumbnail"
+msgstr "Лого"
+
+msgid "A thumbnail is used in the mini-app catalog navigation and on the public storefront (if supported by your design theme)."
+msgstr "Логотип категории используется в мини-приложении в навигации по каталогу. А если поддерживается вашей темой дизайна, то и на витрине на сайте."
+
+msgid "Only processing"
+msgstr "Только в работе"
+
+msgid "Select banner style."
+msgstr "Выберите стиль баннера."
+
+msgid "Sort"
+msgstr "Сортировка"
+
+msgid "All promos of this storefront"
+msgstr "Все акции витрины"
+
+msgid "Selected promos only"
+msgstr "Только выбранные акции"
+
+msgid "Banner slider"
+msgstr "Слайдер с баннерами"
+
+msgid "No promos are enabled for the selected storefront."
+msgstr "Для выбранной витрины нет акций с баннерами."
+
+msgid "Select a storefront to fetch promos."
+msgstr "Выберите витрину, чтобы загрузить баннеры акций."
+
+msgid "Select product set"
+msgstr "Выберите список товаров"
+
+msgid "Any custom text block (HTML is allowed)."
+msgstr "Блок с произвольным текстом (поддерживается HTML-формат)."
+
+msgid "Or make up a custom homepage layout made up of blocks:"
+msgstr "Или настройте кастомный вид главной страницы мини-приложения из блоков:"
+
+msgid "Add block"
+msgstr "Добавить блок"
+
+msgid "Product list"
+msgstr "Список товаров"
+
+msgid "Stories"
+msgstr "Сториз"
+
+msgid "Customer authorization"
+msgstr "Авторизация"
+
+msgid "Colors"
+msgstr "Цвета"
+
+msgid "Customize the mini-app product list display and navigation style."
+msgstr "Настройте внешний вид каталога товаров и стиля навигации."
+
+msgid "(Mobile only. Not applicable to the wider desktop mode.)"
+msgstr "(Только для телефонов. Для широких экранов не применяется.)"
+
+msgid "Catalog grid mode"
+msgstr "Категории в виде сетки"
+
+msgid "When on, category tree navigation will be replaced with a flat root category display with category thumbnails."
+msgstr "Если включить, дерево категорий будет заменено на плиточное отображение только корневых категорий с логотипами."
+
+msgid "Subcategory grid mode"
+msgstr "Подкатегории в виде сетки"
+
+msgid "Use similar no-tree category navigation for subcategories too."
+msgstr "Использовать аналогичное плиточное отображение для подкатегорий."
+
+msgid "Misc"
+msgstr "Общее"
+
+msgid "HTML block"
+msgstr "HTML-блок"
+
+msgid "Improve selected"
+msgstr "Улучшить выбранное"
+
+msgid "Generate from scratch"
+msgstr "Сгенерировать с нуля"
+
+msgid "The product is out of stock."
+msgstr "Товара нет на складе."

@@ -74,6 +74,17 @@
         ( function($) { "use strict";
             $.shop.marketing.setTitle({_w("Discount coupons")|json_encode});
 
+            $.shop.initMobileSidebar({
+                $sidebar: $("#js-coupons-page .sidebar"),
+                $content: $("#js-coupons-page .content"),
+                $additionalLinks: $("#js-coupons-page .sidebar .box a"),
+                openAfterReload: true,
+                storageId: 'coupons',
+                appendButtonBack ($defaultButtonBack) {
+                    return $defaultButtonBack.insertBefore($('#js-coupons-page .s-coupon'));
+                }
+            });
+
             var sources = [{
                 id: "wa-shop-marketing-coupons-js",
                 type: "js",

@@ -28,10 +28,13 @@ class shopConfig extends waAppConfig
                 waSystem::setActive('shop');
             }
             $model->exec("SELECT GET_LOCK(?, -1)", ['wa_init_app_'.$this->application]);
+            $is_from_template = waConfig::get('is_template');
+            waConfig::set('is_template', null);
             try {
                 include($this->getAppPath('lib/config/install.after.php'));
                 $model->del('shop', 'create_locale_configs');
             } finally {
+                waConfig::set('is_template', $is_from_template);
                 $model->exec("SELECT RELEASE_LOCK(?)", ['wa_init_app_'.$this->application]);
             }
 

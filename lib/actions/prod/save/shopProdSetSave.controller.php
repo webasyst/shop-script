@@ -35,7 +35,7 @@ class shopProdSetSaveController extends waJsonController
             if (isset($id)) {
                 $saved_set = $this->model->getById($id);
                 $saved_set['name'] = htmlspecialchars($saved_set['name'], ENT_NOQUOTES);
-                $saved_set['json_params'] = json_decode($saved_set['json_params'], true);
+                $saved_set['json_params'] = json_decode(ifset($saved_set, 'json_params', '[]'), true);
                 if (!is_array($saved_set['json_params'])) {
                     $saved_set['json_params'] = [];
                 }

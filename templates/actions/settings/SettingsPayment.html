@@ -104,6 +104,12 @@
                                 <div class="state-caution"><i class="fas fa-exclamation-circle text-orange"></i> [`Payment options is active, but is not in use on any storefronts`]</div>
                             {/if}
                         </div>
+                        {if !empty($plugin.wa_pay_is_not_set_up_warning)}
+                            <p class="state-caution-hint custom-mt-4"><a href="#/payment/plugin/setup/{$id}/{if empty($plugin.status)}enable{/if}" class="state-caution">
+                                <i class="fas fa-exclamation-circle text-orange"></i>
+                                [`Finalize setup to start accepting online payments`] &rsaquo;
+                            </a></p>
+                        {/if}
                     </td>
 
                     <td class="custom-p-4-mobile">

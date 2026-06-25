@@ -166,6 +166,16 @@
 
             $.shop.marketing.setTitle({_w("A/B tests")|json_encode});
 
+            $.shop.initMobileSidebar({
+                $sidebar: $("#js-abtesting-page .sidebar"),
+                $content: $("#js-abtesting-page .content"),
+                openAfterReload: true,
+                storageId: 'abtesting',
+                appendButtonBack ($defaultButtonBack) {
+                    return $defaultButtonBack.insertBefore($('#js-abtesting-page h1.s-title'));
+                }
+            });
+
             var sources = [{
                 id: "wa-shop-marketing-abtesting-js",
                 type: "js",

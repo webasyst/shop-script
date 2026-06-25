@@ -4,7 +4,7 @@ var KanbanUsers = (($) => {
     let filterParamsStr = null;
     const roleChipRootSelector = '#s-order-nav';
     const roleChipSelector = '.js-chip-user';
-    const roleChipEventSelector = `${roleChipRootSelector} ${roleChipSelector}`;
+    const roleChipEventSelector = `${roleChipRootSelector} ${roleChipSelector}[data-chip]:not([data-chip="checkbox"])`;
     const roleChipNamespace = '.kanbanUsersRoleChips';
     const defaultRoleChip = 'all';
 
@@ -233,7 +233,7 @@ var KanbanUsers = (($) => {
 
         const $defaultChip = $roleChips.filter(`[data-chip="${defaultRoleChip}"]`);
 
-        
+
         const $activeChip = role
             ? $roleChips.filter(`[data-chip="${role}"]`)
             : $defaultChip;

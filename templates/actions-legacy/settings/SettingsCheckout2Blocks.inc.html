@@ -943,13 +943,23 @@
                     [`Personal data processing`]
                 </label>
             </div>
-            <div class="value js-shipping-service-agreement-wrapper">
-                <label>
-                    <input type="hidden" name="data[shipping][service_agreement]" value="0" />
-                    <input class="js-shipping-service-agreement" id="shipping_service_agreement" type="checkbox" name="data[shipping][service_agreement]"{if $settings.service_agreement} checked{/if} />
-                    [`Show notice`]
-                </label>
-                <textarea class="block-padded js-shipping-service-agreement-hint"{if !$settings.service_agreement} style="display: none;"{/if} name="data[shipping][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
+            <div class="value radio js-shipping-service-agreement-wrapper">
+                {foreach $shipping_service_agreement_variants as $_id => $_variant}
+                    <div class="s-checkout-radio-variant js-variant" data-id="{$_id}"{if !empty($_variant.default_text)} data-default-text="{$_variant.default_text|escape}"{/if}>
+                        <label>
+                            <input type="radio" class="js-shipping-service-agreement-variant"  name="data[shipping][service_agreement]" value="{$_id|escape}"{if (string)$settings.service_agreement === (string)$_id} checked{/if} />
+                            {$_variant.name|escape}
+                        </label>
+                        <div class="s-variant-params js-variant-params"></div>
+                    </div>
+                {/foreach}
+                <input type="checkbox" class="js-fake-checkbox" style="vertical-align: top; margin: 0 2px 90px; float: left; " checked="" disabled="">
+                <div class="js-shipping-service-agreement-edtior">
+                    <textarea class="js-shipping-service-agreement-hint" name="data[shipping][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
+                    <div class="hint">
+                        <a href="javascript:void(0)" class="inline-link js-generate-example"><b><i>[`Restore original text`]</i></b></a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

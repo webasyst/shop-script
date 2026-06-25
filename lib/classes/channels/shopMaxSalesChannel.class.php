@@ -7,7 +7,7 @@ class shopMaxSalesChannel extends shopTelegramSalesChannel
 {
     protected function getFormFieldsConfig($values = []): array
     {
-         return parent::getFormFieldsConfig($values);
+        return parent::getFormFieldsConfig($values);
     }
 
     public function getFormHtml(array $channel): string

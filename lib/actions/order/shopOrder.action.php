@@ -244,6 +244,10 @@ class shopOrderAction extends waViewAction
             if ($contact_id) {
                 $params['contact_id'] = $contact_id;
             }
+            $role = waRequest::get('role', '', waRequest::TYPE_STRING_TRIM);
+            if ($role) {
+                $params['role'] = $role;
+            }
             $this->filter_params = $params;
         }
         if (!$str) {

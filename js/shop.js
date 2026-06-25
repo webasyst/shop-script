@@ -1100,6 +1100,112 @@
             if(alertTimeout > 0) {
                 setTimeout(() => $alert.remove(), alertTimeout)
             }
+        },
+
+        /**
+         * @description Friendly mobile sidebar for navigation/actions
+         * @param options
+         * @see $.mobileSidebar
+         */
+        initMobileSidebar(options) {
+            if (!options || innerWidth > 760) return;
+            return new class {
+                constructor() {
+                    this.$buttonBack = options.$buttonBack;
+                    this.$content = options.$content || $();
+                    this.$sidebar = options.$sidebar;
+                    this.storageId = options.storageId;
+                    this.$menu = this.$sidebar.find('ul.menu');
+                    this.$items = this.$menu.find('li > a').add(options.$additionalLinks);
+                    this.openAfterReload = options.openAfterReload;
+
+                    // callbacks
+                    this.appendButtonBack = options.appendButtonBack;
+
+                    // const
+                    this.namespace = `mobile_sidebar:${this.storageId}`;
+                    this.initialClasses = ['mobile-sidebar', 'mobile-friendly'];
+                    this.toggleClass = 'desktop-and-tablet-only';
+
+                    this.init();
+
+                    $.mobileSidebar = this;
+                }
+
+                init() {
+                    this.$sidebar.addClass(this.initialClasses);
+
+                    const action = sessionStorage.getItem(this.namespace);
+                    if (typeof this[String(action)] === 'function') {
+                        this[action]();
+                    } else {
+                        this.showSidebar();
+                    }
+
+                    this.bindEvents();
+
+                    this.initCallbacks();
+                }
+
+                onClick($el, callback) {
+                    const event = `click.${this.namespace}`;
+                    $el.off(event).on(event, callback);
+                }
+
+                bindEvents() {
+                    this.onClick(this.$items, (e) => {
+                        const $target = $(e.currentTarget);
+
+                        if ($target.closest('li').hasClass('selected')) {
+                            e.preventDefault();
+                            e.stopPropagation();
+                        } else if (this.openAfterReload) {
+                            sessionStorage.setItem(this.namespace, 'hideSidebar');
+                            return;
+                        }
+
+                        setTimeout(() => {
+                            this.hideSidebar();
+                        });
+                    });
+
+                    if (this.$buttonBack && this.$buttonBack.length) {
+                        this.setButtonBack(this.$buttonBack);
+                    }
+                }
+
+                initCallbacks() {
+                    if (typeof this.appendButtonBack === 'function') {
+                        this.$buttonBack = this.appendButtonBack.call(null, this.$defaultButtonBack);
+                        this.setButtonBack(this.$buttonBack);
+                    }
+                }
+
+                showSidebar() {
+                    this.$sidebar.removeClass(this.toggleClass);
+                    this.$content.addClass(this.toggleClass);
+                    sessionStorage.setItem(this.namespace, 'showSidebar');
+                }
+
+                hideSidebar() {
+                    this.$sidebar.addClass(this.toggleClass);
+                    this.$content.removeClass(this.toggleClass);
+                    sessionStorage.setItem(this.namespace, 'hideSidebar');
+                }
+
+                get $defaultButtonBack() {
+                    return $(`<a class="back largest mobile-only" href="javascript:void(0)" style="line-height: 0;">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="32"  height="32" viewBox="0 0 512 512"><!--!Font Awesome Free v5.15.4 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2026 Fonticons, Inc.--><path d="M256 504C119 504 8 393 8 256S119 8 256 8s248 111 248 248-111 248-248 248zm28.9-143.6L209.4 288H392c13.3 0 24-10.7 24-24v-16c0-13.3-10.7-24-24-24H209.4l75.5-72.4c9.7-9.3 9.9-24.8.4-34.3l-11-10.9c-9.4-9.4-24.6-9.4-33.9 0L107.7 239c-9.4 9.4-9.4 24.6 0 33.9l132.7 132.7c9.4 9.4 24.6 9.4 33.9 0l11-10.9c9.5-9.5 9.3-25-.4-34.3z" fill="currentColor"/></svg>
+                            </a>`);
+                }
+
+                setButtonBack(el) {
+                    this.onClick($(el), (e) => {
+                        e.preventDefault();
+                        this.showSidebar();
+                    });
+                }
+            }
         }
 
     };

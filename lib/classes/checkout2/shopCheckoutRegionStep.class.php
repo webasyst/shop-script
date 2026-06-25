@@ -322,6 +322,7 @@ class shopCheckoutRegionStep extends shopCheckoutStep
             'countries'              => array_values($countries),
             'is_fixed_delivery_city' => $is_fixed_delivery_city,
             'ask_zip'                => $ask_zip,
+            'service_agreement'      => ifset($data, 'input', 'shipping', 'service_agreement', 0),
         ], $data, $errors);
 
         return array(

@@ -6,7 +6,22 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
 {
     protected function getFormFieldsConfig($values = []): array
     {
-        return [
+        $product_sets = array_map(function($set) {
+            return [
+                'id' => (string) $set['id'],
+                'name' => $set['name'],
+            ];
+        }, (new shopSetModel())->getAll());
+
+        $storefronts = array_map(static function($storefront) {
+            return $storefront['url'];
+        }, shopStorefrontList::getAllStorefronts(true));
+
+        $storefront = ifset($values, 'storefront', '');
+        $banner_promos_map = $this->getBannerPromosMap($storefronts);
+        $banner_promos = ifset($banner_promos_map, $storefront, []);
+
+        $fields = [
             'storefront'       => array(
                 'value'        => '',
                 'title'        => _w('Storefront'),
@@ -18,7 +33,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             ),
 
             'core_section' => array(
-                'value'        => _w('Basic mini-app UI'),
+                'value'        => _w('Colors'),
                 'title'        => '',
                 'class'        => 'bold',
                 'description'  => _w('Customize the mini-app layout and colors to align with your branding.'),
@@ -113,6 +128,16 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                     '#27242D' => []
                 ]
             ),
+
+            'products_section' => array(
+                'value'        => _w('Products'),
+                'title'        => '',
+                'class'        => 'bold',
+                'description'  => _w('Customize the mini-app product list display and navigation style.'),
+                'control_type' => waHtmlControl::TITLE,
+                'custom_control_wrapper' => '<!-- %s --><div>%s %s</div>',
+                'custom_description_wrapper' => '<p class="small">%s</p>',
+            ),
             'border_radius'    => array(
                 'value'        => '25',
                 'title'        => _w('Border radius'),
@@ -123,9 +148,30 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'products_per_row' => array(
                 'value'        => '2',
                 'title'        => _w('Products per row'),
-                'description'  => _w('Supported values: 1, 2, 3'),
+                'description'  => _w('Supported values: 1, 2, 3').'<br>'._w('(Mobile only. Not applicable to the wider desktop mode.)'),
                 'control_type' => waHtmlControl::INPUT,
                 'class'        => 'number shortest',
+            ),
+            'category_grid'    => array(
+                'value'        => '1',
+                'title'        => _w('Catalog grid mode'),
+                'description'  => _w('When on, category tree navigation will be replaced with a flat root category display with category thumbnails.').' '._w('(Mobile only. Not applicable to the wider desktop mode.)'),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+            'subcategory_grid'    => array(
+                'value'        => '1',
+                'title'        => _w('Subcategory grid mode'),
+                'description'  => _w('Use similar no-tree category navigation for subcategories too.').' '._w('(Mobile only. Not applicable to the wider desktop mode.)'),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+
+            'misc_section' => array(
+                'value'        => _w('Misc'),
+                'title'        => '',
+                'class'        => 'bold',
+                'control_type' => waHtmlControl::TITLE,
+                'custom_control_wrapper' => '<!-- %s --><div>%s %s</div>',
+                'custom_description_wrapper' => '<p class="small">%s</p>',
             ),
             'locale' => array(
                 'value'        => '',
@@ -187,6 +233,13 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 'control_type' => waHtmlControl::TEXTAREA,
                 'class'        => 'width-100',
             ),
+            'homepage_blocks' => array(
+                'control_type'      => 'shop_homepage_blocks', // see templates/actions/channels/shop_homepage_blocks.include.html
+                'product_sets'      => $product_sets,
+                'banner_promos'     => $banner_promos,
+                'banner_promos_map' => $banner_promos_map,
+                'storefront'        => $storefront,
+            ),
 
             'checkout_section' => array(
                 'value'        => _w('Checkout'),
@@ -241,6 +294,10 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             ),
 
         ];
+
+        $fields = $this->hideFieldsIfBlocks($fields, $values);
+
+        return $fields;
     }
 
     public function sanitizeAndValidateParams(?int $id, array &$params, $params_mode): array
@@ -261,6 +318,17 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                     'field' => 'data[params][storefront]',
                 ];
             }
+        }
+
+        if (array_key_exists('homepage_blocks', $params)) {
+            $storefront = ifset($params, 'storefront', null);
+            if ($storefront === null && $id > 0) {
+                $storefront = (string) (new shopSalesChannelParamsModel())->getOne($id, 'storefront');
+            }
+
+            $params['homepage_blocks'] = json_encode(
+                $this->normalizeHomepageBlocks($params['homepage_blocks'], (string) $storefront)
+            );
         }
 
         return array_values($errors);
@@ -287,6 +355,8 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'background_color_dark'  => 1,
             'border_radius'          => 1,
             'products_per_row'       => 1,
+            'category_grid'          => 1,
+            'subcategory_grid'       => 1,
             'homepage_promos'        => 1,
             'homepage_product_list'  => 1,
             'homepage_text_footer'   => 1,
@@ -299,6 +369,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'powered_by'             => 1,
         ]) + [
             'is_custom_bot' => !empty($params['bot_token']),
+            'homepage_blocks' => json_decode(ifempty($params, 'homepage_blocks', '[]')),
         ];
     }
 
@@ -347,5 +418,112 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 }
             }
         }
+    }
+
+    protected function getBannerPromosMap(array $storefronts): array
+    {
+        $result = [];
+        $promo_model = new shopPromoModel();
+
+        foreach (array_unique(array_filter($storefronts, 'strlen')) as $storefront) {
+            $result[$storefront] = array_values(array_filter(array_map(function($promo) {
+                if (empty($promo['image'])) {
+                    return null;
+                }
+
+                return [
+                    'id' => (int) $promo['id'],
+                    'name' => $promo['name'],
+                ];
+            }, $promo_model->getList([
+                'storefront' => $storefront,
+                'status' => shopPromoModel::STATUS_ACTIVE,
+                'rule_type' => 'banner',
+                'with_images' => true,
+            ]))));
+        }
+
+        return $result;
+    }
+
+    protected function normalizeHomepageBlocks($homepage_blocks, string $storefront): array
+    {
+        if (is_string($homepage_blocks)) {
+            $homepage_blocks = json_decode($homepage_blocks, true);
+        }
+
+        if (!is_array($homepage_blocks)) {
+            return [];
+        }
+
+        $banner_promos_map = $this->getBannerPromosMap([$storefront]);
+        $storefront_promos = isset($banner_promos_map[$storefront]) && is_array($banner_promos_map[$storefront])
+            ? $banner_promos_map[$storefront]
+            : [];
+        $allowed_promo_ids = array_flip(array_column($storefront_promos, 'id'));
+
+        $result = [];
+        foreach ($homepage_blocks as $block) {
+            if (!is_array($block) || empty($block['block_type'])) {
+                continue;
+            }
+
+            if ($block['block_type'] === 'promo') {
+                $selection_mode = ifset($block, 'selection_mode', 'all') === 'selected' ? 'selected' : 'all';
+                $normalized_block = [
+                    'block_type' => 'promo',
+                    'selection_mode' => $selection_mode,
+                ];
+
+                if ($selection_mode === 'selected') {
+                    $promo_ids = array_values(array_filter(
+                        array_map('intval', (array) ifset($block, 'promo_ids', [])),
+                        static function($promo_id) use ($allowed_promo_ids) {
+                            return $promo_id > 0 && isset($allowed_promo_ids[$promo_id]);
+                        }
+                    ));
+                    $normalized_block['promo_ids'] = $promo_ids;
+                }
+
+                $result[] = $normalized_block;
+                continue;
+            }
+
+            if ($block['block_type'] === 'productlist') {
+                $result[] = [
+                    'block_type' => 'productlist',
+                    'set_id' => (string) ifset($block, 'set_id', ''),
+                ];
+                continue;
+            }
+
+            $result[] = $block;
+        }
+
+        return $result;
+    }
+
+    /**
+     * Hide some fields if at least one block
+     *
+     * @param array $fields
+     * @return array
+     */
+    protected function hideFieldsIfBlocks(array $fields, $values = [])
+    {
+        $has_blocks = !empty($values['homepage_blocks']) && $values['homepage_blocks'] !== '[]';
+        $hidden_field_ids = ['homepage_promos','homepage_product_list','homepage_text_footer'];
+        foreach ($fields as $id => &$field) {
+            if (in_array($id, $hidden_field_ids)) {
+                if (!isset($field['class'])) {
+                    $field['class'] = '';
+                }
+                $field['class'] .= ' hide-if-blocks';
+                $field['class'] .= $has_blocks ? ' hide' : '';
+            }
+        }
+        unset($field);
+
+        return $fields;
     }
 }

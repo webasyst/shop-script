@@ -258,7 +258,7 @@
                 </script>
             </div>
 
-            <button type="submit"{if !$product_available} disabled="disabled"{/if} class="blink">{if $wa->shop->cart->total() > 0}[`Add to cart`]{else}[`Buy now`]{/if}</button>
+            <button type="submit"{if !$product_available} disabled="disabled"{/if} class="blink">[`Add to cart`]</button>
             <a href="{$wa->getUrl('shop/frontend/order')}" class="wa-flex-column align-items-center button gotocart-btn wa-hide">
                 <span class="">[`Added to cart`]</span>
                 <span class="smaller">[`View`]</span>

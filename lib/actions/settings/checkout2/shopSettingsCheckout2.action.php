@@ -30,6 +30,7 @@ class shopSettingsCheckout2Action extends shopSettingsCheckoutAbstractAction
             'shipping_show_pickuppoint_map_variants'   => $this->checkout_config->getShippingShowPickuppointMapVariants(),
             'customer_type_variants'                   => $this->checkout_config->getCustomerTypeVariants(),
             'customer_service_agreement_variants'      => $this->checkout_config->getCustomerServiceAgreementVariants(),
+            'shipping_service_agreement_variants'      => $this->checkout_config->getShippingServiceAgreementVariants(),
             'cart_discount_item_variants'              => $this->checkout_config->getCartDiscountItemVariants(),
             'cart_discount_general_variants'           => $this->checkout_config->getCartDiscountGeneralVariants(),
             'confirmation_order_without_auth_variants' => $this->checkout_config->getConfirmationOrderWithoutAuthVariants(),

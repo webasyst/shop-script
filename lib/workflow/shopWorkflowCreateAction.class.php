@@ -30,11 +30,11 @@ class shopWorkflowCreateAction extends shopWorkflowAction
                             $contact = new waContact($contact_id);
                             $this->mergeContactData($contact, $contact_data);
                         }
-                        $contact->save();
-                    } else {
-                        // create new contact
-                        $contact->save();
                     }
+                    if (!$contact->getId()) {
+                        $contact['create_method'] = shopCustomer::getContactCreateMethod($data);
+                    }
+                    $contact->save();
                     // if user has been created
                     if ($contact['password'] && (empty($contact_id) || empty($is_password))) {
 

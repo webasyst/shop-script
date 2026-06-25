@@ -129,12 +129,13 @@ class shopCategoryModel extends waNestedSetModel
             }
         }
 
-        if ($escape) {
-            foreach ($data as &$item) {
+        foreach ($data as &$item) {
+            $item['thumb'] = shopCategoryHelper::getThumbInfo($item);
+            if ($escape) {
                 $item['name'] = htmlspecialchars($item['name']);
             }
-            unset($item);
         }
+        unset($item);
         return $data;
     }
 

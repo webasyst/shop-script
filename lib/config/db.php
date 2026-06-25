@@ -91,6 +91,7 @@ return array(
         'meta_title' => array('varchar', 255),
         'meta_keywords' => array('text'),
         'meta_description' => array('text'),
+        'thumb_ext' => array('varchar', 8),
         'type' => array('int', 1, 'null' => 0, 'default' => '0'),
         'url' => array('varchar', 255),
         'full_url' => array('varchar', 255),

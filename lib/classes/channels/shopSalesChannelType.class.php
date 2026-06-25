@@ -216,6 +216,19 @@ abstract class shopSalesChannelType
             throw new waException('Control type not specified');
         }
 
+        if ($field_config['control_type'] === 'shop_homepage_blocks') {
+            $view = wa('shop')->getView();
+            $view->assign([
+                'field_name' => "data[params][{$field_name}]",
+                'field_value' => $field_value,
+                'product_sets' => ifset($field_config, 'product_sets', []),
+                'banner_promos' => ifset($field_config, 'banner_promos', []),
+                'banner_promos_map' => ifset($field_config, 'banner_promos_map', []),
+                'storefront' => ifset($field_config, 'storefront', ''),
+            ]);
+            return $view->fetch('file:templates/actions/channels/shop_homepage_blocks.include.html');
+        }
+
         $field_config['value'] = $field_value;
         return waHtmlControl::getControl($field_config['control_type'], $field_name, $field_config);
     }

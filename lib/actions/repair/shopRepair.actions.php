@@ -560,126 +560,26 @@ SQL;
     /** Restore magic for generating thumbs on demand */
     public function thumbAction()
     {
-        $app_id = 'shop';
-        $target_path = wa()->getDataPath('products/', true, $app_id);
-        $source_path = wa()->getAppPath('lib/config/data/', $app_id);
-
-// generate product thumb via php on demand
-        $target = $target_path.'thumb.php';
-        if (!file_exists($target)) {
-            $php_file = '<?php
-$file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/thumb.php";
-
-if (file_exists($file)) {
-    include($file);
-} else {
-    header("HTTP/1.0 404 Not Found");
-}
-';
-            waFiles::write($target, $php_file);
-            print "Restore thumb.php for product images\n";
-        } else {
-            print "File thumb.php for product images already exists\n";
-        }
-
-        $target = $target_path.'.htaccess';
-        if (!file_exists($target)) {
-            waFiles::copy($source_path.'.htaccess', $target);
-            print "Restore .htaccess for product images\n";
-
-        } else {
-            print "File .htaccess for product images already exists\n";
-        }
-
-// generate promos thumb via php on demand
-        $target_path = wa()->getDataPath('promos/', true, $app_id);
-
-        $target = $target_path.'thumb.php';
-        if (!file_exists($target)) {
-            $file = '<?php
-$file = dirname(__FILE__)."/../../../../"."wa-apps/shop/lib/config/data/promos.thumb.php";
-
-if (file_exists($file)) {
-    include($file);
-} else {
-    header("HTTP/1.0 404 Not Found");
-}
-';
-            waFiles::write($target, $file);
-            print "Restore thumb.php for promos\n";
-        } else {
-            print "File thumb.php for promos already exists\n";
-        }
-
-
-        $target = $target_path.'.htaccess';
-        if (!file_exists($target)) {
-            waFiles::copy($source_path.'.htaccess', $target);
-            print "Restore .htaccess for promos\n";
-        } else {
-            print "File .htaccess for promos already exists\n";
-        }
+        $result = (new shopInstaller())->ensureThumbPhp();
+        print $result ? "OK" : 'Unable to write at least one of the files.';
     }
 
+    /**
+     * @deprecated since 12.4.0
+     * @see shopInstaller::ensureThumbPhp()
+     */
     public static function createProductsRequiredFiles()
     {
-        $names = array(
-            'dir' => 'products/',
-            'file' => 'thumb.php'
-        );
-        return self::createRequiredFiles($names);
+        return (new shopInstaller())->ensureThumbPhp('products');
     }
 
+    /**
+     * @deprecated since 12.4.0
+     * @see shopInstaller::ensureThumbPhp()
+     */
     public static function createPromosRequiredFiles()
     {
-        $names = array(
-            'dir' => 'promos/',
-            'file' => 'promos.thumb.php'
-        );
-        return self::createRequiredFiles($names);
-    }
-
-    private static function createRequiredFiles($names)
-    {
-        $app_id = 'shop';
-        $target_path = wa()->getDataPath($names['dir'], true, $app_id);
-        $source_path = wa()->getAppPath('lib/config/data/', $app_id);
-
-        $thumb_path = $target_path.'thumb.php';
-        if (!file_exists($thumb_path)) {
-            // TODO: number of `/..` parts should depend on parts in `$names['dir']`
-            // but so far they both happen to be of the same length
-            $php_file = '<?php
-$file = dirname(__FILE__)."/../../../../"."/wa-apps/shop/lib/config/data/' . $names['file'] . '";
-
-if (file_exists($file)) {
-    include($file);
-} else {
-    header("HTTP/1.0 404 Not Found");
-}
-';
-            try {
-                waFiles::write($thumb_path, $php_file);
-            } catch (Exception $e) {
-                return false;
-            }
-        }
-
-        $htaccess_path = $target_path.'.htaccess';
-
-        if (!file_exists($htaccess_path)) {
-            try {
-                waFiles::copy($source_path.'.htaccess', $htaccess_path);
-            } catch (Exception $e) {
-                return false;
-            }
-        }
-
-        if (file_exists($thumb_path) && file_exists($htaccess_path)) {
-            return true;
-        } else {
-            return false;
-        }
+        return (new shopInstaller())->ensureThumbPhp('promos');
     }
 
     private function removeEmptyPaths($path, &$counter, $base_path = null)

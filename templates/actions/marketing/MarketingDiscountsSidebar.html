@@ -69,3 +69,17 @@
         </div>
     </div>
 </div>
+
+<script>
+    window.initMobileSidebar = () => {
+        $.shop.initMobileSidebar({
+            $sidebar: $("#js-discounts-page .sidebar"),
+            $content: $("#js-discounts-page .s-page-content"),
+            openAfterReload: true,
+            storageId: 'discounts',
+            appendButtonBack ($defaultButtonBack) {
+                return $defaultButtonBack.insertBefore($("#js-discounts-page h1.s-title"));
+            }
+        });
+    };
+</script>

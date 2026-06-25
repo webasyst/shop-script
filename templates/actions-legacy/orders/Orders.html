@@ -149,6 +149,11 @@
                 <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="wapay" title="[`Close`]">&times;</a>
                 {include file="templates/includes/waPayAd.html" inline}
             </div>
+        {elseif !empty($show_ai_ad)}
+            <div class="s-tiny-ad-box">
+                <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="ai" title="[`Close`]">&times;</a>
+                {include file="templates/includes/waAiAd.html" inline}
+            </div>
         {/if}
     {/if}
 </div>

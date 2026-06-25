@@ -5,12 +5,7 @@
     {if $is_orders_empty}
         <p class="gray {if $target !== 'body'}small{/if}">[`New orders will start to land here shortly.`]</p>
         {if !$is_view_split_pos}
-            {if shopHelper::isSettingsMarketplacesSectionVisible()}
-                <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="{$wa_app_url}?action=settings#/marketplaces/">[`Set up sales channels`]</a>
-                <a class="button rounded custom-mt-16 nobutton{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
-            {else}
-                <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
-            {/if}
+            <a class="button rounded light-gray{if $target !== 'body'} small{/if}" href="[`https://support.webasyst.com/shop-script/45384/getting-your-first-sale/`]" target="_blank">[`How to get my first order`] <i class="fas fa-external-link-alt opacity-50 fa-xs"></i></a>
         {/if}
     {else}
         <p class="gray {if $target !== 'body'}small{/if}">[`There are no orders in this view.`]</p>
@@ -82,9 +77,9 @@
                 <div class="s-kanban__list">
                     <div class="flexbox middle custom-p-12">
                         <div class="wide text-ellipsis" style="color:green;" data-wa-tooltip-content="">
-                            <span class="s-status-wrapper large nowrap">
-                                <img src="{$_assigned_user.photo_50x50}" class="userpic userpic-32">
-                                {$_assigned_user.name|escape}
+                            <span class="s-status-wrapper nowrap flexbox middle space-8">
+                                <img src="{$_assigned_user.photo_50x50}" class="userpic userpic-20">
+                                <span class="semibold">{$_assigned_user.name|escape}</span>
                             </span>
                         </div>
                         <div>
@@ -379,6 +374,11 @@
                 <div class="s-tiny-ad-box">
                     <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="wapay" title="[`Close`]">&times;</a>
                     {include file="templates/includes/waPayAd.html" inline}
+                </div>
+            {elseif !empty($show_ai_ad)}
+                <div class="s-tiny-ad-box">
+                    <a href="javascript:void(0)" class="s-tiny-ad-close" data-key="ai" title="[`Close`]">&times;</a>
+                    {include file="templates/includes/waAiAd.html" inline}
                 </div>
             {/if}
         </div>

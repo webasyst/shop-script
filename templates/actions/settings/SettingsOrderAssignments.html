@@ -175,11 +175,13 @@
             </div>
             <div class="custom-my-8{if ifset($rule, 'rule_data', 'assignment', '') != 'user_low_busy'} hidden{/if} user_low_busy">
                 {$group_id = ifset($rule, 'rule_data', 'user_group', '')}
-                <select name="rules[{$rule_id}][rule_data][user_group]" class="js-user-group-selector"{if $rule && $rule.rule_data.assignment != 'user_low_busy'} disabled{/if}>
-                    {foreach $user_groups as $_group}
-                    <option value="{$_group.id}"{if $group_id == $_group.id} selected{/if}>{$_group.name|escape}</option>
-                    {/foreach}
-                </select>
+                <div class="wa-select small">
+                    <select name="rules[{$rule_id}][rule_data][user_group]" class="js-user-group-selector text-ellipsis width-100"{if $rule && $rule.rule_data.assignment != 'user_low_busy'} disabled{/if}>
+                        {foreach $user_groups as $_group}
+                        <option value="{$_group.id}"{if $group_id == $_group.id} selected{/if}>{$_group.name|escape}</option>
+                        {/foreach}
+                    </select>
+                </div>
             </div>
         </td>
         <td class="valign-top">

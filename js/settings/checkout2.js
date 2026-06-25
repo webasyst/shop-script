@@ -538,7 +538,8 @@ var ShopSettingsCheckout2 = ( function($) {
 
         // Init service agreement
         $service_agreement.on('change', function () {
-            if (this.checked) {
+            const value = $(this).val();
+            if (value) {
                 $service_agreement_hint.show();
             } else {
                 $service_agreement_hint.hide();

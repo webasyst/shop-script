@@ -1,0 +1,503 @@
+{*
+ * This is a template for control_type === 'shop_homepage_blocks'
+ *}
+
+<style>
+.s-block-section { border-radius: 0.875em; border: 0.125rem dashed var(--light-gray); padding: .75em .5em .75em 1em; }
+.s-block-section:not(:last-child) { margin-bottom: .75em; }
+.s-block-section .s-hidden-action { display: none; }
+.s-block-section.sortable-ghost { opacity: .45; }
+.s-block-section.sortable-drag { cursor: grabbing; }
+.s-block-section .js-sort-handle { cursor: grab; }
+.s-block-section .js-sort-handle:active { cursor: grabbing; }
+.s-block-section .js-sort-handle.is-disabled { opacity: .45; cursor: default; }
+.s-block-section .js-sort-handle.is-disabled .fas { cursor: default; }
+.s-homepage-block-field:not(:last-child) { margin-bottom: .25rem; }
+.s-homepage-block-field .hint { margin-top: .35rem; }
+.s-homepage-block-field select.width-100 { max-width: 32rem; }
+.s-homepage-block-field .js-promo-empty-hint { display: none; }
+.s-promo-checkbox-list { max-width: 32rem; max-height: 14rem; overflow-y: auto; padding: .5rem .75rem; border: 1px solid #ddd; border-radius: .5rem; }
+.s-promo-checkbox-item { display: block; margin: 0 0 .5rem; }
+.s-promo-checkbox-item:last-child { margin-bottom: 0; }
+</style>
+
+{capture assign="_template_row"}
+    <div class="s-block-section">
+        <header>
+            <div class="flexbox full-width middle custom-mb-8">
+                <div class="custom-mr-8">
+                    <span class="js-sort-handle cursor-grab text-light-gray" title="[`Sort`]">
+                        <i class="fas fa-grip-vertical"></i>
+                    </span>
+                </div>
+                <div class="wide">
+                    <h5 class="s-title js-header-name"></h5>
+                </div>
+                <div>
+                    <div class="s-actions">
+                        <a class="button rounded smaller light-gray js-edit-link" href="javascript:void(0);">
+                            <i class="fas fa-pencil-alt text-blue"></i>
+                            <span class="desktop-and-tablet-only">[`Edit`]</span>
+                        </a>
+                        <a class="button rounded smaller light-gray s-hidden-action js-cancel-edit-link" href="javascript:void(0);">
+                            [`Cancel`]
+                        </a>
+                        <a class="button rounded smaller light-gray js-delete-link" href="javascript:void(0);">
+                            <i class="fas fa-trash-alt text-red"></i>
+                            <span class="desktop-and-tablet-only">[`Delete`]</span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </header>
+        <div class="js-block-body" style="display: none;"></div>
+    </div>
+{/capture}
+
+{capture assign="_template_promo"}
+    {$promo_select_size = 3}
+    {if count($banner_promos) > $promo_select_size}
+        {$promo_select_size = count($banner_promos)}
+    {/if}
+    <div class="s-homepage-block-field">
+        <select class="js-promo-selection-mode width-100">
+            <option value="all">[`All promos of this storefront`]</option>
+            <option value="selected">[`Selected promos only`]</option>
+        </select>
+    </div>
+    <div class="s-homepage-block-field js-promo-select-wrapper" style="display:none;">
+        <div class="small bold">[`Banner slider`]</div>
+        <div class="s-promo-checkbox-list js-promo-checkbox-list">
+            {foreach $banner_promos as $promo}
+                <label class="s-promo-checkbox-item break-word">
+                    <input class="js-promo-checkbox" type="checkbox" value="{$promo.id|escape}">
+                    {$promo.name|escape}
+                </label>
+            {/foreach}
+        </div>
+        <p class="hint js-promo-empty-hint" data-empty-storefront-hint="[`Select a storefront to fetch promos.`]" data-empty-promos-hint="[`No promos are enabled for the selected storefront.`]">
+            {if $banner_promos}
+                [`No promos are enabled for the selected storefront.`]
+            {elseif $storefront}
+                [`No promos are enabled for the selected storefront.`]
+            {else}
+                [`Select a storefront to fetch promos.`]
+            {/if}
+        </p>
+    </div>
+{/capture}
+{capture assign="_template_productlist"}
+    <div class="s-homepage-block-field">
+        <select class="js-productlist-select width-100">
+            <option value="">[`Select product set`]</option>
+            {foreach $product_sets as $set}
+                <option value="{$set.id|escape}">{$set.name|escape} ({$set.id|escape})</option>
+            {/foreach}
+        </select>
+    </div>
+{/capture}
+{capture assign="_template_stories"}
+    <strong>Stories-like promos.</strong>
+{/capture}
+{capture assign="_template_text"}
+    <div class="hint custom-my-4">
+        [`Any custom text block (HTML is allowed).`]
+    </div>
+    <textarea></textarea>
+{/capture}
+{capture assign="_template_auth"}
+    <strong>Auth block</strong>
+{/capture}
+
+{$wrapper_attr_id = str_replace('.', '-', uniqid('js-homepage-blocks-wrapper', true))}
+<div id="{$wrapper_attr_id|escape}">
+
+    <p class="small hide-if-blocks{if !empty($field_value) && $field_value !== '[]'} hidden{/if}">[`Or make up a custom homepage layout made up of blocks:`]</p>
+
+    <input class="js-field-value" type="hidden" name="{$field_name|escape}" value="{$field_value|escape}">
+    <div class="dropdown js-dropdown custom-mb-4">
+        <a href="javascript:void(0);" class="dropdown-toggle button small rounded light-gray">
+            <i class="fas fa-plus-circle text-green"></i> [`Add block`]
+        </a>
+        <div class="dropdown-body">
+            <ul class="menu"></ul>
+        </div>
+    </div>
+
+    <div class="js-block-forms">
+    </div>
+
+</div>
+
+
+
+
+
+
+{* maybe move JS to a separate file
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/channels/homepage_blocks.js?{$wa->version()}"></script>
+*}
+
+<script type="text/javascript">(function(){ "use strict";
+    const row_template = get_row_template();
+    const sub_templates = get_sub_templates();
+    const banner_promos_map = {$banner_promos_map|default:[]|json_encode};
+    const wa_url = {$wa_url|json_encode};
+
+    const $wrapper = $('#'+{$wrapper_attr_id|json_encode});
+    const $field_value_hidden_input = $wrapper.find('.js-field-value').first();
+    const $form = $wrapper.closest('form');
+    const $blocks_container = $wrapper.find('.js-block-forms').first();
+    let sortable_instance = null;
+
+    // Init "Add block" dropdown and its on-click
+    $.each(sub_templates, function(id, data) {
+        var $li = $('<li>');
+        var $a = $('<a href="javascript:void(0);">').click(function() {
+            let $b = addBlock(id, data);
+            makeBlockVisible($b);
+            return false;
+        }).text(data.name);
+        $wrapper.find('.dropdown-body > ul').append($li.append($a));
+    });
+    $(".js-dropdown").waDropdown();
+    initBlocksSorting();
+
+    // Block header buttons
+    $wrapper.on('click', '.js-edit-link', function() {
+        makeBlockVisible($(this).closest('.s-block-section'));
+    });
+    $wrapper.on('click', '.js-cancel-edit-link', function() {
+        makeBlockHidden($(this).closest('.s-block-section'));
+    });
+    $wrapper.on('click', '.js-delete-link', function() {
+        deleteBlock($(this).closest('.s-block-section'));
+    });
+
+    // init saved blocks
+    get_saved_values().forEach(function(value) {
+        try {
+            if (!value?.block_type || !sub_templates[value.block_type]) {
+                console.error('Unable to initialize block, template not found', value);
+                return;
+            }
+
+            let $b = addBlock(value.block_type, sub_templates[value.block_type]);
+            sub_templates[value.block_type].setValue($b.find('.js-block-body'), value);
+        } catch (e) {
+            console.error('Unable to initialize block', value, e);
+        }
+    });
+
+    // save blocks
+    $form.on('save_request', function() {
+        var result = [];
+        $blocks_container.children('.s-block-section').each(function() {
+            const $block_body = $(this).find('.js-block-body').first();
+            let id = $block_body.data('block_type');
+            if (!sub_templates[id]) {
+                console.error('Unable save block, template not found', id);
+                return;
+            }
+            try {
+                let value = sub_templates[id].getValue($block_body);
+                value = value || {};
+                value.block_type = id;
+                result.push(value);
+            } catch (e) {
+                console.error('Unable to save block', id, e);
+            }
+        });
+
+        $field_value_hidden_input.val(JSON.stringify(result));
+    });
+
+    function addBlock(id, data, is_visible) {
+        const $result = $(row_template);
+        const $block_body = $result.find('.js-block-body');
+        $block_body.append($(data.html)).data('block_type', id);
+        $result.find('.js-header-name').text(data.name);
+        $blocks_container.append($result);
+        if (id === 'promo') {
+            renderPromoOptions($block_body, []);
+            updatePromoSelectionMode($block_body, 'all');
+        }
+        syncSortState();
+        changeSubmit();
+        return $result;
+    }
+
+    function makeBlockVisible($block_section)
+    {
+        $block_section.data('is_visible', true);
+        $block_section.find('.js-edit-link').addClass('s-hidden-action');
+        $block_section.find('.js-cancel-edit-link').removeClass('s-hidden-action');
+        $block_section.find('.js-block-body').show();
+    }
+
+    function makeBlockHidden($block_section)
+    {
+        $block_section.data('is_visible', false);
+        $block_section.find('.js-edit-link').removeClass('s-hidden-action');
+        $block_section.find('.js-cancel-edit-link').addClass('s-hidden-action');
+        $block_section.find('.js-block-body').hide();
+    }
+
+    function deleteBlock($block_section)
+    {
+        $block_section.remove();
+        syncSortState();
+        changeSubmit();
+    }
+
+    function get_saved_values() {
+        try {
+            return JSON.parse($field_value_hidden_input.val()) || [];
+        } catch (e) {
+            return [];
+        }
+    }
+
+    function get_row_template() {
+        return $.trim({$_template_row|json_encode});
+    }
+
+    function updatePromoSelectionMode($block_body, mode) {
+        mode = mode === 'selected' ? 'selected' : 'all';
+        $block_body.find('.js-promo-selection-mode').val(mode);
+        $block_body.find('.js-promo-select-wrapper').toggle(mode === 'selected');
+        updatePromoSelectState($block_body);
+    }
+
+    function getCurrentStorefront() {
+        return $form.find('[name="data[params][storefront]"]').val() || '';
+    }
+
+    function getStorefrontPromos(storefront) {
+        return Array.isArray(banner_promos_map[storefront]) ? banner_promos_map[storefront] : [];
+    }
+
+    function renderPromoOptions($block_body, selected_ids) {
+        selected_ids = Array.isArray(selected_ids) ? selected_ids.map(String) : [];
+
+        const promos = getStorefrontPromos(getCurrentStorefront());
+        const $list = $block_body.find('.js-promo-checkbox-list');
+
+        $list.empty();
+        promos.forEach(function(promo) {
+            const $label = $('<label class="s-promo-checkbox-item break-word">');
+            $('<input type="checkbox" class="js-promo-checkbox">')
+                .val(String(promo.id))
+                .prop('checked', selected_ids.indexOf(String(promo.id)) >= 0)
+                .appendTo($label);
+            $label.append(document.createTextNode(' ' + promo.name));
+            $list.append($label);
+        });
+    }
+
+    function updatePromoSelectState($block_body) {
+        const storefront = getCurrentStorefront();
+        const promos = getStorefrontPromos(storefront);
+        const is_selected_mode = $block_body.find('.js-promo-selection-mode').val() === 'selected';
+        const $checkboxes = $block_body.find('.js-promo-checkbox');
+        const $list = $block_body.find('.js-promo-checkbox-list');
+        const $empty_hint = $block_body.find('.js-promo-empty-hint');
+
+        $checkboxes.prop('disabled', !is_selected_mode || !promos.length);
+        $list.toggle(is_selected_mode && !!promos.length);
+        $empty_hint.toggle(is_selected_mode && !promos.length);
+
+        if (!promos.length) {
+            $empty_hint.text(storefront ? $empty_hint.data('empty-promos-hint') : $empty_hint.data('empty-storefront-hint'));
+        }
+    }
+
+    function refreshPromoBlocks() {
+        $wrapper.find('.js-block-body').each(function() {
+            const $block_body = $(this);
+            if ($block_body.data('block_type') !== 'promo') {
+                return;
+            }
+
+            const selected_ids = $block_body.find('.js-promo-checkbox:checked').map(function() {
+                return this.value;
+            }).get();
+            renderPromoOptions($block_body, selected_ids);
+            updatePromoSelectState($block_body);
+        });
+    }
+
+    function initBlocksSorting() {
+        defineSortable().done(function() {
+            if (sortable_instance || !$blocks_container.length || typeof Sortable === 'undefined') {
+                syncSortState();
+                return;
+            }
+
+            sortable_instance = Sortable.create($blocks_container[0], {
+                animation: 150,
+                draggable: '.s-block-section',
+                handle: '.js-sort-handle',
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                forceFallback: false,
+                onStart: function() {
+                    document.body.style.userSelect = 'none';
+                },
+                onEnd: function() {
+                    document.body.style.userSelect = '';
+                }
+            });
+
+            syncSortState();
+        });
+    }
+
+    function syncSortState() {
+        const block_count = $blocks_container.children('.s-block-section').length;
+        const is_sort_enabled = block_count > 1;
+
+        $blocks_container.find('.js-sort-handle')
+            .toggleClass('is-disabled', !is_sort_enabled)
+            .prop('disabled', !is_sort_enabled);
+
+        if (sortable_instance) {
+            sortable_instance.option('disabled', !is_sort_enabled);
+        }
+
+        setTimeout(() => {
+            const block_count = $blocks_container.children('.s-block-section').length;
+            const $paragraphs = $form.find('p.hide-if-blocks');
+            const $inputs = $form.find('.hide-if-blocks').not($paragraphs);
+            const $fields = $inputs.closest('.field');
+
+            if (block_count === 1) {
+                $fields.slideUp(350);
+                $paragraphs.addClass('hidden');
+            } else if (block_count === 0) {
+                $fields.slideDown(350);
+                $paragraphs.removeClass('hidden');
+            }
+        });
+    }
+
+    function defineSortable() {
+        const dfd = $.Deferred();
+
+        if (typeof Sortable !== 'undefined') {
+            dfd.resolve();
+            return dfd.promise();
+        }
+
+        const $script = $('#wa-header-js');
+        const path = $script.length
+            ? $script.attr('src').replace(/wa-content\/js\/jquery-wa\/wa\.header(?:-legacy)?\.js.*$/, '')
+            : wa_url;
+
+        const urls = [
+            'wa-content/js/sortable/sortable.min.js',
+            'wa-content/js/sortable/jquery-sortable.min.js'
+        ];
+
+        urls.reduce(function(chain, url) {
+            return chain.then(function() {
+                return $.ajax({
+                    cache: true,
+                    dataType: 'script',
+                    url: path + url
+                });
+            });
+        }, $.Deferred().resolve()).done(function() {
+            dfd.resolve();
+        }).fail(function() {
+            console.error('Unable to load SortableJS for homepage blocks');
+            dfd.reject();
+        });
+
+        return dfd.promise();
+    }
+
+    function get_sub_templates() {
+        return {
+            promo: {
+                name: {_w('Banner slider')|json_encode},
+                html: $.trim({$_template_promo|json_encode}),
+                getValue($block_body) {
+                    const selection_mode = $block_body.find('.js-promo-selection-mode').val() === 'selected' ? 'selected' : 'all';
+                    const result = {
+                        selection_mode: selection_mode
+                    };
+                    if (selection_mode === 'selected') {
+                        result.promo_ids = $block_body.find('.js-promo-checkbox:checked').map(function() {
+                            return parseInt(this.value, 10);
+                        }).get().filter(function(id) {
+                            return !isNaN(id);
+                        });
+                    }
+                    return result;
+                },
+                setValue($block_body, value) {
+                    const selection_mode = value?.selection_mode === 'selected' ? 'selected' : 'all';
+                    const promo_ids = Array.isArray(value?.promo_ids) ? value.promo_ids.map(String) : [];
+                    renderPromoOptions($block_body, promo_ids);
+                    updatePromoSelectionMode($block_body, selection_mode);
+                }
+            },
+            productlist: {
+                name: {_w('Product list')|json_encode},
+                html: $.trim({$_template_productlist|json_encode}),
+                getValue($block_body) {
+                    return {
+                        set_id: $block_body.find('.js-productlist-select').val() || ''
+                    };
+                },
+                setValue($block_body, value) {
+                    $block_body.find('.js-productlist-select').val(value?.set_id || '');
+                }
+            },
+            // stories: {
+            //     name: {_w('Stories')|json_encode},
+            //     html: $.trim({$_template_stories|json_encode}),
+            //     getValue($block_body) {
+            //         return {}; // TODO
+            //     },
+            //     setValue($block_body, value) {
+            //         // TODO
+            //     }
+            // },
+            text: {
+                name: {_w('HTML block')|json_encode},
+                html: $.trim({$_template_text|json_encode}),
+                getValue($block_body) {
+                    return {
+                        'value': $block_body.find('textarea').val()
+                    };
+                },
+                setValue($block_body, value) {
+                    $block_body.find('textarea').val(value.value)
+                }
+            },
+            // auth: {
+            //     name: {_w('Customer authorization')|json_encode},
+            //     html: $.trim({$_template_auth|json_encode}),
+            //     getValue($block_body) {
+            //         return {}; // TODO
+            //     },
+            //     setValue($block_body, value) {
+            //         // TODO
+            //     }
+            // },
+        };
+    }
+
+    function changeSubmit() {
+        $form.trigger('change');
+    }
+
+    $wrapper.on('change', '.js-promo-selection-mode', function() {
+        updatePromoSelectionMode($(this).closest('.js-block-body'), $(this).val());
+    });
+    $form.on('change', '[name="data[params][storefront]"]', function() {
+        refreshPromoBlocks();
+    });
+}());</script>

@@ -28,7 +28,7 @@ class shopMarketingPromoAiGenerateBannerController extends waJsonController
         if (!$image_prompt && !$source_image_filename) {
             $this->errors[] = [
                 'id' => 'invalid_request',
-                'text' => _w('Please describe in few words what should be there on a banner.'),
+                'text' => _w('Please describe in a few words what should be there on a banner.'),
             ];
             return;
         }

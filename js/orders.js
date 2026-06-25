@@ -4,6 +4,7 @@
         $wrapper: null,
         pre_search_hash: null,
         search_item_param: null,
+        processing_states_value: 'new|processing|auth|paid|pickup|fulfilling|shipped',
         options: {
             view: 'table'      // default view
         },
@@ -88,6 +89,7 @@
             this.initEventsVisibilityFilters();
 
             this.initDropdown();
+            this.initProcessingOrdersCheckbox();
 
             // sync with app counters
             $(document).bind('wa.appcount', function(event, data) {
@@ -138,6 +140,7 @@
 
             this.$wrapper.on('wa_init_orders_nav_after', (e, options) => {
                 this.initSearch(options.filter_params_extended);
+                this.syncProcessingOrdersCheckboxState();
 
                 if (this.hasFiltersInUrl()) {
                     if (options.view === 'split') {
@@ -159,6 +162,135 @@
             });
         },
 
+        initProcessingOrdersCheckbox: function() {
+            const checkboxSelector = '.js-only-processing-orders';
+
+            $(document)
+                .off('change.processingOrdersCheckbox', checkboxSelector)
+                .on('change.processingOrdersCheckbox', checkboxSelector, (event) => {
+                    const role = this.getCurrentKanbanUsersRole();
+                    const targetHash = this.buildKanbanUsersHash(role, event.currentTarget.checked);
+
+                    this.navigateToOrdersHash(targetHash);
+                });
+
+            this.syncProcessingOrdersCheckboxState();
+        },
+
+        normalizeHash: function(hash) {
+            return (hash || '').replace(/(^[^#]*#\/*|\/$)/g, '');
+        },
+
+        getHashParams: function(hash) {
+            const normalized_hash = this.normalizeHash(hash).replace(/^orders\/?/, '');
+            return $.shop.helper.parseParams(normalized_hash || '');
+        },
+
+        hasProcessingOrdersFilter: function(hash) {
+            const params = this.getHashParams(hash);
+
+            return params.view === 'kanban-users' && params.state_id === this.processing_states_value;
+        },
+
+        getCurrentKanbanUsersRole: function(hash = window.location.hash) {
+            const params = this.getHashParams(hash);
+
+            if (params.view === 'kanban-users') {
+                return params.role || '';
+            }
+
+            const chip = $('.js-chip-user.accented').data('chip');
+            return chip && chip !== 'all' ? chip : '';
+        },
+
+        buildKanbanUsersHash: function(role = '', withProcessing = false) {
+            const params = ['view=kanban-users'];
+
+            if (role && role !== 'all') {
+                params.push('role=' + role);
+            }
+
+            if (withProcessing) {
+                params.push('state_id=' + this.processing_states_value);
+            }
+
+            return '#/orders/' + params.join('&') + '/';
+        },
+
+        syncKanbanUsersRoleLinks: function() {
+            const with_processing = this.hasProcessingOrdersFilter(window.location.hash);
+
+            $('.js-chip-user').each((index, chip) => {
+                const $chip = $(chip);
+                const $link = $chip.find('a');
+
+                if (!$link.length) {
+                    return;
+                }
+
+                const role = $chip.data('chip');
+                $link.attr('href', this.buildKanbanUsersHash(role, with_processing));
+            });
+        },
+
+        syncProcessingOrdersCheckboxState: function() {
+            const is_checked = this.hasProcessingOrdersFilter(window.location.hash);
+
+            $('.js-only-processing-orders').prop('checked', is_checked);
+            this.syncKanbanUsersRoleLinks();
+        },
+
+        navigateToOrdersHash: function(hash) {
+            const normalized_target_hash = this.normalizeHash(hash);
+            const normalized_current_hash = this.normalizeHash(window.location.hash);
+
+            if (!normalized_target_hash) {
+                return;
+            }
+
+            if (normalized_target_hash === normalized_current_hash) {
+                const params = normalized_target_hash.replace(/^orders\/?/, '');
+                this.ordersAction.apply(this, params ? params.split('/') : []);
+                this.syncProcessingOrdersCheckboxState();
+                return;
+            }
+
+            $.wa.setHash(hash);
+        },
+
+        buildSplitOrderHash: function(order_id) {
+            const normalized_hash = this.normalizeHash(window.location.hash);
+            const is_hash_route = normalized_hash.indexOf('orders/hash') === 0;
+            let params = [];
+
+            if (is_hash_route) {
+                if ($.order_list && $.order_list.filter_params_str) {
+                    params = params.concat(
+                        $.order_list.filter_params_str.split('&').filter(Boolean)
+                    );
+                }
+
+                if ($.order_list && $.order_list.sort && $.order_list.sort[0]) {
+                    params.push('sort[0]=' + $.order_list.sort[0]);
+                    params.push('sort[1]=' + ($.order_list.sort[1] || 'desc'));
+                }
+            } else {
+                params = normalized_hash
+                    .replace(/^orders\/?/, '')
+                    .split('&')
+                    .filter(Boolean);
+            }
+
+            params = params.filter(param => {
+                return param !== 'all' && !param.startsWith('id=') && !param.startsWith('view=');
+            });
+
+            params.unshift('view=split');
+            params.push('id=' + order_id);
+
+            return '#/orders/' + params.join('&') + '/';
+        },
+
         initSearch: function(filter_params_extended) {
             var that = this;
             var $search_input = $("#s-orders-search");
@@ -168,18 +300,23 @@
             var search_xhr = null;
 
             var onSelect = function(autocomplete_item) {
-                if (!that.pre_search_hash) {
+                if (autocomplete_item.autocomplete_item_type === 'order') {
+                    that.pre_search_hash = null;
+                    that.search_item_param = null;
+                } else if (!that.pre_search_hash) {
                     that.pre_search_hash = window.location.hash;
-
-                    if ($.order_list.options && $.order_list.options.view === 'split') {
+                    if ($.order_list.options && $.order_list.options.view === 'split' && autocomplete_item.autocomplete_item_type !== 'order') {
                         that.clearFilters();
                     }
                 }
 
                 switch (autocomplete_item.autocomplete_item_type) {
                     case 'order':
-                        that.search_item_param = null;
-                        $.wa.setHash('#/order/' + autocomplete_item.id + '/');
+                        if ($.order_list.options && $.order_list.options.view === 'split') {
+                            $.wa.setHash(that.buildSplitOrderHash(autocomplete_item.id));
+                        } else {
+                            $.wa.setHash('#/order/' + autocomplete_item.id + '/');
+                        }
                         $search_input.val(autocomplete_item.value);
                         break;
                     case 'contact':
@@ -715,6 +852,7 @@
 
         postExecute: function(actionName, attr) {
             this.actionName = actionName;
+            this.syncProcessingOrdersCheckboxState();
         },
 
         //

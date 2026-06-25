@@ -29,6 +29,7 @@ class shopFrontApiCategoryFormatter extends shopFrontApiFormatter
             //"sort_products" => "string",
             //"include_sub_categories" => "integer",
             //"status" => "integer",
+            "thumb" => 'object',
             "categories" => 'array',
             "filters" => "array",
         ];
@@ -41,6 +42,9 @@ class shopFrontApiCategoryFormatter extends shopFrontApiFormatter
             );
         }
 
+        if (!array_key_exists('thumb', $c)) {
+            $c['thumb'] = shopCategoryHelper::getThumbInfo($c);
+        }
         $c = array_intersect_key($c, $allowed_fields);
         $c = self::formatFieldsToType($c, $allowed_fields);
         if (isset($c['categories']) && is_array($c['categories'])) {

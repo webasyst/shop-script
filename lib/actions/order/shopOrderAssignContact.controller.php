@@ -60,6 +60,8 @@ class shopOrderAssignContactController extends waJsonController
         $this->response = true;
         if (!empty($update)) {
             $this->response = $order_model->updateById($order_id, $update);
+        }
+        if (!empty($param)) {
             $this->response = $this->response && $order_params_model->set($order_id, $param, false);
         }
     }

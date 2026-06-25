@@ -6,6 +6,7 @@ var ContentRouter = ( function($) {
         // DOM
         that.$window = $(window);
         that.$content = options["$content"];
+        that.$sidebar = options["$sidebar"];
 
         // CONST
         that.app_url = options["app_url"];
@@ -128,7 +129,9 @@ var ContentRouter = ( function($) {
             that.xhr = false;
 
             if (typeof that.on.loaded === "function") { that.on.loaded(that); }
-            $(document).trigger("wa_loaded");
+            if (that.$sidebar.hasClass('-active')) {
+                $(document).trigger("wa_loaded");
+            }
         }).fail(function(data) {
             if (data.responseText) {
                 console.log(data.responseText);

@@ -46,6 +46,8 @@ class shopProdCategoryDialogAction extends waViewAction
             'category' => &$category,
         ]));
 
+        $category['thumb'] = shopCategoryHelper::getThumbInfo($category);
+
         $this->view->assign([
             "parent_id" => $_parent_category_id,
             "category" => $category,

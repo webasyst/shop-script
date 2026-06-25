@@ -491,6 +491,11 @@ class shopOrder implements ArrayAccess
         return $result;
     }
 
+    public function __isset(string $name): bool
+    {
+        return $this->offsetExists($name);
+    }
+
     /**
      * Changes order property values without saving them to database.
      *
@@ -1761,8 +1766,11 @@ class shopOrder implements ArrayAccess
                 $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation', '', 'shop');
             }
 
-            if (!$this->contact->getId() && !empty($this->options['customer_is_company'])) {
-                $this->contact['is_company'] = 1;
+            if (!$this->contact->getId()) {
+                $this->contact['create_method'] = shopCustomer::getContactCreateMethod($this->data);
+                if (!empty($this->options['customer_is_company'])) {
+                    $this->contact['is_company'] = 1;
+                }
             }
 
             if (!empty($customer_validation_disabled)) {
@@ -3039,6 +3047,9 @@ class shopOrder implements ArrayAccess
                 $items = array();
                 $product_item = array();
                 foreach ($data as $index => $i) {
+                    if (isset($i['price']) && !empty($i['currency']) && $i['currency'] !== $this->currency) {
+                        $i['price'] = shop_currency($i['price'], $i['currency'], $this->currency, false);
+                    }
                     switch (ifset($i['type'])) {
                         case 'service':
                             $items[] = $this->formatItemService($i, $index, $product_item);

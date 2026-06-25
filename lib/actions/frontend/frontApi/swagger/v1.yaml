@@ -740,6 +740,32 @@ paths:
                     type: string
                     nullable: true
                     description: URL страницы оформления заказа в браузере — без использования Headless API; доступен, если такая возможность включена в настройках Shop-Script
+                  shipping_mode:
+                    type: string
+                    enum:
+                      - default
+                      - minimum
+                    description: Режим выбора региона доставки. default - один селектор стран и регионов (возможно, с ограничением по одной стране и/или региону); minimum - несколько вариантов с ограничением по стране, региону и/или городу. См. `shipping_locations`
+                  shipping_locations:
+                    type: array
+                    description: Список доступных локаций для доставки
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                          description: Название локации
+                        country:
+                          type: string
+                          description: 3-буквенный код страны
+                        region:
+                          type: string
+                          description: Код региона (если нет ограничения по регионам или у страны нет регионов, то null)
+                          nullable: true
+                        city:
+                          type: string
+                          description: Название населённого пункта (если нет ограничения по населённым пунктам, то null)
+                          nullable: true
                   sales_channel:
                     type: object
                     nullable: true
@@ -2381,6 +2407,13 @@ components:
         description:
           type: string
           description: Описание
+        thumb:
+          type: object
+          nullable: true
+          additionalProperties: true
+          properties:
+            default:
+              type: string
         categories:
           type: array
           nullable: true
@@ -2522,6 +2555,10 @@ components:
           type: string
           nullable: true
           description: Идентификатор варианта доставки
+        comment:
+          type: string
+          nullable: true
+          description: Не обязательный комментарий к заказу
         antispam_hash:
           type: string
           description: |

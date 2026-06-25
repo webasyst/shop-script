@@ -118,6 +118,20 @@ class shopTransferActions extends waJsonActions
 
         $spsm = new shopProductStocksModel();
         $stocks_info = $spsm->getByField(array('stock_id' => $from, 'sku_id'=> $ids), true);
+        $ids_map = array_flip($ids);
+        foreach ($stocks_info as $key => $stock) {
+            if (!isset($stock['count'])) return;
+            $count = floatval($stock['count']);
+            if ($count <= 0) {
+                $this->errors[] = array(
+                    'name' => "count[".$ids_map[$stock['sku_id']]."]",
+                    'msg' => _w('The product is out of stock.')
+                );
+            }
+        }
+        if ($this->errors) {
+            return false;
+        }
 
         //Replace count
         foreach ($stocks_info as $info) {

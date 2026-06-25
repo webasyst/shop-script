@@ -79,8 +79,8 @@ class shopColorValue implements ArrayAccess
                 if ($this->code === null) {
                     return null;
                 } else {
-                    $html = '<i class="icon16 color" style="background:%s;"></i>';
-                    return sprintf($html, $this->hex);
+                    $html = '<i class="icon16 color fas fa-circle" style="background:%s;color:%s;"></i>';
+                    return sprintf($html, $this->hex, $this->hex);
                 }
                 break;
             case 'compare':

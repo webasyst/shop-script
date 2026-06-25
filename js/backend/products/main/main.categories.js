@@ -1512,6 +1512,10 @@
             });
 
             $.vue_app.config.compilerOptions.whitespace = 'preserve';
+            /*$.vue_app.config.errorHandler = function(err, instance, info) {
+                console.error("Vue Error:", err);
+                console.log("Component Info:", info);
+            };//*/
 
             return $.vue_app.mount($vue_section[0]);
         };
@@ -2199,6 +2203,109 @@
                         "component-switch": that.vue_components["component-switch"],
                         "component-dropdown": that.vue_components["component-dropdown"],
                         "component-textarea": that.vue_components["component-textarea"],
+                        "component-category-thumb": {
+                            props: ['category', 'max_file_size'],
+                            template: that.components["component-category-thumb"],
+                            delimiters: ['{ { ', ' } }'],
+                            data: function() {
+                                var self = this;
+                                return {
+                                    file_to_upload: null,
+                                    progressbar_percent: 0,
+                                    is_locked: false,
+                                    errors: []
+                                };
+                            },
+                            methods: {
+                                // when user clicks a link to delete existing thumb
+                                fileDelete: function(event) {
+                                    var self = this;
+                                    if (!self.is_locked) {
+                                        var $icon = $(event.currentTarget).find(".s-icon"),
+                                            $loading = $('<span class="icon color-gray"><i class="fas fa-spinner fa-spin"></i></span>').insertAfter($icon.hide());
+
+                                        self.is_locked = true;
+
+                                        $.post(that.urls["category_thumb_delete"], {
+                                            category_id: self.category.id
+                                        }, "json").done(function() {
+                                            self.category.thumb = null;
+                                        }).always(function() {
+                                            self.is_locked = false;
+                                            $loading.remove();
+                                            $icon.show();
+                                        });
+                                    }
+                                },
+                                // when user selects a file in <input type="file">
+                                onFileChange: function(event) {
+                                    var self = this,
+                                        files = event.target.files;
+
+                                    if (files.length) {
+                                        self.progressbar_percent = 0;
+                                        self.file_to_upload = loadFile(files[0]);
+                                        if (self.file_to_upload) {
+                                            self.file_to_upload.done(function(response) {
+                                                if (response.status === "ok") {
+                                                    self.category.thumb = response.data.thumb;
+                                                } else if (response.errors) {
+                                                    if (typeof response.errors === 'string') {
+                                                        renderError({ id: 'unknown_error', text: response.errors });
+                                                    } else if (response.errors.text) {
+                                                        renderError(response.errors);
+                                                    } else {
+                                                        $.each(response.errors, function(i, error) {
+                                                            renderError(typeof error === 'string' ? { id: 'unknown_error', text: error } : error);
+                                                        });
+                                                    }
+                                                }
+                                            });
+                                        }
+                                    }
+
+                                    // clear
+                                    $(event.target).val("");
+                                    self.errors.splice(0, self.errors.length);
+
+                                    function loadFile(file) {
+                                        if (file.size >= that.max_file_size) {
+                                            renderError({ id: "big_size", text: "ERROR: file is too big" });
+                                            return null;
+                                        }
+
+                                        var formData = new FormData();
+
+                                        formData.append("category_id", self.category.id);
+                                        formData.append("file", file);
+
+                                        // Ajax request
+                                        return $.ajax({
+                                            xhr: function() {
+                                                var xhr = new window.XMLHttpRequest();
+                                                xhr.upload.addEventListener("progress", function(event){
+                                                    if (event.lengthComputable) {
+                                                        self.progressbar_percent = parseInt( (event.loaded / event.total) * 100 );
+                                                    }
+                                                }, false);
+                                                return xhr;
+                                            },
+                                            url: that.urls["category_thumb_upload"],
+                                            data: formData,
+                                            cache: false,
+                                            contentType: false,
+                                            processData: false,
+                                            type: 'POST'
+                                        }).always(function() {
+                                            self.file_to_upload = null;
+                                        });
+                                    }
+                                    function renderError(error) {
+                                        self.errors.push(error);
+                                    }
+                                }
+                            }
+                        },
                         "component-category-visible-storefronts": {
                             props: ["category", "storefronts"],
                             data: function() {
@@ -3520,6 +3627,10 @@
                 });
 
                 dialog.app.config.compilerOptions.whitespace = 'preserve';
+                /*dialog.app.config.errorHandler = function(err, instance, info) {
+                    console.error("Vue Error:", err);
+                    console.log("Component Info:", info);
+                };//*/
 
                 dialog.app.mount($section[0]);
 

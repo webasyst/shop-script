@@ -4,7 +4,7 @@
     {* BODY *}
     <div class="content flexbox">
             {if $plugins || !empty($installer)}
-                <div class="sidebar s-settings-order-states blank width-23rem" id="js-affiliate-plugins">
+                <div class="sidebar mobile-friendly s-settings-order-states blank width-23rem" id="js-affiliate-plugins">
                     <ul class="menu large">
                         <li class="selected">
                             <a class="js-disable-router" href="{$marketing_url}affiliate/"><i class="fas fa-award"></i><span>[`Loyalty program`]</span></a>
@@ -47,7 +47,7 @@
                 {/if}
 
                 <div id="affiliate-settings">
-                    <h1 style="margin: 0 0 0.75em;">[`Loyalty program`]</h1>
+                    <h1 class="custom-mt-4-mobile" style="margin: 0 0 0.75em;">[`Loyalty program`]</h1>
                     <p class="small">[`The bonus loyalty program allows you to stimulate returning customers’ order activity by rewarding them with bonus points for each paid order. Depending on your business model, you may offer additional discounts in exchange for earned points as well as directly pay out the earned bonuses to your customers.`]</p>
 
                     <form id="s-settings-affiliate-form" action="{$wa_app_url}?module=marketingAffiliateSave">
@@ -176,6 +176,15 @@
     <script>
         ( function($) { "use strict";
             $.shop.marketing.setTitle({_w("Loyalty program")|json_encode});
+
+            $.shop.initMobileSidebar({
+                $sidebar: $('#js-affiliate-plugins'),
+                $additionalLinks: $('#js-affiliate-plugins .hint a'),
+                storageId: 'affiliate',
+                appendButtonBack ($defaultButtonBack) {
+                    return $defaultButtonBack.insertBefore('#js-affiliate-page h1');
+                }
+            });
 
             const sources = [{
                 id: "wa-shop-marketing-affiliate-js",

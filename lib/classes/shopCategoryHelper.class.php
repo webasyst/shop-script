@@ -221,4 +221,77 @@ class shopCategoryHelper
 
         return $fields;
     }
+
+    /**
+     * Returns path (relative to wa-data/public or wa-data/protected) to directory containing category's files.
+     *
+     * @param int $category_id
+     * @return string
+     */
+    public static function getFolder(int $category_id): string
+    {
+        $str = str_pad($category_id, 4, '0', STR_PAD_LEFT);
+        return join('/', [
+            'categories',
+            substr($str, -2),
+            substr($str, -4, 2),
+            $category_id,
+            '',
+        ]);
+    }
+
+    /**
+     * Returns path to category's image filder or to $file inside it
+     *
+     * @param int $category_id
+     * @param string $file Sub-path of file or directory
+     * @param bool $public Whether path to either directly available or authorization-protected file/directory must be returned
+     * @return string
+     */
+    public static function getImagePath(int $category_id, string $file = '', bool $public = false): string
+    {
+        $path = self::getFolder($category_id).'images/'.(strlen($file) ? ltrim($file, '/') : '');
+        return wa()->getDataPath($path, $public, 'shop', false);
+    }
+
+    /**
+     * Returns URL to public category's image filder or to $file inside it
+     *
+     * @param int $category_id
+     * @param string $file Sub-path of file or directory
+     * @param bool $public Whether path to either directly available or authorization-protected file/directory must be returned
+     * @return string
+     */
+    public static function getImageUrl(int $category_id, string $file = '', bool $absolute=true): string
+    {
+        $path = self::getFolder($category_id).'images/'.(strlen($file) ? ltrim($file, '/') : '');
+        return wa()->getDataUrl($path, true, 'shop', $absolute);
+    }
+
+    public static function getThumbInfo(array $category): ?array
+    {
+        if (empty($category['thumb_ext'])) {
+            return null;
+        }
+        $result = [];
+        $app_config = wa('shop')->getConfig();
+        $v = strtotime(ifempty($category, 'edit_datetime', $category['create_datetime']));
+        $template = self::getImageUrl($category['id'], '0/0.%s.'.$category['thumb_ext'].'?v='.$v, true);
+        $allowed_sizes = $app_config->getOption('category_image_sizes');
+        $enable_2x = $app_config->getOption('enable_2x');
+        foreach ($allowed_sizes as $size) {
+            $result['url'.$size] = sprintf($template, $size);
+            if ($enable_2x) {
+                $result['url'.$size.'@2x'] = sprintf($template, $size.'@2x');
+            }
+            if (empty($result['default'])) {
+                // first image size in config is the default size
+                $result['default'] = $result['url'.$size];
+                if ($enable_2x) {
+                    $result['default@2x'] = $result['url'.$size.'@2x'];
+                }
+            }
+        }
+        return $result;
+    }
 }

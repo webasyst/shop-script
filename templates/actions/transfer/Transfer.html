@@ -106,6 +106,7 @@
                                                 <td class="valign-middle" style="min-width:60px;">
                                                     <a href="" class="s-product-name" target="_blank"></a>
                                                     <span class="s-sku-name hint"></span>
+                                                    <div class="s-sku-stock small"></div>
                                                 </td>
                                                 <td class="min-width nowrap">
                                                     &times;
@@ -190,17 +191,28 @@
             }
         }
 
-        var renderItem = function (data) {
-            var item = $('.s-transfer-product-item.s-tmpl', $wrapper).clone();
-            item.removeClass('s-tmpl');
+        var updateItemStaticDetails = function (item, data) {
             item.attr('data-id', data.id);
             item.find('a').attr('href', 'products/' + data.product_id + '/');
             const image_url = data.sku_image_url || data.image_url;
             if (image_url) {
                 item.find('img').removeClass('blank').attr('src', image_url);
             }
+
             item.find('.s-product-name').text(data.product_name);
             item.find('.s-sku-name').text(data.name || data.sku_code);
+
+            if (data.stock_html) {
+                item.find('.s-sku-stock').html(data.stock_html);
+            }
+        };
+
+        var renderItem = function (data) {
+            var item = $('.s-transfer-product-item.s-tmpl', $wrapper).clone();
+            item.removeClass('s-tmpl');
+
+            updateItemStaticDetails(item, data);
+
             item.find('[name="id[]"]').attr({
                 'disabled': false,
                 'name': 'id[' + count.toString() + ']'
@@ -347,7 +359,8 @@
         (function (select) {
             var last_selected = select.find('option:selected').val();
             select.change(function () {
-                var len = form.find('.s-transfer-products-list').children().length
+                var $list = form.find('.s-transfer-products-list').children();
+                var len = $list.length;
                 var current_selected = $(this).val();
 
                 var $stock_to = form.find('[name=to]');
@@ -366,6 +379,18 @@
                         cancel_button_class: 'light-gray',
                         onSuccess: function() {
                             last_selected = current_selected;
+                            const sku_ids = $.map($list, (el) => {
+                                return $(el).data('id');
+                            });
+                            const stock_id = $('[name=from]').val();
+
+                            $.getJSON('?module=transfer&action=skus', { stock_id, sku_ids }, (skus) => {
+                                if (!Array.isArray(skus)) return;
+                                skus.forEach(sku => {
+                                    const $item = $list.filter('[data-id="'+sku.id+'"]');
+                                    updateItemStaticDetails($item, sku);
+                                })
+                            });
                         },
                         onCancel: function() {
                             select.val(last_selected);

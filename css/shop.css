@@ -1261,7 +1261,7 @@ input.s-datepicker { width: 6.1em; }
     border-radius: 1rem;
 }
 .s-channels-content .field.light-mark .value {
-    background-color: #fff;
+    background-color: #f3f5fa;
     border-radius: 1rem;
 }
 .s-channels-content .field.dark-mark .value .wa-colorpicker-select li {
@@ -1288,6 +1288,9 @@ input.s-datepicker { width: 6.1em; }
 .s-channels-content .field.dark-mark .value .wa-colorpicker-input .color-replacer {
     border-color: rgba(255, 255, 255, 0.25);
 }
+.s-channels-content .fields .fields-group .field:has(> .value > .hide-if-blocks.hide) { display: none; }
+.s-channels-content .fields .fields-group .field:has(> .value > .hide-if-blocks:not(.hide)) { display: block; }
+
 /* Plugins
 ---------- */
 
@@ -1423,6 +1426,12 @@ and (orientation : portrait) {
     .s-promotion-alert .s-promotion-content { display: grid; }
     .s-promotion-alert .s-promotion-footer { display: flex; flex-direction: column-reverse; gap: 0.75rem; margin-top: 1rem !important; }
     .s-promotion-alert .s-promotion-pie-chart-wrapper { flex-direction: column-reverse; gap: 0.75rem; }
+
+    .s-coupon-border h1 { font-size: 1.75rem; }
+    .s-coupon-value { font-size: 1.25em; padding: 0.125rem 0.5rem; }
+
+    ._s-welcome-page .toggle.js-filling-store-toggle { max-width: calc(100vw - 6rem); }
+    ._s-welcome-page .chips .chip > span:last-child { display: inline-flex; max-width: calc(100vw - 10rem); overflow: hidden; }
 }
 
 .animated {

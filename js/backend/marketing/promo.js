@@ -13,6 +13,7 @@
             that.content_selector = ( options["content_class"] || ".js-content[data-id]" );
             that.active_toggle_class = ( options["active_toggle_class"] || "is-active" );
             that.onChange = ( typeof options["onChange"] === "function" ? options["onChange"] : function() {});
+            that.onBeforeTabChange = ( typeof options["onBeforeTabChange"] === "function" ? options["onBeforeTabChange"] : function() {});
 
             // DYNAMIC VARS
 
@@ -23,8 +24,14 @@
         TabToggle.prototype.init = function() {
             var that = this;
 
+            var onChange = ($toggle, toggle_id) => {
+                renderToggles($toggle);
+                var $content = renderContent(toggle_id);
+                that.onChange($toggle, $content);
+            };
             that.$wrapper.on("click", that.toggle_selector, function(event) {
                 event.preventDefault();
+                event.stopPropagation();
 
                 var $toggle = $(this),
                     toggle_id = $toggle.data("id");
@@ -33,9 +40,13 @@
                     return false;
                 }
 
-                renderToggles($toggle);
-                var $content = renderContent(toggle_id);
-                that.onChange($toggle, $content);
+                const _onChange = () => onChange($toggle, toggle_id);
+                const result = that.onBeforeTabChange();
+                if (typeof result?.then === 'function') {
+                    result.then(_onChange);
+                } else if (result !== false) {
+                    _onChange();
+                }
             });
 
             function renderToggles($toggle) {
@@ -50,20 +61,16 @@
             }
 
             function renderContent(toggle_id) {
-                var result = null;
-
-                that.$wrapper.find(that.content_selector).each( function() {
-                    var $_content = $(this),
-                        content_id = $_content.data("id");
-
-                    if (toggle_id === content_id) {
-                        result = $_content.show();
-                    } else {
-                        $_content.hide();
-                    }
-                });
-
-                return result;
+                let $result = null;
+                const $contents = that.$wrapper.find(that.content_selector).hide();
+                const $cur_content = $contents.filter(`[data-id="${toggle_id}"]`);
+                if ($cur_content.length) {
+                    $result = $cur_content;
+                } else {
+                    $result = $contents.last();
+                }
+                $result.show();
+                return $result;
             }
         };
 
@@ -660,6 +667,8 @@
                     return false;
                 }
 
+                let inputChange = () => {};
+
                 $banner.find('.js-colorpicker').each(function () {
                     var $colorpicker_wrapper = $(this).hide(),
                         $color_field = $colorpicker_wrapper.closest('.value'),
@@ -683,10 +692,15 @@
                         farbtastic.setColor($input.val());
                     });
 
+                    setTimeout(() => {
+                        inputChange = () => $input.trigger('change');
+                    }, 1000);
+
                     function setColor(color) {
                         $icon.css('background', color);
                         farbtastic.setColor(color);
                         $input.val(color);
+                        inputChange();
                     }
                 });
 
@@ -1464,13 +1478,10 @@
             that.rule_sections = {};
             that.chart_data = options["chart_data"];
             that.is_changed = false;
+            that.is_tool_changed = false;
 
             // INIT
             that.init();
-
-            that.changeSubmit = function () {
-                that.$wrapper.trigger("change.submit");
-            }
         };
 
         Promo.prototype.init = function() {
@@ -1488,22 +1499,12 @@
               that.initChartSection();
             })
 
-
-
-            that.$wrapper.on("change change.submit", function() {
-                that.is_changed = true;
-                that.$submit_button.removeClass("green").addClass("yellow");
+            that.$wrapper.on("change", function(e) {
+                that.changeSubmit(!!$(e.target).closest('.s-tabs-section').length);
             });
 
-            var orders = that.initOrders();
-            if (that.active_tab === "orders") {
-                orders.init();
-            }
-
-            var costs = that.initCosts();
-            if (that.active_tab === "costs") {
-                costs.init();
-            }
+            that.initOrders();
+            that.initCosts();
 
             var ready_promise = that.$wrapper.data("ready");
             ready_promise.resolve(that);
@@ -1662,26 +1663,27 @@
             }
 
             function init() {
-                if (!is_loaded) {
-                    is_locked = true;
+                is_loaded = false;
+                is_locked = true;
+                page = 0;
+                $orders_section.hide();
 
-                    load()
-                        .always( function() {
-                            is_locked = false;
-                        })
-                        .then( function(html) {
-                            $orders_section.append(html);
+                load()
+                    .always( function() {
+                        is_locked = false;
+                    })
+                    .then( function(html) {
+                        $orders_section.show().html(html);
 
-                            var $_table = $orders_section.find("table");
-                            if ($_table.length) {
-                                $table = $_table;
+                        var $_table = $orders_section.find("table");
+                        if ($_table.length) {
+                            $table = $_table;
 
-                                pages = $table.data("pages");
-                            }
+                            pages = $table.data("pages");
+                        }
 
-                            is_loaded = true;
-                        });
-                }
+                        is_loaded = true;
+                    });
             }
 
             function load() {
@@ -1693,9 +1695,9 @@
                         page: page
                     };
 
-                var $loading = $('<i class="icon16 loading" />');
+                var $loading = $('<span><i class="fas fa-spinner fa-spin loading"/></span>');
 
-                $orders_section.append($loading);
+                $orders_section.after($loading);
 
                 return $.post(href, data)
                         .always( function() {
@@ -1723,18 +1725,18 @@
             };
 
             function init() {
-                if (!is_loaded) {
-                    is_locked = true;
+                is_loaded = false;
+                is_locked = true;
+                $costs_section.hide();
 
-                    load()
-                        .always( function() {
-                            is_locked = false;
-                        })
-                        .then( function(html) {
-                            $costs_section.append(html);
-                            is_loaded = true;
-                        });
-                }
+                load()
+                    .always( function() {
+                        is_locked = false;
+                    })
+                    .then( function(html) {
+                        $costs_section.show().html(html);
+                        is_loaded = true;
+                    });
             }
 
             function load() {
@@ -1743,9 +1745,9 @@
                         promo_id: that.promo_id
                     };
 
-                var $loading = $('<i class="icon16 loading" />');
+                var $loading = $('<span><i class="fas fa-spinner fa-spin loading"/></span>');
 
-                $costs_section.append($loading);
+                $costs_section.after($loading);
 
                 return $.post(href, data)
                         .always( function() {
@@ -1869,15 +1871,10 @@
                 var $storefronts_section = $root_section.find(".s-storefronts-section"),
                     $js_storefront_mass_field = $storefronts_section.find('.js-storefront-mass-field'),
                     $storefronts_mass_toggle = $storefronts_section.find(".js-storefront-mass-toggle"),
-                    $counter = $storefronts_section.find(".js-counter");
+                    $counter = $storefronts_section.closest('.field').find(".js-counter");
 
                 var $storefronts = $storefronts_section.find(".js-storefront-toggle"),
                     storefronts_count = $storefronts.length;
-
-                $storefronts_section.on("click",".js-show-all", function(event) {
-                    event.preventDefault();
-                    $storefronts_section.toggleClass("is-extended");
-                });
 
                 $storefronts_section.on("change", ".js-storefront-toggle", function(event) {
                     var count = $storefronts_section.find(".js-storefront-toggle:checked").length;
@@ -2016,9 +2013,20 @@
 
             new TabToggle({
                 $wrapper: $section,
-                toggle_selector: ".js-toggle[data-id]",
+                toggle_class: ".js-toggle[data-id],.js-toggle[data-rule-type]",
                 content_selector: ".js-content[data-id]",
                 active_toggle_class: "selected",
+                onBeforeTabChange: function() {
+                    if (that.is_tool_changed) {
+                        return that.showConfirm('tool').then(() => {
+                            that.$form.find('[name="delete_rules[]"]').remove();
+                            that.is_tool_changed = false;
+                            if (!that.is_changed) {
+                                that.$submit_button.addClass("green").removeClass("yellow");
+                            }
+                        });
+                    }
+                },
                 onChange: function($active_toggle, $active_content) {
                     var id = $active_toggle.data("id"),
                         $link = $active_toggle.find("a");
@@ -2031,10 +2039,26 @@
                         }, null, href);
                     }
 
-                    if (id === "orders") {
-                        that.$wrapper.trigger("init_promo_orders");
-                    } else if (id === "costs") {
-                        that.$wrapper.trigger("init_promo_costs");
+                    const is_rule = !!$active_toggle.data('rule');
+                    if (is_rule) {
+                        const rule_ids = $active_toggle.data('rule-ids');
+                        const is_multiple = Number($active_toggle.data('max-count')) !== 1;
+
+                        const options = [{
+                            rule_type: id,
+                            is_multiple,
+                            rule_ids
+                        }];
+                        that.$wrapper.trigger("init_promo_rule", options);
+                    } else {
+                        switch (id) {
+                            case "orders":
+                                that.$wrapper.trigger("init_promo_orders");
+                                break;
+                            case "costs":
+                                that.$wrapper.trigger("init_promo_costs");
+                                break;
+                        }
                     }
                 }
             });
@@ -2046,62 +2070,72 @@
             // DOM
             var $section = that.$wrapper.find(".js-rules-section");
 
-            // CONST
-            var edit_class = "is-edit",
-                extended_class = "is-extended";
-
             // VARS
             var create_iterator = 0;
+            var initial_options = {};
 
-            $section.on("rule_count_watch", ruleCountWatch);
+            const createRuleSection = (rule_type, rule_id = null) => {
+                const $clone_rule = $(that.templates["new_rule_template"]);
+                $clone_rule.attr("data-type", rule_type);
+                if (rule_id) {
+                    $clone_rule.attr("data-id", rule_id);
+                } else {
+                    $clone_rule.attr("data-ident", create_iterator);
+                    create_iterator += 1;
+                }
 
-            ruleCountWatch();
+                const $actions = $clone_rule.find('.js-actions');
+                $actions.toggle(!!rule_id);
+
+                return $clone_rule;
+            };
+
+            const loadRules = (rule, options) => {
+                const $rules_section = that.$wrapper.find('.js-rules-section');
+                const $button_add = that.$wrapper.find('.js-create-rule');
+                const ids = rule.rule_ids ? String(rule.rule_ids).split(',') : [];
+
+                $button_add.toggle(!!rule.is_multiple).data('rule-type', rule.rule_type);
+
+                $rules_section.empty();
+                if (ids.length) {
+                    for (const id of ids) {
+                        const $clone_rule = createRuleSection(rule.rule_type, id);
+                        $rules_section.append($clone_rule);
+
+                        rule.rule_id = id;
+
+                        loadTool($clone_rule, rule, options);
+                    }
+                } else {
+                    const $clone_rule = createRuleSection(rule.rule_type);
+                    if (rule.is_multiple) {
+                        $clone_rule.hide();
+                    }
+                    $rules_section.append($clone_rule);
+
+                    rule.rule_ident = $clone_rule.attr('data-ident');
+
+                    loadTool(null, rule, options);
+                }
+            };
 
             // CREATE
-            $section.on("click", ".js-create-rule", function(event, options) {
+            that.$wrapper.find(".js-create-rule").on("click", function(event, options) {
                 event.preventDefault();
-
-                var $link = $(this),
-                    $rule = $link.closest(".s-rule-section"),
-                    $clone_rule = $(that.templates["new_rule_template"]);
-
-                var rule_type = $link.data("rule-type"),
-                    type_data = that.rule_types[rule_type];
-
-                // set title
-                var title = ( type_data.css_class ? '<i class="' + type_data.css_class + '"></i>' : "") + type_data.name;
-                $clone_rule.find(".s-section-header .js-title").html(title);
+                const $link = $(this),
+                    rule_type = $link.data("rule-type"),
+                    $first_rule = $section.find(".s-rule-section:first"),
+                    $clone_rule = createRuleSection(rule_type);
 
                 // set data and render
-                $clone_rule
-                    .attr("data-ident", "" + create_iterator)
-                    .attr("data-type", rule_type)
-                    .toggleClass(edit_class)
-                    .insertAfter($rule);
+                $clone_rule.insertBefore($first_rule);
 
-                $clone_rule.find(".js-edit-rule").trigger("click", [options]);
+                $clone_rule.find('.js-actions').show();
 
-                create_iterator += 1;
+                loadTool($clone_rule, { rule_type, rule_ident: $clone_rule.attr('data-ident') }, options);
 
-                ruleCountWatch();
-            });
-
-            // EDIT
-            $section.on("click", ".js-edit-rule", function(event, options) {
-                event.preventDefault();
-
-                var $rule = $(this).closest(".s-rule-section"),
-                    is_locked = $rule.data("is-locked");
-
-                $rule.addClass(edit_class);
-
-                if (!is_locked) {
-                    $rule.data("is-locked", true);
-                    var type = $rule.data("type");
-                    load($rule, type, options).always( function() {
-                        $rule.data("is-locked", false);
-                    });
-                }
+                that.changeSubmit(true);
             });
 
             // REMOVE
@@ -2110,18 +2144,19 @@
 
                 var $rule = $(this).closest(".s-rule-section"),
                     id = $rule.data("id"),
+                    type = $rule.data("type"),
                     is_locked = $rule.data("is-locked");
-
-                $rule.addClass(edit_class);
 
                 if (!is_locked) {
                     const removeTool = () => {
                         $rule.data("is-locked", true).trigger(that.event_names["rule_delete"], [$rule]).remove();
                         var $input = $('<input type="hidden" name="delete_rules[]">').val(id);
-                        $section.append($input);
-                        that.is_changed = true;
-                        ruleCountWatch();
-                        that.changeSubmit();
+                        $section.after($input);
+
+                        that.changeSubmit(true);
+                        if (that.rule_types[type] && that.rule_types[type].max_count === 1) {
+                            loadRules({ rule_type: type });
+                        }
                     };
                     if (options && options.force) {
                         removeTool();
@@ -2142,58 +2177,47 @@
             $section.on("click", ".js-cancel-edit-rule", function(event) {
                 event.preventDefault();
 
-                var $rule = $(this).closest(".s-rule-section"),
-                    $body = $rule.find("> .s-section-body");
+                const $rule = $(this).closest(".s-rule-section");
 
-                $rule
-                    .removeClass(extended_class)
-                    .removeClass(edit_class);
-
-                var rule_id = $rule.trigger(that.event_names["rule_cancel"], [$rule]).data("id");
-                if (rule_id) {
-                    $body.html("");
-                } else {
-                    $rule.remove();
-                }
-
-                ruleCountWatch();
+                $rule.trigger(that.event_names["rule_cancel"], [$rule]).data("id");
+                $rule.remove();
 
                 that.$window.trigger('resize');
             });
 
-            if (that.promo_options && that.promo_options["action"] === "associate") {
-                var options = [];
-                if (that.promo_options.products_hash) {
-                    options.push({
-                        products_hash: that.promo_options.products_hash
-                    });
-                }
+            if (that.promo_options && that.promo_options["action"] === "associate" && that.promo_options.products_hash) {
+                that.active_tab = 'custom_price';
 
-                var $exist_edit_link = $section.find(".s-rule-section[data-type='custom_price'] .js-edit-rule");
-                if ($exist_edit_link.length) {
-                    $exist_edit_link.trigger("click", options);
-
-                } else {
-                    var $create_rule = $section.find(".js-create-rule[data-rule-type='custom_price']");
-                    $create_rule.trigger("click", options);
-                }
+                initial_options = { products_hash: that.promo_options.products_hash };
 
                 setTimeout( function () {
-                    $(window).scrollTop( $section.offset().top );
+                    that.changeSubmit(true);
+                    $(window).scrollTop($section.offset().top);
                 }, 20);
             }
 
-            function load($rule, rule_type, options) {
-                var $body = $rule.find("> .s-section-body"),
-                    $loading = $('<i class="icon16 loading"></i>');
+            that.$wrapper.on("init_promo_rule", (e, rule) => {
+                loadRules(rule, initial_options);
+                initial_options = {};
+            });
 
-                var rule_id = $rule.data("id"),
-                    rule_ident = $rule.data("ident");
+            // select active tab
+            setTimeout(() => {
+                const $tab = that.$form.find(`.js-toggle-list [data-id="${that.active_tab}"]`);
+                $tab.removeClass('selected').trigger('click');
+            });
+
+            function loadTool($rule, { rule_type, rule_id, rule_ident }, options) {
+                $rule = $rule || that.$wrapper;
+                const $header = $rule.find(".s-section-header:first");
+                const $body = $rule.find(".js-section-body:first");
+                const $loading = $('<span><i class="fas fa-spinner fa-spin loading"/></span>');
+                const dont_save = !options;
 
                 rule_id = (typeof rule_id !== "undefined" ? "" + rule_id : null);
                 rule_ident = (typeof rule_ident !== "undefined" ? "" + rule_ident : null);
 
-                var href = that.urls["edit_rule"],
+                const href = that.urls["edit_rule"],
                     data = {
                         options: (options ? options : {})
                     };
@@ -2210,10 +2234,7 @@
                     data["options"]["ident"] = rule_ident;
                 }
 
-                $rule.addClass(extended_class);
-                $body.html("").append($loading);
-
-                that.$window.trigger('resize');
+                $body.empty().append($loading);
 
                 return $.post(href, data)
                     .always( function() {
@@ -2221,41 +2242,48 @@
                     })
                     .done( function(html) {
                         $body.html(html);
-                        that.$window.trigger('resize');
 
-                        $("html, body").animate({
-                            scrollTop: $body.offset().top
-                        }, 400);
+                        if (rule_id) {
+                            $header.find('.js-delete-rule').show();
+                        } else {
+                            $header.find('.js-cancel-edit-rule').show();
+                        }
+
+                        if (dont_save) {
+                            setTimeout(() => {
+                                dontSaveTool($rule);
+                            });
+                        }
                     });
             }
 
-            function ruleCountWatch() {
-                var $list = $section.find(".js-add-rules-list"),
-                    $links = $list.find(".js-create-rule");
+            function dontSaveTool($rule) {
+                const $body = $rule.find(".js-section-body");
+                const disabled_class = 'disabled';
+                const ignore_required_class = 'ignore-required';
+                $body.addClass(disabled_class);
 
-                var hidden_class = "is-hidden";
-                var empty_class = "is-empty";
-
-                $links.each( function() {
-                    var $link = $(this),
-                        rule_type = $link.data("rule-type"),
-                        max_count = $link.data("max-count");
-
-                    var $_rules = $section.find(".s-rule-section[data-type='" + rule_type + "']");
-                    if (max_count && $_rules.length >= max_count) {
-                        $link.hide().addClass(hidden_class);
-                    } else {
-                        $link.removeClass(hidden_class).show();
+                const $all_inputs = $body.find(':input');
+                const $inputs = $all_inputs.filter('*:not(button):not(.button)');
+                $.map($inputs, function(el) {
+                    if (el.required) {
+                        el.required = false;
+                        el.classList.add(ignore_required_class);
                     }
+                    return el;
                 });
 
-                var $visible_links = $links.filter(":not(." + hidden_class + ")");
-                if ($visible_links.length) {
-                    $list.removeClass(empty_class);
-                } else {
-                    $list.addClass(empty_class);
-                }
-            }
+                $all_inputs.one('change', () => {
+                    $body.removeClass(disabled_class);
+                    $.map($inputs, function(el) {
+                        if (el.classList.contains(ignore_required_class)) {
+                            el.required = true;
+                            el.classList.remove(ignore_required_class);
+                        }
+                        return el;
+                    });
+                });
+            };
         };
 
         Promo.prototype.initSubmit = function() {
@@ -2362,7 +2390,7 @@
                             })
                             .done( function(response) {
                                 if (response.status === "ok") {
-                                    var href = that.urls["edit_promo"].replace("%id%", response.data.id);
+                                    var href = that.urls["edit_promo"].replace("%id%", response.data.id) + location.search;
                                     $.shop.marketing.content.load(href).done( function() {
                                         var $new_button = $("#js-promo-page .js-submit-button");
                                         if ($new_button.length) {
@@ -2405,6 +2433,8 @@
                         errors: []
                     },
                     data = $form.serializeArray();
+
+                data = withChangedRulesOnly(data);
 
                 $.each(data, function(index, item) {
                     result.data.append(item.name, item.value);
@@ -2475,7 +2505,11 @@
                             $error_wrapper = $_rule.find("> .js-section-footer");
                             focus_top_array.push($error_wrapper.offset().top);
                         } else if ($field.length) {
-                            focus_top_array.push($field.offset().top);
+                            if ($field.is(':hidden')) {
+                                focus_top_array.push($field.closest('.value').offset().top);
+                            } else {
+                                focus_top_array.push($field.offset().top);
+                            }
                         } else if (error.text) {
                             renderError(error.text, that.$submit_button.after(
                                 $("<span class=\"s-error-message state-error-hint custom-ml-4\" />").text(error.text)
@@ -2533,6 +2567,12 @@
                 that.$wrapper.find('.s-error-message').remove();
                 that.$wrapper.find('.state-error').removeClass('state-error');
             }
+
+            function withChangedRulesOnly(data) {
+                const except_data = $form.find('.js-section-body.disabled :input').serializeArray().map(f => f.name);
+                data = data.filter(f => !except_data.includes(f.name));
+                return data;
+            }
         };
 
         Promo.prototype.initCouponRulesSection = function(options) {
@@ -2561,8 +2601,8 @@
                     },
                     select: function(event, ui) {
                         addCoupon(ui.item.data);
-                        $field.val("");
-                        that.changeSubmit();
+                        $field.val("").change();
+                        that.changeSubmit(true);
                         return false;
                     }
                 });
@@ -2649,7 +2689,7 @@
 
                 ruleRemoveConfirm();
 
-                that.changeSubmit();
+                that.changeSubmit(true);
             });
 
             $products_wrapper.on("change", ".js-sku-toggle-checkbox", function(event) {
@@ -2718,7 +2758,7 @@
                         if (product_id) {
                             if (!product_ids[product_id]) {
                                 addProduct(product_id);
-                                that.changeSubmit();
+                                that.changeSubmit(true);
 
                             } else {
                                 var $product = $products_wrapper.find(".s-product-wrapper[data-id='" + product_id + "']");
@@ -2736,7 +2776,7 @@
                             }
                         }
 
-                        $field.val("");
+                        $field.val("").change();
                         return false;
                     }
                 });
@@ -2819,11 +2859,13 @@
                             var $rule = $products_wrapper.parents(".s-rule-section"),
                                 rule_id = $rule.data('id');
 
-                            $rule.data("is-locked", true).remove();
+                            $rule.find('.js-delete-rule').trigger('click', [{
+                                force: true
+                            }]);
 
                             if (rule_id) {
                                 var $input = $('<input type="hidden" name="delete_rules[]">').val(rule_id);
-                                $section.append($input);
+                                $section.after($input);
                             }
 
                             $section.trigger("rule_count_watch");
@@ -2916,12 +2958,12 @@
                 }
             });
 
-            if (!$rule) {
-                var message_3 = "Error registering tool. Rule is missing.";
-                console.log(message_3);
-                alert(message_3);
-                return false;
-            }
+            // if (!$rule) {
+            //     var message_3 = "Error registering tool. Rule is missing.";
+            //     console.log(message_3);
+            //     alert(message_3);
+            //     return false;
+            // }
 
             var rule_section_name = (rule_id ? "rules[" + rule_id + "]" : "rules[new][" + rule_ident + "]");
 
@@ -2936,7 +2978,7 @@
                 .on(that.event_names["rule_delete"], removeWatcher);
 
             function removeWatcher(event, $deleted_rule) {
-                if ($rule[0] === $deleted_rule[0]) {
+                if ($rule && $rule[0] === $deleted_rule[0]) {
                     delete that.rule_sections[rule_section_name];
                     that.$wrapper.off(that.event_names["rule_cancel"], removeWatcher);
                     that.$wrapper.off(that.event_names["rule_delete"], removeWatcher);
@@ -2989,11 +3031,11 @@
                 var is_exist = $.contains(document, that.$wrapper[0]);
                 if (is_exist) {
                     var is_redirect = (this.href.indexOf(that.urls["backend_url"]) >= 0);
-                    if (is_redirect && that.is_changed) {
+                    if (is_redirect && (that.is_changed || that.is_tool_changed)) {
                         event.preventDefault();
                         event.stopPropagation();
                         var $link = $(this);
-                        showConfirm().then(function() {
+                        that.showConfirm().then(function() {
                             off();
                             $link[0].click();
                         });
@@ -3007,32 +3049,43 @@
                 $wa.off("click", "a", clickWatcher);
                 $header.off("click", "a", clickWatcher);
             }
+        };
 
-            function showConfirm() {
-                var deferred = $.Deferred(),
-                    is_confirm = false;
+        Promo.prototype.showConfirm = function (type = 'page') {
+            var that = this,
+                deferred = $.Deferred(),
+                is_confirm = false;
 
-                var $confirm_template = $(that.templates["unsaved_data_dialog"]).clone();
-                $.waDialog({
-                    html: $confirm_template[0],
-                    onOpen: function($dialog, dialog_instance) {
-                        // Submit confirm
-                        $dialog.on('click', '.js-submit', function () {
-                            is_confirm = true;
-                            dialog_instance.close();
-                        });
-                    },
-                    onClose: function() {
-                        if (is_confirm) {
-                            deferred.resolve();
-                        } else {
-                            deferred.reject();
-                        }
+            var $confirm_template = $(that.templates[type === 'tool' ? 'unsaved_tool_data_dialog' : 'unsaved_data_dialog']).clone();
+            $.waDialog({
+                html: $confirm_template[0],
+                onOpen: function($dialog, dialog_instance) {
+                    // Submit confirm
+                    $dialog.on('click', '.js-submit', function () {
+                        is_confirm = true;
+                        dialog_instance.close();
+                    });
+                },
+                onClose: function() {
+                    if (is_confirm) {
+                        deferred.resolve();
+                    } else {
+                        deferred.reject();
                     }
-                });
+                }
+            });
 
-                return deferred.promise();
+            return deferred.promise();
+        };
+
+        Promo.prototype.changeSubmit = function (is_tool_changed = false) {
+            const that = this;
+            if (is_tool_changed) {
+                that.is_tool_changed = true;
+            } else {
+                that.is_changed = true;
             }
+            that.$submit_button.removeClass("green").addClass("yellow");
         };
 
         return Promo;
@@ -3082,7 +3135,10 @@
             if ($alt_field.length) {
                 options = $.extend(options, {
                     altField: $alt_field,
-                    altFormat: "yy-mm-dd"
+                    altFormat: "yy-mm-dd",
+                    onSelect: () => {
+                        $input.trigger('change');
+                    }
                 });
             }
         }

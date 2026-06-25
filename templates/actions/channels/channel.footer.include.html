@@ -1,0 +1,59 @@
+<div class="bottombar sticky s-settings-fixed-bottombar">
+    <div class="flexbox middle space-8">
+        <div class="wide flexbox middle">
+            <input type="submit" class="button green" value="[`Save`]">
+            <div class="js-place-for-errors"></div>
+        </div>
+        {if !empty($channel.id)}
+            <div class="nowrap">
+                <button class="button red outlined js-delete-button" type="button">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </div>
+        {/if}
+    </div>
+</div>
+{if !empty($channel.id)}
+<script>
+    (function() {
+        const $form = $('#js-sales-channel-form');
+        const $submit_button = $form.find(':submit').last();
+        const $delete_button = $form.find('.js-delete-button');
+
+        const spinner_html = '<span class="spinner" />';
+        const channel_id = {$channel.id|json_encode};
+        const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
+
+        const initChangeSubmit = () => {
+            $form.one('input change', () => {
+                $submit_button.removeClass('green').addClass('yellow');
+            });
+        };
+
+        $form.on('save_success', function (evt, data) {
+            $submit_button.removeClass('yellow').addClass('green');
+            initChangeSubmit();
+        });
+
+        $delete_button.on('click', function (e) {
+            e.preventDefault();
+            $.waDialog.confirm({
+                title: {_w("Delete this channel and all its settings?")|json_encode},
+                success_button_title: {_w("Delete permanently")|json_encode},
+                success_button_class: 'danger',
+                cancel_button_title: {_w("Cancel")|json_encode},
+                cancel_button_class: 'light-gray',
+                onSuccess: function () {
+                    $delete_button.prop('disabled', true).after(spinner_html);
+                    $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
+                        $submit_button.prop('disabled', false).siblings('.spinner').remove();
+                        window.location = {$wa_app_url|json_encode} + '?action=plugins#/';
+                    });
+                }
+            });
+        });
+
+        setTimeout(() => initChangeSubmit(), 500);
+    })();
+</script>
+{/if}

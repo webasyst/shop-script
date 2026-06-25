@@ -225,6 +225,7 @@
             const $promos_lists = that.$wrapper.find(".js-active-promos-list");
 
             $promos_lists.sortable({
+                handle: '.js-sort',
                 animation: 150,
                 fallbackOnBody: true,
                 onEnd: function(ui) {

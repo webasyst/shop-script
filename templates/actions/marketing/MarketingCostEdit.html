@@ -45,7 +45,7 @@
                 <div class="value" id="channel_controls">
                     <div class="flexbox wrap space-8">
                     <div class="wa-select small">
-                        <select class="channel-selector" name="channel_selector">
+                        <select class="channel-selector width-100 text-ellipsis" name="channel_selector">
                             <option></option>
                             {if !empty($promos)}
                                 <option disabled>--- [`Promos`] ---</option>
@@ -80,7 +80,7 @@
                 <div class="name">[`Storefront`]</div>
                 <div class="value">
                     <div class="wa-select small">
-                        <select name="expense[storefront]">
+                        <select name="expense[storefront]" class="width-100 text-ellipsis">
                             <option value="">[`Not specified`]</option>
                             {foreach $storefronts as $s}
                                 <option value="{$s|escape}"{if $expense.storefront == $s} selected{/if}>{$s|escape}</option>
@@ -133,7 +133,7 @@
             <div class="field">
                 <div class="name">[`Note`]</div>
                 <div class="value">
-                    <textarea name="expense[note]" placeholder="[`optional`]" class="smaller">{$expense.note|escape}</textarea>
+                    <textarea name="expense[note]" placeholder="[`optional`]" class="smaller width-100-mobile">{$expense.note|escape}</textarea>
                 </div>
             </div>
             <div class="field">

@@ -16,14 +16,14 @@
 {/strip}
 
 <div class="s-custom-price-rule-section js-custom-price-rule-section" id="js-custom-price-rule-section-{$_uniqid}">
-    <p class="hint">
+    <p class="small gray">
         [`Use the form below to set up extra rules for ordinary and purchase prices which should apply while this promo is active.`]
     </p>
 
     <div class="s-products-autocomplete fields">
         <div class="field">
             <div class="name for-input">[`Add product`]</div>
-            <div class="value">
+            <div class="value nowrap">
                 <i class="fas fa-plus-circle text-green"></i>
                 <input type="text" class="s-autocomplete js-autocomplete long" value="" placeholder="{_w("type a product name")|escape}">
                 <div class="s-field-description hint">{sprintf("[`or add from “%s” section`]", "<a href=\"`$wa_app_url`products/\">[`Products`]</a>")}</div>
@@ -31,35 +31,37 @@
         </div>
     </div>
 
-    <div class="s-products-wrapper s-block {if empty($products)}is-empty{/if}">
-        <table class="s-products-table zebra">
-            <thead>
-                <!-- DEFINITELY DIFFICULT TO UNDERSTAND STATEMENT <tr class="transparent">
-                    <td colspan="5">
-                        <div class="flexbox middle space-8 custom-pb-16 bordered-bottom" style="justify-content: center;">
-                            <span class="icon"><i class="fas fa-exclamation-triangle text-yellow"></i></span>
-                            <span>[`Promo prices are not a discount.`]</span>
-                            {shopHinter::hint('marketing_promo_stock_price_products')}
-                        </div>
-                    </td>
-                </tr> -->
-                <tr class="transparent uppercase">
-                    <th colspan="2">[`Products`]</th>
-                    <th>[`Default prices`]</th>
-                    <th>[`Promo’s prices`]</th>
-                    <th></th>
-                </tr>
-            </thead>
+    <div class="s-products-wrapper s-block s-grid{if empty($products)} is-empty{/if}">
+        <div class="table-scrollable-x">
+            <table class="s-products-table zebra">
+                <thead>
+                    <!-- DEFINITELY DIFFICULT TO UNDERSTAND STATEMENT <tr class="transparent">
+                        <td colspan="5">
+                            <div class="flexbox middle space-8 custom-pb-16 bordered-bottom" style="justify-content: center;">
+                                <span class="icon"><i class="fas fa-exclamation-triangle text-yellow"></i></span>
+                                <span>[`Promo prices are not a discount.`]</span>
+                                {shopHinter::hint('marketing_promo_stock_price_products')}
+                            </div>
+                        </td>
+                    </tr> -->
+                    <tr class="transparent uppercase">
+                        <th colspan="2">[`Products`]</th>
+                        <th>[`Default prices`]</th>
+                        <th>[`Promo’s prices`]</th>
+                        <th></th>
+                    </tr>
+                </thead>
 
-            <tbody class="s-products-list">
-                {if !empty($products)}
-                    {foreach $products as $_product}
-                        {$_rule_product_data = $rule.rule_params[$_product.id]|default:[]}
-                        {include file="./custom_price.product.html" product=$_product rule_name=$_rule_name rule_product_data=$_rule_product_data inline}
-                    {/foreach}
-                {/if}
-            </tbody>
-        </table>
+                <tbody class="s-products-list">
+                    {if !empty($products)}
+                        {foreach $products as $_product}
+                            {$_rule_product_data = $rule.rule_params[$_product.id]|default:[]}
+                            {include file="./custom_price.product.html" product=$_product rule_name=$_rule_name rule_product_data=$_rule_product_data inline}
+                        {/foreach}
+                    {/if}
+                </tbody>
+            </table>
+        </div>
 
         <div class="s-empty-message small">[`No products in this tool. First add products please.`]</div>
     </div>

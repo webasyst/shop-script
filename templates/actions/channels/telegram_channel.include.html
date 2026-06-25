@@ -3,7 +3,7 @@
 <style>
     @media screen and (min-width: 761px) {
         .s-channels-content { container-type: inline-size; }
-        .s-channels-content .s-mini-app-preview { height: 100%; position: sticky; top: 10.55rem; }
+        .s-channels-content .s-mini-app-preview { height: 100%; position: sticky; top: 8rem; }
         .s-channels-content .s-mini-app-preview iframe { border-radius: 1rem; }
         .s-channels-content > .content:has(.s-mini-app-preview) .article { display: flex; gap: 0.5rem; max-width: calc(960px + var(--iframe-width, 0px)); }
         .s-channels-content > .content:has(.s-mini-app-preview) .article-body { padding-right: 1rem; }
@@ -246,27 +246,8 @@
                     });
                 });
             </script>
-
-
-            <div class="field">
-                <div class="name"></div>
-                <div class="value">
-                    <div class="flexbox middle">
-                        <div class="wide">
-                            <input type="submit" class="button green" value="[`Save`]">
-                        </div>
-                        {if !empty($channel.id)}
-                        <div class="nowrap">
-                            <button class="button red outlined js-delete-button" type="button">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>
-                        </div>
-                        {/if}
-                    </div>
-                    <div class="js-place-for-errors custom-mt-4"></div>
-                </div>
-            </div>
         </div>
+        {include file="./channel.footer.include.html" inline}
     </form>
 </div>
 {capture assign="_app_preview"}
@@ -282,7 +263,6 @@
 <script>
     $(function () {
         "use strict";
-        const delete_url = {$wa_app_url|json_encode} + '?module=channels&action=delete';
         const spinner_html = '<span class="spinner" />';
         const $form = $('#js-sales-channel-form');
         const $place_for_errors = $form.find('.js-place-for-errors');
@@ -316,29 +296,6 @@
                 window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
             {/if}
         });
-
-
-        {if !empty($channel.id)}
-            const channel_id = {$channel.id|json_encode};
-            const $delete_button = $form.find('.js-delete-button');
-            $delete_button.on('click', function (e) {
-                e.preventDefault();
-                $.waDialog.confirm({
-                    title: {_w("Delete this channel and all its settings?")|json_encode},
-                    success_button_title: {_w("Delete permanently")|json_encode},
-                    success_button_class: 'danger',
-                    cancel_button_title: {_w("Cancel")|json_encode},
-                    cancel_button_class: 'light-gray',
-                    onSuccess: function () {
-                        $delete_button.prop('disabled', true).after(spinner_html);
-                        $.post(delete_url, { id: channel_id }, 'json').then(function(r) {
-                            $submit_button.prop('disabled', false).siblings('.spinner').remove();
-                            window.location = {$wa_app_url|json_encode} + '?action=plugins#/';
-                        });
-                    }
-                });
-            });
-        {/if}
 
         function showMiniAppPreview() {
             const wa_channel_id = {$channel.wa_channel_id|default:''|escape|json_encode};

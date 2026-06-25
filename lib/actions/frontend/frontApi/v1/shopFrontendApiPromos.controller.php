@@ -32,6 +32,7 @@ class shopFrontendApiPromosController extends shopFrontApiJsonController
         $host_url = rtrim(wa()->getConfig()->getHostUrl(), '/');
         $promos = (array) (new shopPromoModel())->getList($list_params);
         foreach ($promos as &$promo) {
+            if (empty($promo['rules'])) continue;
             foreach ($promo['rules'] as &$rule) {
                 if ($rule['rule_type'] !== 'banner') {
                     unset($rule['rule_params']);

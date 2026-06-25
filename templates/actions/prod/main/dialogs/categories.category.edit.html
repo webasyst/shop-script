@@ -362,6 +362,46 @@
 {/capture}
 {$_components["component-category-feature-item"] = $_component_category_feature_item|strip}
 
+{capture assign="_component_category_thumb"}
+{literal}
+    <div class="component-category-thumb">
+        <div class="s-load-wrapper" v-if="!category.thumb?.default">
+            <div class="s-button-wrapper" v-if="!file_to_upload">
+                <button class="button smaller gray" type="button">
+                    <span class="s-icon"><i class="fas fa-upload"></i></span>
+                    &nbsp;
+                    <span class="s-name">[`Upload file`]</span>
+                </button>
+                <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" title="">
+            </div>
+
+            <div v-if="file_to_upload">
+                <div class="progressbar">
+                    <div class="progressbar-line-wrapper text-outside">
+                        <div class="progressbar-outer"><div class="progressbar-inner" :style="{ width: progressbar_percent + '%' }"></div></div>
+                        <div class="progressbar-text">{ { progressbar_percent } }%</div>
+                    </div>
+                </div>
+            </div>
+
+            <template v-if="errors.length">
+                <div class="state-error-hint" v-for="error in errors">{ { error.text } }</div>
+            </template>
+        </div>
+
+        <div class="s-file-wrapper flexbox middle space-16 wrap baseline" v-if="category.thumb?.default">
+            <div><img v-bind:src="category.thumb.default"></div>
+            <div class="s-file-delete small text-red" v-on:click.prevent="fileDelete">
+                <span class="s-icon"><i class="fas fa-trash-alt"></i></span>
+                &nbsp;
+                <span class="s-name">[`Delete`]</span>
+            </div>
+        </div>
+    </div>
+{/literal}
+{/capture}
+{$_components["component-category-thumb"] = $_component_category_thumb|strip}
+
 <div class="wa-dialog s-category-edit-dialog" id="js-category-edit-dialog">
     <div class="dialog-background"></div>
     <div class="dialog-body">
@@ -521,6 +561,20 @@
                                 <template v-else-if="category.type === '1'">
                                     <div class="hint">[`The category is filled with products automatically according to the parameters selected below.`]</div>
                                 </template>
+                            </div>
+                        </div>
+
+                        {* Thumb image *}
+                        <div class="field s-field-wrapper">
+                            <div class="name">
+                                <span class="s-name">[`Category thumbnail`]</span>
+                            </div>
+                            <div class="value">
+                                <component-category-thumb
+                                    v-bind:category="category"
+                                    v-bind:max_file_size="{floor(waRequest::getUploadMaxFilesize() / 102.4)/10}"
+                                ></component-category-thumb>
+                                <p class="hint">[`A thumbnail is used in the mini-app catalog navigation and on the public storefront (if supported by your design theme).`]</p>
                             </div>
                         </div>
 

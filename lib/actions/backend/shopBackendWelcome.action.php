@@ -307,7 +307,7 @@ class shopBackendWelcomeAction extends waViewAction
                 'id'    => 'bestsellers',
                 'name'  => _w('Bestsellers'),
                 'type'  => shopSetModel::TYPE_DYNAMIC,
-                'count' => 8,
+                'count' => 96,
                 'rule'  => 'rating DESC',
             )
         );

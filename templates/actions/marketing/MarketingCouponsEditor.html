@@ -4,7 +4,7 @@
     {sprintf('[`Discounts by coupons are turned off. Enable discounts in your <a href="%s">store settings</a>.`]', "`$marketing_url`discounts/coupons/")}
 </div>
 {/if}
-<div class="s-coupon">
+<div class="s-coupon custom-mt-8">
     <div class="box s-coupon-border">
         <div class="flexbox middle custom-mb-16">
             <h1 class="custom-mb-0">
@@ -88,7 +88,7 @@
                         [`Comment`]
                     </div>
                     <div class="value">
-                        <textarea name="coupon[comment]" class="small">{ifset($coupon.comment)|escape}</textarea>
+                        <textarea name="coupon[comment]" class="small width-100-mobile">{ifset($coupon.comment)|escape}</textarea>
                         <p class="hint">[`Optional comment for your convenience. Will never be shown to customers.`]</p>
                     </div>
                 </div>
@@ -100,7 +100,7 @@
                         <div class="flexbox middle">
                             <input type="submit" class="button green js-submit-button" value="[`Save`]">
                             {if $coupon.id}
-                                <a href="javascript:void(0)" class="button red custom-ml-auto outlined" id="delete-coupon-link"><i class="fas fa-trash-alt"></i> [`Delete this coupon`]</a>
+                                <a href="javascript:void(0)" class="button red custom-ml-auto outlined" id="delete-coupon-link"><i class="fas fa-trash-alt"></i> <span class="desktop-and-tablet-only">[`Delete this coupon`]</span></a>
                             {/if}
                         </div>
                     </div>

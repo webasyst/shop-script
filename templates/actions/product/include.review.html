@@ -146,4 +146,9 @@
         </div>
     </div>
 
+    {if !empty($review.in_reply_to)}
+    <p class="hint">
+        [`in reply to`] <strong>{$review.in_reply_to|escape|truncate:256}</strong>
+    </p>
+    {/if}
 </div>

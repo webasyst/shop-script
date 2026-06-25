@@ -35,9 +35,9 @@
                     </div>
 
                     <div class="fields-group{if !$enabled} hidden{/if}">
-                        <div class="field">
+                        <div class="field s-grid">
                             <div class="name">[`Discount`]</div>
-                            <div class="value">
+                            <div class="value table-scrollable-x">
                                 <table class="zebra small">
                                     <thead>
                                         <tr>
@@ -96,6 +96,8 @@
     <script>
         ( function($) { "use strict";
             $.shop.marketing.setTitle({_w("By customers overall purchases")|json_encode});
+
+            window.initMobileSidebar && window.initMobileSidebar();
 
             const sources = [{
                 id: "wa-shop-marketing-discounts-js",

@@ -20,6 +20,31 @@ class shopReviewsAction extends waViewAction
             )
         );
 
+        $ids_without_reply = [];
+        foreach ($reviews as $review) {
+           if (empty($review['parent_id']) || isset($reviews[$review['parent_id']])) continue;
+           $ids_without_reply[$review['parent_id']] = 1;
+        }
+        $reviews_in_reply = [];
+        if ($ids_without_reply) {
+            $reviews_in_reply = $product_reviews_model->getList('*', array(
+                    'where'  => ['id' => array_keys($ids_without_reply)],
+                    'escape' => false
+                )
+            );
+        }
+
+        foreach ($reviews as &$review) {
+            $parent_id = ifset($review, 'parent_id', null);
+            if (!$parent_id) continue;
+
+            $parent = ifset($reviews, $parent_id, ifset($reviews_in_reply, $parent_id, null));
+            if ($parent) {
+                $review['in_reply_to'] = ifempty($parent, 'title', ifempty($parent, 'text', ''));
+            }
+        }
+        unset($review);
+
         $product_reviews_model->unhighlightViewed();
 
         /**

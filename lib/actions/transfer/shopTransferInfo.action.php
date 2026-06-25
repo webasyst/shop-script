@@ -36,7 +36,7 @@ class shopTransferInfoAction extends waViewAction
         $transfer = $transfers[$transfer['id']];
 
         $items = $this->getTransferProductsModel()->getByTransfer($transfer['id']);
-        $skus = $this->getSkus(array_keys($items));
+        $skus = $this->getSkus(array_keys($items), ifset($transfer, 'stock_id_from', null));
 
         foreach ($skus as &$sku) {
             $item = $items[$sku['id']];
@@ -51,7 +51,7 @@ class shopTransferInfoAction extends waViewAction
         return $transfer;
     }
 
-    public function getSkus($ids)
+    public function getSkus(array $ids, $stock_id_from = null)
     {
         if (!$ids) {
             return array();
@@ -63,6 +63,29 @@ class shopTransferInfoAction extends waViewAction
         ";
         $skus = $this->getWaModel()->query($sql, array($ids))->fetchAll();
         $skus = shopTransferSkusController::workupSkus($skus);
+
+        // get stock count
+        if ($stock_id_from && $skus) {
+            $sku_ids = array_map(function ($sku) {
+                return $sku['id'];
+            }, $skus);
+
+            $sku_ids = implode(', ', $sku_ids);
+
+            $stocksModel = new shopProductStocksModel();
+            $query = $stocksModel->select('sku_id, count');
+            $query->where('stock_id = ? AND sku_id IN (?)', [$stock_id_from, $sku_ids]);
+            $skus_with_stock_count = $query->fetchAll('sku_id');
+
+            foreach ($skus as &$sku) {
+                if (isset($skus_with_stock_count[$sku['id']])) {
+                    $sku['stock_from_count'] = $skus_with_stock_count[$sku['id']]['count'];
+                    $sku['stock_from_count_html'] = shopHelper::getStockCountIcon($sku['stock_from_count'], $stock_id_from, true);
+                }
+            }
+            unset($sku);
+        }
+
         return $skus;
     }
 

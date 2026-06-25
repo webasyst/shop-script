@@ -54,7 +54,7 @@ class shopOrderAssignRulesModel extends waModel
         }
 
         if ($all) {
-            return $this->ruleDecode($dbq->fetchAll());
+            return $this->ruleDecode($dbq->fetchAll(is_string($all) ? $all : null));
         }
         $result = $this->ruleDecode([$dbq->fetchAssoc()]);
 

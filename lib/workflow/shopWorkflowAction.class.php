@@ -735,9 +735,9 @@ HTML;
         }
 
         $assign_rules_model = new shopOrderAssignRulesModel();
-        $rule = $assign_rules_model->getByField('action_id', $this->getId());
+        $rules = $assign_rules_model->getByField('action_id', $this->getId(), true);
         $assigned_contact_id = ifset($order, 'assigned_contact_id', null);
-        if (empty($rule)) {
+        if (!$rules) {
             return $update;
         }
 
@@ -748,69 +748,72 @@ HTML;
             $order['items'] = $this->order_items_model->getItems($order['id']);
         }
 
-        $found = false;
-        $conditions = ifset($rule, 'conditions', []);
-        $rule_data = ifset($rule, 'rule_data', []);
-        foreach ($conditions as $_condition) {
-            $operator = ifempty($_condition, 'compare_op', null);
+        foreach ($rules as $rule) {
+            $conditions = ifset($rule, 'conditions', []);
+            $rule_data = ifset($rule, 'rule_data', []);
+            $found = empty($conditions);
+            foreach ($conditions as $_condition) {
+                $operator = ifempty($_condition, 'compare_op', null);
 
-            if ($storefront = ifset($_condition, 'by_storefront', null)) {
-                if ($compare(ifset($order, 'params', 'storefront', ''), $storefront, $operator)) {
-                    $found = true;
-                }
-            } elseif ($amount = ifset($_condition, 'by_amount', null)) {
-                if ($compare(ifset($order, 'total', ''), $amount, $operator)) {
-                    $found = true;
-                }
-            } elseif ($channel_id = ifset($_condition, 'by_channel_id', null)) {
-                if (preg_match('#^([a-z0-9]+):(\d+)$#', ifset($order, 'params', 'sales_channel', ''), $matches)) {
-                    if ($compare($matches[2], $channel_id, $operator)) {
+                if ($storefront = ifset($_condition, 'by_storefront', null)) {
+                    if ($compare(ifset($order, 'params', 'storefront', ''), $storefront, $operator)) {
+                        $found = true;
+                    }
+                } elseif ($amount = ifset($_condition, 'by_amount', null)) {
+                    if ($compare(ifset($order, 'total', ''), $amount, $operator)) {
+                        $found = true;
+                    }
+                } elseif ($channel_id = ifset($_condition, 'by_channel_id', null)) {
+                    if (preg_match('#^([a-z0-9]+):(\d+)$#', ifset($order, 'params', 'sales_channel', ''), $matches)) {
+                        if ($compare($matches[2], $channel_id, $operator)) {
+                            $found = true;
+                        }
+                    }
+                } elseif ($payment_id = ifset($_condition, 'by_payment_id', null)) {
+                    if ($compare(ifset($order, 'params', 'payment_id', ''), $payment_id, $operator)) {
+                        $found = true;
+                    }
+                } elseif ($shipping_id = ifset($_condition, 'by_shipping_id', null)) {
+                    if ($compare(ifset($order, 'params', 'shipping_id', ''), $shipping_id, $operator)) {
+                        $found = true;
+                    }
+                } elseif ($customer_group_id = ifset($_condition, 'by_customer_group_id', null)) {
+                    $customer = new shopCustomer(ifset($order, 'contact_id', 0));
+                    if ($customer->exists()) {
+                        $customer_groups = $customer->getCategories();
+                        $available = in_array($customer_group_id, $customer_groups);
+                        if ($compare(($available ? $customer_group_id : 0), $customer_group_id, $operator)) {
+                            $found = true;
+                        }
+                    }
+                } elseif ($prod_type_id = ifset($_condition, 'by_prod_type_id', null)) {
+                    $product_ids = array_column($order['items'], 'product_id');
+                    $product_model = new shopProductModel();
+                    $available = $product_model->select('COUNT(*)')->where('id IN (?) AND type_id = ?', [$product_ids, (int) $prod_type_id])->fetchField();
+                    if ($compare(($available ? $prod_type_id : 0), $prod_type_id, $operator)) {
+                        $found = true;
+                    }
+                } elseif ($sku_id = ifset($_condition, 'by_sku_id', null)) {
+                    $sku_ids = array_column($order['items'], 'sku_id');
+                    if (in_array($sku_id, $sku_ids)) {
+                        $found = true;
+                    }
+                } elseif ($stock_id = ifset($_condition, 'by_stock_id', null)) {
+                    $available = in_array($stock_id,  array_column($order['items'], 'stock_id'));
+                    if ($compare(($available ? $stock_id : 0), $stock_id, $operator)) {
                         $found = true;
                     }
                 }
-            } elseif ($payment_id = ifset($_condition, 'by_payment_id', null)) {
-                if ($compare(ifset($order, 'params', 'payment_id', ''), $payment_id, $operator)) {
-                    $found = true;
-                }
-            } elseif ($shipping_id = ifset($_condition, 'by_shipping_id', null)) {
-                if ($compare(ifset($order, 'params', 'shipping_id', ''), $shipping_id, $operator)) {
-                    $found = true;
-                }
-            } elseif ($customer_group_id = ifset($_condition, 'by_customer_group_id', null)) {
-                $customer = new shopCustomer(ifset($order, 'contact_id', 0));
-                if ($customer->exists()) {
-                    $customer_groups = $customer->getCategories();
-                    $available = in_array($customer_group_id, $customer_groups);
-                    if ($compare(($available ? $customer_group_id : 0), $customer_group_id, $operator)) {
-                        $found = true;
-                    }
-                }
-            } elseif ($prod_type_id = ifset($_condition, 'by_prod_type_id', null)) {
-                $product_ids = array_column($order['items'], 'product_id');
-                $product_model = new shopProductModel();
-                $available = $product_model->select('COUNT(*)')->where('id IN (?) AND type_id = ?', [$product_ids, (int) $prod_type_id])->fetchField();
-                if ($compare(($available ? $prod_type_id : 0), $prod_type_id, $operator)) {
-                    $found = true;
-                }
-            } elseif ($sku_id = ifset($_condition, 'by_sku_id', null)) {
-                $sku_ids = array_column($order['items'], 'sku_id');
-                if (in_array($sku_id, $sku_ids)) {
-                    $found = true;
-                }
-            } elseif ($stock_id = ifset($_condition, 'by_stock_id', null)) {
-                $available = in_array($stock_id,  array_column($order['items'], 'stock_id'));
-                if ($compare(($available ? $stock_id : 0), $stock_id, $operator)) {
-                    $found = true;
+
+                if ($found) {
+                    break;
                 }
             }
 
             if ($found) {
+                $assigned_contact_id = $getAssignedContactId($rule_data);
                 break;
             }
-        }
-
-        if ($found || empty($conditions)) {
-            $assigned_contact_id = $getAssignedContactId($rule_data);
         }
 
         if ($assigned_contact_id) {

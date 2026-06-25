@@ -396,6 +396,8 @@ $(function() {
         form.trigger("submit");
     });
 
+    clearErrorWhenFocus(form);
+
     var is_locked = false;
 
     form.on("submit", function(event) {
@@ -468,6 +470,7 @@ $(function() {
             if (r.status === 'fail') {
                 clear(form, false);
                 showErrors(form, r.errors);
+                removeCaptchaFocus(form);
                 return;
             }
             if (r.status !== 'ok' || !r.data.html) {
@@ -506,7 +509,13 @@ $(function() {
 
     function showErrors(form, errors) {
         for (var name in errors) {
-            $('[name='+name+']', form).last().addClass('error').parent().append($('<em class="errormsg"></em>').text(errors[name]));
+            const $parent = $('[name='+name+']', form).last().addClass('error').parent();
+            const $error = $('<em class="errormsg"></em>').text(errors[name]);
+            if (['LABEL', 'P'].includes($parent.prop('tagName'))) {
+                $parent.after($error);
+            } else {
+                $parent.append($error);
+            }
         }
     };
 
@@ -520,6 +529,31 @@ $(function() {
             $('input[name=rate]', form).val(0);
             $('input[name=title]', form).val('');
             $('.rate', form).trigger('clear');
+        }
+    };
+
+    function clearErrorWhenFocus(form) {
+        const clear = ($field) => {
+            $field.removeClass('error');
+            const $parent = $field.parent();
+            if (['LABEL', 'P'].includes($parent.prop('tagName'))) {
+                $parent.next('.errormsg').remove();
+            } else {
+                $field.next('.errormsg').remove();
+            }
+        };
+        form.find(':input').on('focus change', function() {
+            clear($(this));
+        });
+    };
+
+    function removeCaptchaFocus(form) {
+        const $captcha = form.find('.wa-captcha-input');
+        if ($captcha.length) {
+            $(window).one('wa_captcha_loaded', () => {
+                $captcha.prop('disabled', true);
+                setTimeout(() => $captcha.prop('disabled', false));
+            });
         }
     };
 

@@ -75,6 +75,8 @@
         ( function($) { "use strict";
             $.shop.marketing.setTitle({_w("Coupons")|json_encode});
 
+            window.initMobileSidebar && window.initMobileSidebar();
+
             const sources = [{
                 id: "wa-shop-marketing-discounts-js",
                 type: "js",

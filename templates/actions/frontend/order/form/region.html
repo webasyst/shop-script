@@ -467,6 +467,24 @@
                     <div class="wa-plugin-hook">{$_}</div>
                 {/foreach}
             {/if}
+
+            {$_service_agreement = ifset($_config["service_agreement"])}
+            {if $_service_agreement}
+            <div class="wa-agreement-wrapper wa-line">
+                {if $_service_agreement === 'checkbox'}
+                    <div class="wa-field-wrapper is-agreement-field">
+                        <input type="hidden" name="shipping[service_agreement]" value="0">
+                        <label class="wa-checkbox-wrapper">
+                            <input class="wa-checkbox" type="checkbox" name="shipping[service_agreement]" value="1" required{if !empty($region.service_agreement)} checked="checked"{/if}>
+                            <span class="wa-text">{$_config["service_agreement_hint"]}</span>
+                        </label>
+                    </div>
+                {elseif $_service_agreement == '1'}
+                    <div class="wa-text">{$config["shipping"]["service_agreement_hint"]|default:""}</div>
+                    <input type="hidden" name="shipping[service_agreement]" value="1">
+                {/if}
+            </div>
+            {/if}
         </form>
     </div>
 

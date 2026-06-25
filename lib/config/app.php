@@ -12,8 +12,8 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '12.3.0',
-    'critical'         => '12.3.0',
+    'version'          => '12.4.0',
+    'critical'         => '12.4.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
     'payment_plugins'  => array(
@@ -37,6 +37,12 @@ return array(
     'routing_params'   => array(
         'checkout_version'       => 2,
         'checkout_storefront_id' => class_exists('shopCheckoutConfig') ? ['shopCheckoutConfig', 'generateStorefrontId'] : md5(uniqid()),
+        'drop_out_of_stock' => 0,
+        'public_stocks' => 0,
+        'shipping_id' => 0,
+        'payment_id' => 0,
+        'url_type' => 0,
+        'type_id' => 0,
     ),
     'ui'               => '1.3,2.0'
 );

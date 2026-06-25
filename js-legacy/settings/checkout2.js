@@ -524,10 +524,7 @@ var ShopSettingsCheckout2 = ( function($) {
 
     ShopSettingsCheckout2.prototype.initShippingBlock = function () {
         var that = this,
-            $block = that.$shipping_block,
-            $service_agreement_wrapper = $block.find('.js-shipping-service-agreement-wrapper'),
-            $service_agreement = $service_agreement_wrapper.find('.js-shipping-service-agreement'),
-            $service_agreement_hint = $service_agreement_wrapper.find('.js-shipping-service-agreement-hint');
+            $block = that.$shipping_block;
 
         //
         initLocationsType();
@@ -535,14 +532,41 @@ var ShopSettingsCheckout2 = ( function($) {
         initMapVariants();
 
         // Init service agreement
-        $service_agreement.on('change', function () {
-            if (this.checked) {
-                $service_agreement_hint.show();
-            } else {
-                $service_agreement_hint.hide();
-            }
-            $(window).trigger('scroll');
+        var $service_agreement_wrapper = $block.find('.js-shipping-service-agreement-wrapper'),
+            $fake_checkbox = $service_agreement_wrapper.find('.js-fake-checkbox').detach(),
+            $service_agreement_editor = $service_agreement_wrapper.find('.js-shipping-service-agreement-edtior').detach();
+        // Text generator
+        $service_agreement_wrapper.on('click', '.js-generate-example', function () {
+            var $current_variant = $service_agreement_wrapper.find('.js-shipping-service-agreement-variant:checked').parents('.js-variant'),
+                text = $current_variant.data('default-text');
+
+            $service_agreement_wrapper.find('.js-shipping-service-agreement-hint').val(text);
         });
+
+        ensureServiceAgreementConsistency();
+
+        $service_agreement_wrapper.on('change', '.js-shipping-service-agreement-variant', ensureServiceAgreementConsistency);
+
+        function ensureServiceAgreementConsistency() {
+            var $current_radio = $service_agreement_wrapper.find('.js-shipping-service-agreement-variant:checked'),
+                $current_variant = $current_radio.parents('.js-variant'),
+                current_value = $current_radio.val();
+
+            $service_agreement_wrapper.find('.js-variant-params').removeClass('block-padded').html('');
+
+            if (current_value == '1') {
+                $current_variant.find('.js-variant-params')
+                    .addClass('block-padded')
+                    .append($service_agreement_editor);
+            }
+
+            if (current_value == 'checkbox') {
+                $current_variant.find('.js-variant-params')
+                    .addClass('block-padded')
+                    .append($fake_checkbox)
+                    .append($service_agreement_editor);
+            }
+        }
 
         // Zip
         var $ask_zip = $block.find('.js-shipping-ask-zip'),

@@ -89,7 +89,7 @@
                     </form>
                 {/if}
                 {if $wa->shop->countPickupLocations() > 0}
-                    {$wa->shop->getPickupButton($p)}
+                    {$wa->shop->getPickupButton($p, '', _wd('shop', 'Pickup'))}
                 {/if}
                 <link itemprop="availability" href="http://schema.org/InStock">
             {else}

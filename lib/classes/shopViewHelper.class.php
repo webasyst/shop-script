@@ -965,6 +965,7 @@ SQL;
 
             $category_params_model = new shopCategoryParamsModel();
             $category['params'] = $category_params_model->get($category['id']);
+            $category['thumb'] = shopCategoryHelper::getThumbInfo($category);
 
             if ($this->config('can_use_smarty') && $category['description']) {
                 $category['description'] = wa()->getView()->fetch('string:'.$category['description']);

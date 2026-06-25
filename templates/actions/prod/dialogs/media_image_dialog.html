@@ -65,6 +65,26 @@
 {/capture}
 {$_components["component-crop-section"] = $_component_crop_section|strip}
 
+{capture assign="_component_generation_mode"}
+    <div class="flexbox vertical space-12 custom-mt-16" style="--accent-color: var(--purple);">
+        <label>
+            <span class="wa-radio">
+                <input type="radio" :checked="mode === 'improve'" :disabled="!photos.length" @change="selectFirstPhoto">
+                <span></span>
+            </span>
+            [`Improve selected`]
+        </label>
+        <label>
+            <span class="wa-radio">
+                <input type="radio" :checked="mode === 'create'" @change="selectAiDummy">
+                <span></span>
+            </span>
+            [`Generate from scratch`]
+        </label>
+    </div>
+{/capture}
+{$_components["component-generation-mode"] = $_component_generation_mode|strip}
+
 {$_globals_components = $wa->globals("components")}
 {if !empty($_globals_components)}
     {$_components = array_merge($_globals_components, $_components)}
@@ -208,6 +228,7 @@
                                                 </span>
                                                 <span class="s-name">[`Improve image with AI`]</span>
                                             </button>
+                                            <component-generation-mode :mode="ai_generation_mode" :photos="photos" :dummy_photo="dummy_photo" :on-select-photo="setCurrentPhoto"></component-generation-mode>
                                             <p class="hint">
                                                 [`Webasyst AI will use this product image as the source for a new image in the selected style.`]
                                             </p>
@@ -250,6 +271,7 @@
                                                 </span>
                                                 <span class="s-name">[`Create image with AI`]</span>
                                             </button>
+                                            <component-generation-mode :mode="ai_generation_mode" :photos="photos" :dummy_photo="dummy_photo" :on-select-photo="setCurrentPhoto"></component-generation-mode>
                                             <p class="hint">
                                                 [`Webasyst AI will generate new product image from scratch based on the selected style, product info, and your custom prompt.`]
                                             </p>

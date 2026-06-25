@@ -159,3 +159,17 @@ if (file_exists($locale_file) && $unit_model->countAll() == 0) {
     }
 }
 
+// payment plugins
+if ($currency_model->getById('RUB')) {
+    try {
+        $plugins = shopPayment::getList();
+        if (isset($plugins['pay'])) {
+            $info = $plugins['pay'];
+            $info['plugin'] = 'pay';
+            $info['status'] = 1;
+            shopPayment::savePlugin($info);
+        }
+    } catch (waException $ex) {
+        waLog::log($ex->getMessage(), 'wa-apps/shop/install.log');
+    }
+}

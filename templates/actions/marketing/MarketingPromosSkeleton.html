@@ -1,5 +1,12 @@
 {function _render_promo_skeleton count=4}
 <div class="skeleton">
+    <style>
+        @media screen and (max-width: 760px) {
+            .skeleton ul.thumbs { text-align: center; }
+            .skeleton ul.thumbs li { margin-right: 0; }
+            .skeleton .skeleton-custom-box { width: calc(100vw - 4rem) !important; }
+        }
+    </style>
     <ul class="thumbs">
         {for $i=1 to $count}
         <li class="custom-mb-0">

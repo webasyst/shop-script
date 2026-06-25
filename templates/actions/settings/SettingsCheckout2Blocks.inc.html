@@ -1126,18 +1126,17 @@
                 </label>
             </div>
             <div class="value js-shipping-service-agreement-wrapper">
-                <label>
-                    <input type="hidden" name="data[shipping][service_agreement]" value="0" />
-                    <span class="wa-checkbox">
-                        <input class="js-shipping-service-agreement" id="shipping_service_agreement" type="checkbox" name="data[shipping][service_agreement]"{if $settings.service_agreement} checked{/if} />
-                        <span>
-                            <span class="icon">
-                                <i class="fas fa-check"></i>
+                {foreach $shipping_service_agreement_variants as $_id => $_variant}
+                    <div class="s-checkout-radio-variant js-variant" data-id="{$_id}"{if !empty($_variant.default_text)} data-default-text="{$_variant.default_text|escape}"{/if}>
+                        <label>
+                            <span class="wa-radio">
+                                <input type="radio" class="js-shipping-service-agreement"  name="data[shipping][service_agreement]" value="{$_id|escape}"{if (string)$settings.service_agreement === (string)$_id} checked{/if} />
+                                <span></span>
                             </span>
-                        </span>
-                    </span>
-                    [`Show notice`]
-                </label>
+                            {$_variant.name|escape}
+                        </label>
+                    </div>
+                {/foreach}
                 <textarea class=" js-shipping-service-agreement-hint width-70"{if !$settings.service_agreement} style="display: none;"{/if} name="data[shipping][service_agreement_hint]">{$settings.service_agreement_hint|escape}</textarea>
             </div>
         </div>

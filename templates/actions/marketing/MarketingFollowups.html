@@ -2,7 +2,7 @@
 <div class="s-followups-page" id="js-followups-page">
     {* BODY *}
     <div class="content flexbox">
-        <div class="sidebar blank width-23rem">
+        <div class="sidebar blank width-23rem mobile-friendly">
             <ul class="menu large">
                 <li class="{if !empty($followups)}bottom-padded{/if}">
                     <a href="{$marketing_url}followups/create/">
@@ -281,7 +281,7 @@
                                 <div class="name">[`Send from`]</div>
                                 <div class="value">
                                     <div class="wa-select small">
-                                        <select class="followup-from" name="followup[from]">
+                                        <select class="followup-from width-100 text-ellipsis" name="followup[from]">
                                             <option value="" {if !$followup.from}selected{/if}>{$default_email_from}</option>
                                             <option value="other" {if $followup.from}selected{/if}>[`Other email...`]</option>
                                         </select>
@@ -298,7 +298,7 @@
                                 <div class="name">[`Send from`]</div>
                                 <div class="value">
                                     <div class="wa-select small">
-                                        <select class="followup-from" name="followup[from]">
+                                        <select class="followup-from width-100 text-ellipsis" name="followup[from]">
                                             {$cnt = count($sms_from)}
                                             <option value="" {if empty($folowup.from)}selected{/if}>[`Default (as configured in SMS gateway)`]</option>
                                             {if $cnt >= 1 && !($cnt == 1 && isset($sms_from["*"]))}
@@ -443,7 +443,7 @@
                     <div class="wide">
                         <button type="submit" form="s-followup-form" class="button green js-submit-button">[`Save`]</button>
                     </div>
-                    <div class="flexbox middle space-8">
+                    <div class="flexbox middle space-8 small-mobile">
                         {$wa->getCheatSheetButton(["app" => {$wa->app()}, 'key' => 'followups'])}
                         {if !empty($followup.id)}
                             <button type="button" id="send-test-button" class="button">[`Send test`]</button>
@@ -464,6 +464,16 @@
 <script>
     ( function($) { "use strict";
         $.shop.marketing.setTitle({_w("Follow-ups")|json_encode});
+
+        $.shop.initMobileSidebar({
+            $sidebar: $("#js-followups-page .sidebar"),
+            $content: $("#js-followups-page .s-settings-form"),
+            openAfterReload: true,
+            storageId: 'followups',
+            appendButtonBack ($defaultButtonBack) {
+                return $defaultButtonBack.insertBefore('#js-followups-page h1');
+            }
+        });
 
         var sources = [{
             id: "wa-content-design-css",

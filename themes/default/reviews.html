@@ -86,18 +86,18 @@
                 <div class="review-form-fields">
 
                     {if empty($current_user_id) && $require_authorization}
-                        <p class="review-field">{sprintf(
+                        <div class="review-field">{sprintf(
                             '[`To add a review please <a href="%s">sign up</a> or <a href="%s">login</a>`]',
                             $wa->signupUrl(),
                             $wa->loginUrl())
-                            }</p>
+                        }</div>
                     {else}
 
                         {if !empty($current_user_id)}
-                            <p class="review-field"><label>[`Your name`]</label>
+                            <div class="review-field"><label>[`Your name`]</label>
                                 <strong><img src="{$wa->user()->getPhoto(20)}" class="userpic" alt="">{$wa->user('name')}</strong>
                                 <a class="wa-ml-8" href="?logout">[`log out`]</a>
-                            </p>
+                            </div>
                         {else}
                             {if $auth_adapters}
                                 <ul id="user-auth-provider" class="menu-h auth-type">
@@ -114,36 +114,36 @@
                             {/if}
 
                             <div class="provider-fields" data-provider="{shopProductReviewsModel::AUTH_GUEST}" {if $current_auth_source != shopProductReviewsModel::AUTH_GUEST}style="display:none"{/if}>
-                                <p class="review-field">
+                                <div class="review-field">
                                     <label>[`Your name`]</label>
-                                    <input type="text" name="name" id="review-name" value="">
-                                </p>
-                                <p class="review-field">
+                                    <div><input type="text" name="name" id="review-name" value=""></div>
+                                </div>
+                                <div class="review-field">
                                     <label>[`Email`]</label>
-                                    <input type="text" name="email" id="review-email">
-                                </p>
-                                <p class="review-field">
+                                    <div><input type="text" name="email" id="review-email"></div>
+                                </div>
+                                <div class="review-field">
                                     <label>[`Website`]</label>
-                                    <input type="text" name="site" id="review-site">
-                                </p>
+                                    <div><input type="text" name="site" id="review-site"></div>
+                                </div>
                             </div>
 
                             {if !empty($auth_adapters[$current_auth_source])}
                                 {$adapter = $auth_adapters[$current_auth_source]}
                                 <div class="provider-fields" data-provider="{$adapter->getId()}">
-                                    <p class="review-field"><label>[`Your name`]</label>
+                                    <div class="review-field"><label>[`Your name`]</label>
                                         <strong><img src="{$adapter->getIcon()}" class="userpic" />{$current_auth.name|escape}</strong>
                                         <a href="?logout">[`log out`]</a>
-                                    </p>
+                                    </div>
                                 </div>
                             {/if}
                         {/if}
 
-                        <p class="review-field">
+                        <div class="review-field">
                             <label for="review-title">[`Title`]</label>
-                            <input type="text" name="title" id="review-title" class="bold">
-                        </p>
-                        <p class="review-field">
+                            <div><input type="text" name="title" id="review-title" class="bold"></div>
+                        </div>
+                        <div class="review-field">
                             <label>[`Rate product`]</label>
                             <a href="javascript:void(0);" class="no-underline rate" data-rate="0" id="review-rate">
                                 {for $i = 1 to 5}<i class="icon16 star-empty"></i>{/for}
@@ -152,11 +152,11 @@
                                 <b><i>[`clear`]</i></b>
                             </a>
                             <input name="rate" type="hidden" value="0">
-                        </p>
-                        <p class="review-field review-text">
+                        </div>
+                        <div class="review-field review-text">
                             <label for="review-text" >[`Review`]</label>
-                            <textarea id="review-text" name="text" rows="5" cols="45"></textarea>
-                        </p>
+                            <div><textarea id="review-text" name="text" rows="5" cols="45"></textarea></div>
+                        </div>
 
                         {$_images_enabled = $wa->setting("allow_image_upload", false, "shop")}
                         {if !empty($_images_enabled)}
@@ -269,7 +269,7 @@
                                         <input type="hidden" name="service_agreement" value="">
                                         <input type="checkbox" name="service_agreement" value="1"{if $wa->post('service_agreement') || $wa->storage('shop_review_agreement')} checked{/if}>
                                     {/if}
-                                    {$review_service_agreement_hint}
+                                    <div>{$review_service_agreement_hint}</div>
                                 </label>
                             {/if}
 

@@ -39,6 +39,10 @@ class shopCheckoutConfig implements ArrayAccess
     const CUSTOMER_SERVICE_AGREEMENT_TYPE_NOTICE = 'notice';
     const CUSTOMER_SERVICE_AGREEMENT_TYPE_CHECKBOX = 'checkbox';
 
+    const SHIPPING_SERVICE_AGREEMENT_TYPE_NO = '';
+    const SHIPPING_SERVICE_AGREEMENT_TYPE_NOTICE = '1';
+    const SHIPPING_SERVICE_AGREEMENT_TYPE_CHECKBOX = 'checkbox';
+
     const ORDER_WITHOUT_AUTH_CREATE = 'create_contact';
     const ORDER_WITHOUT_AUTH_EXISTING = 'existing_contact';
     const ORDER_WITHOUT_AUTH_CONFIRM = 'confirm_contact';
@@ -313,6 +317,23 @@ class shopCheckoutConfig implements ArrayAccess
                 'default_text' => _w('By submitting this form I agree to <a href="---INSERT A LINK HERE!---" target="_blank">personal data protection policy</a>'),
             ],
             self::CUSTOMER_SERVICE_AGREEMENT_TYPE_CHECKBOX => [
+                'name'         => _w('Show mandatory checkbox, notice, and link'),
+                'default_text' => _w('I agree to <a href="---INSERT A LINK HERE!---" target="_blank">personal data protection policy</a>'),
+            ],
+        ];
+    }
+
+    public function getShippingServiceAgreementVariants()
+    {
+        return [
+            self::SHIPPING_SERVICE_AGREEMENT_TYPE_NO       => [
+                'name' => _w('Do not require consent to personal data protection policy'),
+            ],
+            self::SHIPPING_SERVICE_AGREEMENT_TYPE_NOTICE   => [
+                'name'         => _w('Show only notice and link to policy'),
+                'default_text' => _w('By submitting this form I agree to <a href="---INSERT A LINK HERE!---" target="_blank">personal data protection policy</a>'),
+            ],
+            self::SHIPPING_SERVICE_AGREEMENT_TYPE_CHECKBOX => [
                 'name'         => _w('Show mandatory checkbox, notice, and link'),
                 'default_text' => _w('I agree to <a href="---INSERT A LINK HERE!---" target="_blank">personal data protection policy</a>'),
             ],
@@ -1351,7 +1372,7 @@ class shopCheckoutConfig implements ArrayAccess
                 'pickuppoint_name'       => self::SETTING_TYPE_SCALAR,
                 'post_name'              => self::SETTING_TYPE_SCALAR,
                 'address_fields'         => self::SETTING_TYPE_ARRAY,
-                'service_agreement'      => self::SETTING_TYPE_BOOL,
+                'service_agreement'      => self::SETTING_TYPE_VARIANT,
                 'service_agreement_hint' => self::SETTING_TYPE_SCALAR,
                 'plugin_timeout'         => self::SETTING_TYPE_SCALAR,
                 'auto_use_timeout'       => self::SETTING_TYPE_INT,

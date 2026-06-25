@@ -113,15 +113,15 @@
         <div class="field">
             <div class="name for-input">[`Promo subtitle`]</div>
             <div class="value">
-                <textarea type="text" data-name="[body]">{$banner.body|default:""|escape}</textarea>
+                <textarea type="text" data-name="[body]" class="width-100-mobile">{$banner.body|default:""|escape}</textarea>
             </div>
         </div>
 
         <div class="field">
             <div class="name for-input">[`Button text`]</div>
             <div class="value">
-                <input type="text" data-name="[button_text]" value="{$banner.button_text|default:''|escape}">
-                <p class="hint">[`If not empty, the promo link will be focused on a button withing the banner, not on the whole banner area. (The button display requires to be supported by your design theme.)`]</p>
+                <input type="text" data-name="[button_text]" class="width-100-mobile" value="{$banner.button_text|default:''|escape}">
+                <p class="small gray">[`If not empty, the promo link will be focused on a button withing the banner, not on the whole banner area. (The button display requires to be supported by your design theme.)`]</p>
             </div>
         </div>
 

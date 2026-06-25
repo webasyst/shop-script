@@ -9,7 +9,6 @@ class shopCustomersAddAction extends waViewAction
     {
         $form = $this->getForm();
         $post_data = $form->post();
-
         if ($post_data) {
             $customer_validation_disabled = wa()->getSetting('disable_backend_customer_form_validation');
 
@@ -18,6 +17,7 @@ class shopCustomersAddAction extends waViewAction
                 $c = new waContact();
                 $c['is_company'] = $post_data['contact_type'] === shopCustomer::TYPE_COMPANY;
 
+                $post_data['create_method'] = 'manual';
                 if ($customer_validation_disabled) {
                     $errors = array();
                     $c->save($post_data);

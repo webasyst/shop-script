@@ -2474,18 +2474,36 @@ SQL;
                 return $c['code'] === 'RUB';
             });
             if ($result) {
-                // Store must not have WA Pay set up already
-                $result = (new shopPluginModel())->countByField([
-                    'type' => 'payment',
-                    'plugin' => 'pay',
-                ]) <= 0;
+                try {
+                    if (wa()->appExists('installer')) {
+                        // Installer must be present and set up in ru region
+                        wa('installer');
+                        $result = installerHelper::getGeoZone() === 'ru';
+                    } else {
+                        $result = false;
+                    }
+                } catch (Throwable $e) {
+                }
             }
             if ($result) {
-                try {
-                    // Installer (if present) must be in ru region
-                    wa('installer');
-                    $result = installerHelper::getGeoZone() === 'ru';
-                } catch (Throwable $e) {
+                // Disable promotion when both: store has WA Pay set up and at least one paid order
+                $wa_pay_ids = array_keys((new shopPluginModel())->getByField([
+                    'type' => 'payment',
+                    'plugin' => 'pay',
+                ], 'id'));
+                if ($wa_pay_ids) {
+                    $have_paid_orders = (new shopOrderModel())->query(
+                        "SELECT 1
+                         FROM shop_order AS o
+                            JOIN shop_order_params AS op
+                                ON op.order_id=o.id
+                        WHERE o.paid_date
+                            AND op.name='payment_id'
+                            AND op.value IN (?)
+                        LIMIT 1",
+                        [$wa_pay_ids]
+                    )->fetchField();
+                    $result = !$have_paid_orders;
                 }
             }
         }
@@ -2534,10 +2552,6 @@ SQL;
                 'title'       => _w('Studio'),
                 'description' => _w('Minimalistic studio shot that focuses on the product as the hero against a clean, subtle background.'),
             ],
-            'luxury'             => [
-                'title'       => _w('Luxury'),
-                'description' => _w('Luxury-style studio shot against a dark, dramatic, and expensive-looking background that elevates the product’s premium feel.'),
-            ],
             'interior'           => [
                 'title'       => _w('Home'),
                 'description' => _w('At-home lifestyle shot that places the product in a cozy home interior.'),
@@ -2557,6 +2571,10 @@ SQL;
             'handson'            => [
                 'title'       => _w('Hands-on'),
                 'description' => _w('Shows the product being held by a person, with a clean close-up of real-world interaction.'),
+            ],
+            'luxury'             => [
+                'title'       => _w('Luxury'),
+                'description' => _w('Luxury-style studio shot against a dark, dramatic, and expensive-looking background that elevates the product’s premium feel.'),
             ],
             'render'             => [
                 'title'       => _w('3D render'),

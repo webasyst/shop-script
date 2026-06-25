@@ -31,7 +31,7 @@
                 <div class="_s-welcome-page">
 
                     <h2 class="align-center">[`Welcome to Shop-Script!`]</h2>
-                    <p class="align-center gray">[`Few quick questions to get your storefront up and running.`]</p>
+                    <p class="align-center gray small">[`Few quick questions to get your storefront up and running.`]</p>
 
                     <div class="fields">
 
@@ -88,15 +88,14 @@
                             <div class="field">
                                 <div class="value">
 
-                                    {$_has_source = !!$backend_welcome_event_result}
-                                    <div class="toggle js-filling-store-toggle">
-                                        <span data-content="1"{if $_has_source} class="selected"{/if}>[`Migrate my products`]</span>
-                                        <span data-content="2"{if !$_has_source} class="selected"{/if}>[`Start from scratch`]</span>
-                                        <span data-content="3">[`Add demo products`]</span>
+                                    <div class="toggle semibold js-filling-store-toggle">
+                                        <span data-content="3" class="selected">[`Start from scratch`]</span>
+                                        <span data-content="1">[`Migrate from another platform`]</span>
+                                        <!-- <span data-content="2">[`Start from scratch`]</span> -->
                                     </div>
 
                                     <div class="js-filling-store-content custom-mt-16">
-                                        <div class="js-filling-store-content-item{if !$_has_source} hidden{/if}" data-content="1">
+                                        <div class="js-filling-store-content-item hidden" data-content="1">
 
                                             {if $backend_welcome_event_result}
                                                 {* @event backend_welcome.%plugin_id%.form_bottom *}
@@ -108,12 +107,12 @@
                                             {/if}
                                         </div>
 
-                                        <div class="js-filling-store-content-item{if $_has_source} hidden{/if}" data-content="2">
+                                        <div class="js-filling-store-content-item hidden" data-content="2">
                                             <p class="small"><i class="fas fa-check-circle text-green"></i> [`Start with an empty catalog and easily add products in bulk by uploading a folder of photos or by importing product data from a CSV file at any moment.`]</p>
                                         </div>
 
-                                        <div class="js-filling-store-content-item hidden" data-content="3">
-                                            <p class="small">[`Demo products are great to quickly view Shop-Script in action and just to look around. You can easily delete all demo products at any time with a few clicks.`]</p>
+                                        <div class="js-filling-store-content-item" data-content="3">
+                                            <p class="small"><i class="fas fa-check-circle text-green"></i> [`Demo products are great to quickly view Shop-Script in action and just to look around. You can easily delete all demo products at any time with a few clicks.`]</p>
                                             {$_sources_html = []}
 
                                             {$_can_work = $shop_demo_importer_can_work.status}
@@ -123,12 +122,13 @@
                                                 <p class="state-error-hint"><i class="fas fa-exclamation-triangle"></i> {$_reason}</p>
                                             {/if}
 
+                                            <h6 class="custom-mb-12 custom-mt-4 text-gray bold">[`Add demo products`]</h6>
                                             {if count($shop_demo_data_source_list) == 1}
                                                 {foreach $shop_demo_data_source_list as $_source_id => $_source}
                                                     <div class="custom-mb-8">
                                                         <label class="flexbox space-8 middle">
                                                             <span class="wa-radio">
-                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}>
+                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if} checked>
                                                                 <span></span>
                                                             </span>
                                                             <div class="custom-pl-4">
@@ -142,7 +142,7 @@
                                                     <div class="custom-mb-8">
                                                         <label class="flexbox space-8 middle">
                                                             <span class="wa-radio">
-                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}>
+                                                                <input type="radio" name="demo_db" value="{$_source_id}" {if !$_can_work}disabled="disabled"{/if}{if $_source@first} checked{/if}>
                                                                 <span></span>
                                                             </span>
                                                             <div style="width: 1.75rem; text-align: center;">
@@ -163,7 +163,7 @@
                                                         <span></span>
                                                     </span>
                                                     <span class="gray custom-pl-4">
-                                                        [`Don’t add demo products`]
+                                                        [`No demo products please`]
                                                     </span>
                                                 </label>
                                             </div>

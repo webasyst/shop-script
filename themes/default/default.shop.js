@@ -23,7 +23,7 @@ $(document).ready(function () {
     // $('.homepage-bxslider').css('height','auto');
 
     $('.related-bxslider').bxSlider( { minSlides: 1, maxSlides: 7, slideWidth: 170, slideMargin: 20, infiniteLoop: true, pager: false });
-    $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 7, slideWidth: 170, slideMargin: 0, infiniteLoop: true, pager: false });
+    $('.onsale-bxslider').bxSlider( { minSlides: 1, maxSlides: 7, slideWidth: 170, slideMargin: 20, infiniteLoop: true, pager: false });
 
     // SIDEBAR HEADER click (smartphones only)
     if ( (!!('ontouchstart' in window)) && MatchMedia("only screen and (max-width: 768px)") ) {

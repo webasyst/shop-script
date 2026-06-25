@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE theme PUBLIC "wa-app-theme" "http://www.webasyst.com/wa-content/xml/wa-app-theme.dtd">
-<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="26.0.0">
+<theme id="default" system="0" vendor="webasyst" author="Webasyst" app="shop" parent_theme_id="site:default" version="26.1.0">
   <name locale="en_US">Webasyst 2026</name>
   <name locale="ru_RU">Webasyst 2026</name>
   <files>
@@ -155,7 +155,7 @@
       <name locale="ru_RU">Слайдер</name>
       <options>
         <option value="source">
-          <name locale="ru_RU">Оригинальные изображения</name>
+          <name locale="ru_RU">Использовать оригинальные изображения баннеров</name>
           <name locale="en_US">Original images</name>
           <description locale="ru_RU">Будут использованы исходные изображений баннеров, которые вы загрузили для промоакций на главной.</description>
           <description locale="en_US">In the main promo slider, use original banner images as uploaded.</description>
@@ -173,8 +173,8 @@
       <value locale="ru_RU"></value>
       <name locale="en_US">Title above the bestseller (Hot deals) list</name>
       <name locale="ru_RU">Заголовок над списком бестселлеров (лучших предложений)</name>
-      <description locale="en_US">If provided, &lt;b&gt;{$date}&lt;/b&gt; will be replaced with the current date</description>
-      <description locale="ru_RU">Переменная &lt;b&gt;{$date}&lt;/b&gt; в заголовке (если указана) будет заменена на текущую дату</description>
+      <description locale="en_US">You can use &lt;b&gt;{$date}&lt;/b&gt; variable in the text. The variable will be replaced with the current date.</description>
+      <description locale="ru_RU">В тексте можно использовать переменную &lt;b&gt;{$date}&lt;/b&gt; — она будет заменена на текущую дату.</description>
     </setting>
     <setting var="homepage_productset_bestsellers" control_type="text">
       <value>bestsellers</value>
@@ -188,8 +188,8 @@
       <value locale="ru_RU">Распродажа</value>
       <name locale="en_US">Title above homepage featured product list</name>
       <name locale="ru_RU">Заголовок над списком промотоваров</name>
-      <description locale="en_US">If provided, &lt;b&gt;{$date}&lt;/b&gt; will be replaced with the current date</description>
-      <description locale="ru_RU">Переменная &lt;b&gt;{$date}&lt;/b&gt; в заголовке (если указана) будет заменена на текущую дату</description>
+      <description locale="en_US">You can use &lt;b&gt;{$date}&lt;/b&gt; variable in the text. The variable will be replaced with the current date.</description>
+      <description locale="ru_RU">В тексте можно использовать переменную &lt;b&gt;{$date}&lt;/b&gt; — она будет заменена на текущую дату.</description>
     </setting>
     <setting var="homepage_productset_onsale" control_type="text">
       <value>promo</value>
@@ -199,10 +199,10 @@
       <description locale="en_US">Featured products will be displayed on the storefront homepage under the slider and the best-selling product list.</description>
     </setting>
     <setting var="homepage_welcome_note" control_type="text">
-      <value locale="ru_RU">&lt;b&gt;Добро пожаловать!&lt;/b&gt; Интернет-магазин создан с помощью Shop-Script — приложения, которое позволяет легко &lt;a href="https://www.shop-script.ru"&gt;создать интернет-магазин&lt;/a&gt;.</value>
-      <value locale="en_US">&lt;b&gt;Welcome!&lt;/b&gt; This store is created with Shop-Script &lt;a href="https://www.shop-script.com"&gt;online store builder app&lt;/a&gt;.</value>
-      <name locale="en_US">Welcome note (HTML)</name>
-      <name locale="ru_RU">Приветствие (HTML)</name>
+      <value locale="ru_RU"></value>
+      <value locale="en_US"></value>
+      <name locale="en_US">Homepage footer text (any custom HTML)</name>
+      <name locale="ru_RU">Текст в нижней части главной страницы (любой HTML)</name>
     </setting>
     <setting var="homepage_blogposts" control_type="checkbox">
       <value>1</value>
@@ -251,7 +251,7 @@
     </setting>
     <setting var="homepage_bullet_body_1" control_type="text">
       <value locale="en_US">We offer domestic and international shipping via all major shipping carriers.</value>
-      <value locale="ru_RU">Мы доставим ваш заказ курьером по Москве и Петербургу или службой экспресс-доставки по всей России.</value>
+      <value locale="ru_RU">Доставляем по Москве и Петербургу курьером, а по всей России — до ближайшего ПВЗ.</value>
       <name locale="en_US">Block content</name>
       <name locale="ru_RU">Текст блока</name>
     </setting>
@@ -268,7 +268,7 @@
     </setting>
     <setting var="homepage_bullet_body_2" control_type="text">
       <value locale="en_US">We accept all major credit cards and PayPal payments. All orders are paid online.</value>
-      <value locale="ru_RU">Оплатите заказ банковской картой, наличными в ближайшем платежном терминале или наличными.</value>
+      <value locale="ru_RU">Принимаем оплату по СБП и картам онлайн или банковским перечислением на счет.</value>
       <name locale="en_US">Block content</name>
       <name locale="ru_RU">Текст блока</name>
     </setting>
@@ -285,7 +285,7 @@
     </setting>
     <setting var="homepage_bullet_body_3" control_type="text">
       <value locale="en_US">If you are in SF or LA, you may pick up an order in one of our stores. Give us a call!</value>
-      <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Город, ул. Улица, д. 3.</value>
+      <value locale="ru_RU">Будем рады видеть вас в нашем магазине по адресу г. Москва, ул. Улица, д. 13, 5 этаж.</value>
       <name locale="en_US">Block content</name>
       <name locale="ru_RU">Текст блока</name>
     </setting>

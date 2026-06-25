@@ -467,4 +467,29 @@ class shopCustomer extends waContact
 
         return $top;
     }
+
+    public static function getContactCreateMethod($order_data): string
+    {
+        $sales_channel = ifempty($order_data, 'params', 'sales_channel', '');
+        if (!empty($sales_channel) && is_string($sales_channel)) {
+            list($channel_type, $_) = explode(':', $sales_channel, 2);
+            if ($channel_type === 'storefront') {
+                return 'order/storefront';
+            } else {
+                return 'order/'.rtrim($sales_channel, ':');
+            }
+        }
+        if (wa()->getEnv() === 'frontend') {
+            if (waRequest::param('action') === 'apiOrderCreate') {
+                return 'order/front_api';
+            } else {
+                return 'order/storefront';
+            }
+        } else if (wa()->getEnv() === 'backend') {
+            if (waRequest::get('module') === 'order' && !waRequest::param('module')) {
+                return 'order/backend';
+            }
+        }
+        return 'order'; // api.php? backend import? whatever...
+    }
 }

@@ -26,7 +26,7 @@
             <div class="flexbox space-4">
                 <div class="wide">
                     <p class="custom-mt-0 custom-mb-4" style="line-height: 1.2;">
-                        <a href="?action=orders#/order/{%=o.order.id%}/" class="semibold custom-mr-4">{%=o.order.id_str%}</a>
+                        <a href="?action=orders#/order/{%=o.order.id%}/{/literal}{if $params_str}{$params_str|escape}/{/if}{literal}" class="semibold custom-mr-4">{%=o.order.id_str%}</a>
                         <span class="opacity-80 break-words">{% if (o.order.contact.name) { %}{%#o.order.contact.name%}{% } %}</span>
                     </p>
                     <p class="hint custom-mt-4">

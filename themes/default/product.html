@@ -57,7 +57,7 @@
 
 <article itemscope itemtype="http://schema.org/Product" id="js-product-page">
 
-    <h1 class="wa-mb-16 fw-normal">
+    <h1 class="wa-mb-16">
         <span itemprop="name">{$product.name|escape}</span>
     </h1>
 
@@ -289,7 +289,7 @@
         <!-- categories -->
         {if $product.categories}
             <p>
-                <span class="font-size-big text-black-auto">[`Categories`]:</span>
+                <span class="font-size-big text-black-auto text-gray">[`Categories`]:</span>
                 {foreach $product.categories as $c}
                     {if $c.status}
                         <a href="{$wa->getUrl('/frontend/category', ['category_url' => $c.full_url])}">{$c.name|escape}</a>
@@ -301,7 +301,7 @@
         <!-- tags -->
         {if $product.tags}
             <p class="tags" id="product-tags">
-                 <span class="font-size-big text-black-auto">[`Tags`]:</span>
+                 <span class="font-size-big text-black-auto text-gray">[`Tags`]:</span>
                 {foreach $product.tags as $t}
                     <a href="{$wa->getUrl('/frontend/tag', ['tag' => str_replace('%2F', '/', urlencode(htmlspecialchars_decode($t)))])}">{$t}</a>
                 {/foreach}
