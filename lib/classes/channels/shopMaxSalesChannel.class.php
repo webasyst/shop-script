@@ -1,7 +1,7 @@
 <?php
 /**
  * Implements sales channel type 'max:<id>'
- * (point of sale)
+ * MAX messenger storefront.
  */
 class shopMaxSalesChannel extends shopTelegramSalesChannel
 {

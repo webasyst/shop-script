@@ -888,24 +888,24 @@ html.is-order-page .container {
 .wa-order-cart-wrapper .wa-products .wa-product.is-out-of-stock::after {
   background-color: color-mix(in srgb, var(--bg-color-accent) 75%, transparent) !important;
 }
-body:not(:has(.wa-order-layout)) .wa-order-dialog .wa-dialog-background {
+body:not(:has(>.wa-order-layout)) .wa-order-dialog .wa-dialog-background {
   background-color:  color-mix(in srgb, var(--bg-color) 75%, transparent) !important;
 }
-body:not(:has(.wa-order-layout)) .wa-order-dialog .wa-dialog-body {
+body:not(:has(>.wa-order-layout)) .wa-order-dialog .wa-dialog-body {
   background: var(--bg-color) !important;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3), 0 10px 30px rgba(0, 0, 0, 0.2) !important;
   border: 1px solid var(--divider-color) !important;
   border-radius: var(--element-border-radius) !important;
 }
-body:not(:has(.wa-order-layout)) .wa-order-dialog .wa-dialog-body .wa-dialog-header {
+body:not(:has(>.wa-order-layout)) .wa-order-dialog .wa-dialog-body .wa-dialog-header {
   background: var(--bg-color-accent) !important;
   border-bottom: 1px solid var(--divider-color) !important;
   border-radius: var(--element-border-radius) var(--element-border-radius) 0 0 !important;
 }
-body:not(:has(.wa-order-layout)) .wa-order-dialog.wa-shipping-pickup-dialog .wa-content-section .wa-variants-section .wa-variants-list .wa-variant-wrapper:hover {
+body:not(:has(>.wa-order-layout)) .wa-order-dialog.wa-shipping-pickup-dialog .wa-content-section .wa-variants-section .wa-variants-list .wa-variant-wrapper:hover {
   background: var(--divider-color) !important;
 }
-body:not(:has(.wa-order-layout)) .wa-order-dialog.wa-shipping-pickup-dialog .wa-content-section .wa-variants-section .wa-variants-list .wa-variant-wrapper .wa-details .wa-price {
+body:not(:has(>.wa-order-layout)) .wa-order-dialog.wa-shipping-pickup-dialog .wa-content-section .wa-variants-section .wa-variants-list .wa-variant-wrapper .wa-details .wa-price {
   color: var(--text-color) !important;
 }
 .wa-field-wrapper.size-mini {
@@ -933,7 +933,9 @@ body:not(:has(.wa-order-layout)) .wa-order-dialog.wa-shipping-pickup-dialog .wa-
   background: var(--input-bg-color);
 }
 
-body:has(.wa-order-layout) {
+body:has(>.wa-order-layout) {
+  --chevron-svg: url("data:image/svg+xml,%3Csvg width='24' height='24' viewBox='0 0 24 24' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M18 9L12 15L6 9' stroke='%23000000' stroke-opacity='0.5' stroke-width='1.875' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --check-svg: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none'%3E%3Cpath d='M5.81 11.333c-.276.44-.682.667-1.154.667-.486 0-.866-.2-1.22-.654L.341 7.488C.118 7.208 0 6.914 0 6.594c0-.654.498-1.188 1.141-1.188.393 0 .708.147 1.023.56l2.44 3.164L9.783.667c.275-.44.63-.667 1.023-.667C11.423 0 12 .44 12 1.108c0 .294-.157.614-.328.894l-5.862 9.33Z' fill='%23000000'/%3E%3C/svg%3E");
   color: #000;
 }
 .wa-order-layout .wa-dropdown > .wa-dropdown-area {

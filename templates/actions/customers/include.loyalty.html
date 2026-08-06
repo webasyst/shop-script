@@ -12,7 +12,11 @@
                 <div class="js-loyalty-result">
                     <div class="flexbox middle">
                         <code class="large js-loyalty-code nowrap">{$formatted_id_code|escape}</code>
-                        <a href="javascript:void(0)" class="button small light-gray js-loyalty-edit custom-ml-8">[`Edit`]</a>
+                        <a href="javascript:void(0)" class="js-loyalty-copy button small nowrap light-gray custom-ml-8">
+                            <span class="js-success-icon" style="display: none;"><i class="fas fa-check text-green"></i></span>
+                            <span data-default-text="[`Copy`]" data-success-text="[`Copied`]">[`Copy`]</span>
+                        </a>
+                        <a href="javascript:void(0)" class="js-loyalty-edit button nobutton small"><i class="fas fa-pen mobile-only"></i> <span class="desktop-and-tablet-only">[`Edit`]</span></a>
                     </div>
                     <p class="small"><i class="fas fa-cash-register text-gray"></i> {sprintf_wp(
                         'Use <a %s>Shop-Script mobile POS app</a> to scan this loyalty card code during in-person checkout to link an order with the customer’s online profile.',

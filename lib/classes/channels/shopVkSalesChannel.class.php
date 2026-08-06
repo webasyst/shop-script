@@ -1,7 +1,7 @@
 <?php
 /**
  * Implements sales channel type 'vk:<id>'
- * (point of sale)
+ * VK messenger storefront
  */
 class shopVkSalesChannel extends shopTelegramSalesChannel
 {

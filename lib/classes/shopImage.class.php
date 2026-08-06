@@ -335,7 +335,8 @@ class shopImage
     public static function getOriginalPath($image)
     {
         $sub_path = self::getSubPath($image);
-        $path = shopProduct::getPath($image['product_id'], "$sub_path/{$image['id']}.original.{$image['ext']}");
+        $ext = ifempty($image, 'original_ext', $image['ext']);
+        $path = shopProduct::getPath($image['product_id'], "$sub_path/{$image['id']}.original.{$ext}");
         return $path;
     }
 

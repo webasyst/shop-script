@@ -19,6 +19,19 @@
 .s-promo-checkbox-list { max-width: 32rem; max-height: 14rem; overflow-y: auto; padding: .5rem .75rem; border: 1px solid #ddd; border-radius: .5rem; }
 .s-promo-checkbox-item { display: block; margin: 0 0 .5rem; }
 .s-promo-checkbox-item:last-child { margin-bottom: 0; }
+.s-coupon-checkbox-list { max-width: 32rem; max-height: 14rem; overflow-y: auto; padding: .5rem .75rem; border: 1px solid #ddd; border-radius: .5rem; }
+.s-coupon-checkbox-item { display: block; margin: 0 0 .5rem; }
+.s-coupon-checkbox-item:last-child { margin-bottom: 0; }
+.s-links-block-description { color: var(--gray); margin: 0 0 1rem; }
+.s-links-list { margin: 0 0 .75rem; }
+.s-links-item { display: grid; grid-template-columns: 1.25rem 2rem minmax(8rem, 10rem) minmax(10rem, 12rem) auto 2rem; gap: .5rem; align-items: center; padding: .5rem 0; border-bottom: 1px solid var(--light-gray); }
+.s-links-item:first-child { border-top: 1px solid var(--light-gray); }
+.s-links-item .js-link-sort-handle { cursor: grab; }
+.s-links-item .js-link-sort-handle:active { cursor: grabbing; }
+.s-links-icon-preview { width: 1.75rem; height: 1.75rem; display: inline-flex; align-items: center; justify-content: center; color: var(--text-color-strong); }
+.s-links-icon-preview img { max-width: 1.75rem; max-height: 1.75rem; border-radius: .35rem; object-fit: contain; }
+.s-link-icon-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin: 0 .75rem; }
+.s-links-item select { max-width: 100%; }
 </style>
 
 {capture assign="_template_row"}
@@ -86,14 +99,60 @@
         </p>
     </div>
 {/capture}
+{capture assign="_template_coupons"}
+    <div class="s-homepage-block-field">
+        <select class="js-coupon-selection-mode width-100">
+            <option value="all">[`All`]</option>
+            <option value="selected">[`Selected only`]</option>
+        </select>
+    </div>
+    <div class="s-homepage-block-field js-coupon-select-wrapper" style="display:none;">
+        <div class="s-coupon-checkbox-list js-coupon-checkbox-list">
+            {foreach $coupons as $coupon}
+                <label class="s-coupon-checkbox-item break-word">
+                    <input class="js-coupon-checkbox" type="checkbox" value="{$coupon.id|escape}">
+                    {$coupon.label|escape}
+                </label>
+            {/foreach}
+        </div>
+        <p class="hint js-coupon-empty-hint">
+            [`No coupons.`]
+        </p>
+    </div>
+{/capture}
 {capture assign="_template_productlist"}
     <div class="s-homepage-block-field">
+        <div class="small bold">[`Title`]</div>
+        <input class="js-productlist-block-title width-100" type="text" placeholder="[`Optional`]">
+    </div>
+    <div class="s-homepage-block-field">
+        <div class="small bold">[`Subtitle`]</div>
+        <input class="js-productlist-block-subtitle width-100" type="text" placeholder="[`Optional`]">
+    </div>
+    <div class="s-homepage-block-field">
+        <div class="small bold">[`Product list`]</div>
         <select class="js-productlist-select width-100">
             <option value="">[`Select product set`]</option>
             {foreach $product_sets as $set}
                 <option value="{$set.id|escape}">{$set.name|escape} ({$set.id|escape})</option>
             {/foreach}
         </select>
+    </div>
+    <div class="s-homepage-block-field">
+        <div class="small bold">[`Products per row`]</div>
+        <select class="js-productlist-products-per-row">
+            <option value="">[`By default`]</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+        </select>
+        <p class="hint">[`Overrides the channel-wide <em>Products per row</em> setting for this block.`]</p>
+    </div>
+    <div class="s-homepage-block-field">
+        <label>
+            <input class="js-productlist-single-row-with-scroll" type="checkbox" value="1">
+            [`Show products in a single horizontally scrollable row`]
+        </label>
     </div>
 {/capture}
 {capture assign="_template_stories"}
@@ -107,6 +166,30 @@
 {/capture}
 {capture assign="_template_auth"}
     <strong>Auth block</strong>
+{/capture}
+{capture assign="_template_links"}
+    <p class="hint s-links-block-description">
+        {sprintf_wp(
+            'Displays links to selected product sets or categories. Icons for product category links can be uploaded separately in the <a %s>Catalog › Categories</a> section.',
+            sprintf(
+                'href="%s" target="_blank"',
+                $wa_app_url|cat:'products/categories/'
+            )
+        )}
+    </p>
+    <div class="s-links-list js-links-list"></div>
+    <div class="dropdown js-dropdown js-links-add-dropdown">
+        <a href="javascript:void(0);" class="dropdown-toggle button small rounded outlined light-gray">
+            <i class="fas fa-plus-circle"></i> [`Add link`]
+        </a>
+        <div class="dropdown-body">
+            <ul class="menu">
+                <li><a href="javascript:void(0);" class="js-add-link" data-link-type="catalog"><i class="fas fa-th-large text-gray"></i><span>[`Catalog`]</span></a></li>
+                <li><a href="javascript:void(0);" class="js-add-link" data-link-type="set"><i class="fas fa-list-alt text-gray"></i><span>[`Set`]</span></a></li>
+                <li><a href="javascript:void(0);" class="js-add-link" data-link-type="category"><i class="fas fa-folder text-gray"></i><span>[`Category`]</span></a></li>
+            </ul>
+        </div>
+    </div>
 {/capture}
 
 {$wrapper_attr_id = str_replace('.', '-', uniqid('js-homepage-blocks-wrapper', true))}
@@ -142,7 +225,18 @@
     const row_template = get_row_template();
     const sub_templates = get_sub_templates();
     const banner_promos_map = {$banner_promos_map|default:[]|json_encode};
+    const coupons = {$coupons|default:[]|json_encode};
+    const product_sets = {$product_sets|default:[]|json_encode};
+    const catalog_categories = {$catalog_categories|default:[]|json_encode};
     const wa_url = {$wa_url|json_encode};
+    const icon_upload_url = {$wa_app_url|cat:'?module=channels&action=homepageLinkIconUpload'|json_encode};
+    const homepage_link_fa_icons = [
+        'th-large', 'fire', 'thumbs-up', 'bullhorn',
+        'tag', 'award', 'gem', 'leaf',
+        'certificate', 'clock', 'magic', 'gift',
+        'percent', 'lightbulb', 'check-circle', 'recycle',
+        'shipping-fast'
+    ];
 
     const $wrapper = $('#'+{$wrapper_attr_id|json_encode});
     const $field_value_hidden_input = $wrapper.find('.js-field-value').first();
@@ -221,7 +315,13 @@
         if (id === 'promo') {
             renderPromoOptions($block_body, []);
             updatePromoSelectionMode($block_body, 'all');
+        } else if (id === 'coupons') {
+            renderCouponOptions($block_body, []);
+            updateCouponSelectionMode($block_body, 'all');
+        } else if (id === 'links') {
+            renderLinks($block_body, [getDefaultCatalogLink()]);
         }
+        $result.find('.js-dropdown').waDropdown();
         syncSortState();
         changeSubmit();
         return $result;
@@ -324,6 +424,249 @@
             }).get();
             renderPromoOptions($block_body, selected_ids);
             updatePromoSelectState($block_body);
+        });
+    }
+
+    function updateCouponSelectionMode($block_body, mode) {
+        mode = mode === 'selected' ? 'selected' : 'all';
+        $block_body.find('.js-coupon-selection-mode').val(mode);
+        $block_body.find('.js-coupon-select-wrapper').toggle(mode === 'selected');
+        updateCouponSelectState($block_body);
+    }
+
+    function renderCouponOptions($block_body, selected_ids) {
+        selected_ids = Array.isArray(selected_ids) ? selected_ids.map(String) : [];
+
+        const $list = $block_body.find('.js-coupon-checkbox-list');
+        $list.empty();
+        coupons.forEach(function(coupon) {
+            const $label = $('<label class="s-coupon-checkbox-item break-word">');
+            $('<input type="checkbox" class="js-coupon-checkbox">')
+                .val(String(coupon.id))
+                .prop('checked', selected_ids.indexOf(String(coupon.id)) >= 0)
+                .appendTo($label);
+            $label.append(document.createTextNode(' ' + (coupon.label || coupon.code || coupon.id)));
+            $list.append($label);
+        });
+    }
+
+    function updateCouponSelectState($block_body) {
+        const is_selected_mode = $block_body.find('.js-coupon-selection-mode').val() === 'selected';
+        const $checkboxes = $block_body.find('.js-coupon-checkbox');
+        const $list = $block_body.find('.js-coupon-checkbox-list');
+        const $empty_hint = $block_body.find('.js-coupon-empty-hint');
+
+        $checkboxes.prop('disabled', !is_selected_mode || !coupons.length);
+        $list.toggle(is_selected_mode && !!coupons.length);
+        $empty_hint.toggle(is_selected_mode && !coupons.length);
+    }
+
+    function getDefaultCatalogLink() {
+        return {
+            link_type: 'catalog',
+            title: {_w('Catalog')|json_encode},
+            icon: {
+                type: 'fa',
+                value: 'th-large'
+            }
+        };
+    }
+
+    function getSetById(set_id) {
+        set_id = String(set_id || '');
+        return product_sets.find(function(set) {
+            return String(set.id) === set_id;
+        }) || null;
+    }
+
+    function getCategoryById(category_id) {
+        category_id = String(category_id || '');
+        return catalog_categories.find(function(category) {
+            return String(category.id) === category_id;
+        }) || null;
+    }
+
+    function getCategoryIconUrl(category_id) {
+        const category = getCategoryById(category_id);
+        return category?.thumb?.url96x96 || category?.thumb?.default || '';
+    }
+
+    function syncCategoryIconUrl($row) {
+        const icon = $row.data('icon');
+        if (icon?.type === 'category') {
+            icon.url = getCategoryIconUrl($row.find('.js-link-target').val());
+            $row.data('icon', icon);
+        }
+    }
+
+    function getHomepageLinkTitle(link) {
+        if (link.link_type === 'catalog') {
+            return {_w('Catalog')|json_encode};
+        }
+        if (link.link_type === 'set') {
+            const set = getSetById(link.set_id);
+            return set ? set.name : '';
+        }
+        if (link.link_type === 'category') {
+            const category = getCategoryById(link.category_id);
+            return category ? (category.plain_name || category.name) : '';
+        }
+        return '';
+    }
+
+    function renderLinks($block_body, links) {
+        const $list = $block_body.find('.js-links-list').empty();
+        (Array.isArray(links) && links.length ? links : [getDefaultCatalogLink()]).forEach(function(link) {
+            appendLinkRow($block_body, link);
+        });
+        initLinksSorting($list);
+    }
+
+    function appendLinkRow($block_body, link) {
+        link = link || getDefaultCatalogLink();
+
+        const $row = $('<div class="s-links-item js-links-item">').data('icon', link.icon || null);
+        const $sort = $('<span class="js-link-sort-handle text-light-gray" title="[`Sort`]"><i class="fas fa-grip-vertical"></i></span>');
+        const $preview = $('<span class="s-links-icon-preview js-link-icon-preview"></span>');
+        const $type = $('<select class="js-link-type small"></select>')
+            .append($('<option value="catalog">').text({_w('Catalog')|json_encode}))
+            .append($('<option value="set">').text({_w('Set')|json_encode}))
+            .append($('<option value="category">').text({_w('Category')|json_encode}))
+            .val(link.link_type || 'catalog');
+        const $target = $('<select class="js-link-target small"></select>');
+        const $icon = $(getIconPickerHtml());
+        const $delete = $('<a class="button circle smaller light-gray js-delete-link-row" href="javascript:void(0);"><i class="fas fa-times"></i></a>');
+        const $title = $('<input class="js-link-title" type="hidden">');
+
+        $row.append($sort, $preview, $type, $target, $icon, $delete, $title);
+        $block_body.find('.js-links-list').append($row);
+
+        updateLinkTargetOptions($row, link);
+        refreshLinkRow($row);
+        $row.find('.js-dropdown').waDropdown();
+        return $row;
+    }
+
+    function updateLinkTargetOptions($row, link) {
+        const link_type = $row.find('.js-link-type').val();
+        const $target = $row.find('.js-link-target').empty();
+
+        if (link_type === 'catalog') {
+            $target.append($('<option value="">').text({_w('Catalog')|json_encode}));
+            $target.prop('disabled', true);
+        } else if (link_type === 'set') {
+            $target.prop('disabled', false);
+            product_sets.forEach(function(set) {
+                $target.append($('<option>').val(set.id).text(set.name));
+            });
+            $target.val(link?.set_id || $target.find('option:first').val() || '');
+        } else if (link_type === 'category') {
+            $target.prop('disabled', false);
+            catalog_categories.forEach(function(category) {
+                $target.append($('<option>').val(category.id).text(category.name));
+            });
+            $target.val(link?.category_id || $target.find('option:first').val() || '');
+        }
+
+        if (!$target.val() && $target.find('option').length) {
+            $target.val($target.find('option:first').val());
+        }
+    }
+
+    function refreshLinkRow($row) {
+        syncCategoryIconUrl($row);
+        const link = getLinkRowValue($row);
+        $row.find('.js-link-title').val(getHomepageLinkTitle(link));
+        updateLinkIconPreview($row);
+        updateIconButtonText($row);
+        $row.find('.js-use-category-icon').toggle(link.link_type === 'category');
+    }
+
+    function getLinkRowValue($row) {
+        const link_type = $row.find('.js-link-type').val();
+        syncCategoryIconUrl($row);
+        const result = {
+            link_type: link_type,
+            title: $row.find('.js-link-title').val() || ''
+        };
+        if (link_type === 'set') {
+            result.set_id = $row.find('.js-link-target').val() || '';
+        } else if (link_type === 'category') {
+            result.category_id = parseInt($row.find('.js-link-target').val(), 10) || 0;
+        }
+
+        const icon = $row.data('icon');
+        if (icon) {
+            result.icon = icon;
+        }
+        return result;
+    }
+
+    function getIconPickerHtml() {
+        const $dropdown = $('<div class="dropdown js-dropdown s-link-icon-picker custom-ml-auto">');
+        const $toggle = $('<a href="javascript:void(0);" class="dropdown-toggle small text-dark-gray js-link-icon-toggle"><i class="fas fa-plus text-gray"></i> <span></span></a>');
+        const $body = $('<div class="dropdown-body small">');
+        const $grid = $('<div class="s-link-icon-grid">');
+
+        $body.append($('<div class="small bold custom-m-12">').text({_w('Use preset icon')|json_encode}));
+        homepage_link_fa_icons.forEach(function(icon) {
+            $grid.append($('<a href="javascript:void(0);" class="js-select-fa-icon button circle light-gray custom-mr-0">').attr('data-icon', icon).append($('<i>').addClass('fas fa-' + icon)));
+        });
+        $body.append($grid);
+
+        const $actions = $('<ul class="menu small custom-m-0">');
+        $actions.append($('<li><a href="javascript:void(0);" class="small js-use-category-icon"><i class="fas fa-folder text-green"></i><span>{_w('Use category icon')|escape}</span></a>'));
+        $actions.append($('<li><a href="javascript:void(0);" class="small js-upload-link-icon"><i class="fas fa-upload text-blue"></i><span>{_w('Upload custom icon')|escape}</span></a>'));
+        $actions.append($('<li><a href="javascript:void(0);" class="small js-remove-link-icon"><i class="fas fa-trash-alt text-red"></i><span>{_w('Delete icon')|escape}</span></a>'));
+        $body.append('<hr class="custom-my-12">');
+        $body.append($actions);
+        $body.append('<input class="js-link-icon-file" type="file" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" style="display:none;">');
+
+        return $dropdown.append($toggle, $body);
+    }
+
+    function updateLinkIconPreview($row) {
+        const icon = $row.data('icon');
+        const $preview = $row.find('.js-link-icon-preview').empty();
+
+        if (!icon) {
+            return;
+        }
+        if (icon.type === 'fa' && icon.value) {
+            $preview.append($('<i>').addClass('fas fa-' + icon.value));
+        } else if (icon.type === 'upload' && icon.url) {
+            $preview.append($('<img alt="">').attr('src', icon.url));
+        } else if (icon.type === 'category') {
+            const url = icon.url || '';
+            if (url) {
+                $preview.append($('<img alt="">').attr('src', url));
+            } else {
+                $preview.append('<i class="fas fa-folder"></i>');
+            }
+        }
+    }
+
+    function updateIconButtonText($row) {
+        const has_icon = !!$row.data('icon');
+        const $toggle = $row.find('.js-link-icon-toggle');
+        $toggle.find('span').text(has_icon ? {_w('Change icon')|json_encode} : {_w('Add icon')|json_encode});
+        $toggle.find('i').toggleClass('fa-plus', !has_icon).toggleClass('fa-pencil-alt', has_icon);
+    }
+
+    function initLinksSorting($list) {
+        defineSortable().done(function() {
+            if (!$list.length || $list.data('sortable-initialized') || typeof Sortable === 'undefined') {
+                return;
+            }
+            Sortable.create($list[0], {
+                animation: 150,
+                draggable: '.js-links-item',
+                handle: '.js-link-sort-handle',
+                ghostClass: 'sortable-ghost',
+                dragClass: 'sortable-drag',
+                onEnd: changeSubmit
+            });
+            $list.data('sortable-initialized', true);
         });
     }
 
@@ -443,16 +786,48 @@
                     updatePromoSelectionMode($block_body, selection_mode);
                 }
             },
+            coupons: {
+                name: {_w('Coupons')|json_encode},
+                html: $.trim({$_template_coupons|json_encode}),
+                getValue($block_body) {
+                    const selection_mode = $block_body.find('.js-coupon-selection-mode').val() === 'selected' ? 'selected' : 'all';
+                    const result = {
+                        selection_mode: selection_mode
+                    };
+                    if (selection_mode === 'selected') {
+                        result.coupon_ids = $block_body.find('.js-coupon-checkbox:checked').map(function() {
+                            return parseInt(this.value, 10);
+                        }).get().filter(function(id) {
+                            return !isNaN(id);
+                        });
+                    }
+                    return result;
+                },
+                setValue($block_body, value) {
+                    const selection_mode = value?.selection_mode === 'selected' ? 'selected' : 'all';
+                    const coupon_ids = Array.isArray(value?.coupon_ids) ? value.coupon_ids.map(String) : [];
+                    renderCouponOptions($block_body, coupon_ids);
+                    updateCouponSelectionMode($block_body, selection_mode);
+                }
+            },
             productlist: {
                 name: {_w('Product list')|json_encode},
                 html: $.trim({$_template_productlist|json_encode}),
                 getValue($block_body) {
                     return {
-                        set_id: $block_body.find('.js-productlist-select').val() || ''
+                        block_title: $block_body.find('.js-productlist-block-title').val() || '',
+                        block_subtitle: $block_body.find('.js-productlist-block-subtitle').val() || '',
+                        set_id: $block_body.find('.js-productlist-select').val() || '',
+                        products_per_row: $block_body.find('.js-productlist-products-per-row').val() || '',
+                        products_single_row_with_scroll: $block_body.find('.js-productlist-single-row-with-scroll').is(':checked')
                     };
                 },
                 setValue($block_body, value) {
                     $block_body.find('.js-productlist-select').val(value?.set_id || '');
+                    $block_body.find('.js-productlist-block-title').val(value?.block_title || '');
+                    $block_body.find('.js-productlist-block-subtitle').val(value?.block_subtitle || '');
+                    $block_body.find('.js-productlist-products-per-row').val(value?.products_per_row || '');
+                    $block_body.find('.js-productlist-single-row-with-scroll').prop('checked', !!value?.products_single_row_with_scroll);
                 }
             },
             // stories: {
@@ -477,6 +852,20 @@
                     $block_body.find('textarea').val(value.value)
                 }
             },
+            links: {
+                name: {_w('Catalog section links')|json_encode},
+                html: $.trim({$_template_links|json_encode}),
+                getValue($block_body) {
+                    return {
+                        links: $block_body.find('.js-links-item').map(function() {
+                            return getLinkRowValue($(this));
+                        }).get()
+                    };
+                },
+                setValue($block_body, value) {
+                    renderLinks($block_body, Array.isArray(value?.links) ? value.links : [getDefaultCatalogLink()]);
+                }
+            },
             // auth: {
             //     name: {_w('Customer authorization')|json_encode},
             //     html: $.trim({$_template_auth|json_encode}),
@@ -496,6 +885,102 @@
 
     $wrapper.on('change', '.js-promo-selection-mode', function() {
         updatePromoSelectionMode($(this).closest('.js-block-body'), $(this).val());
+    });
+    $wrapper.on('change', '.js-coupon-selection-mode', function() {
+        updateCouponSelectionMode($(this).closest('.js-block-body'), $(this).val());
+    });
+    $wrapper.on('click', '.js-add-link', function() {
+        const $block_body = $(this).closest('.js-block-body');
+        const link_type = $(this).data('link-type');
+        const link = { link_type: link_type };
+        if (link_type === 'catalog') {
+            link.icon = { type: 'fa', value: 'th-large' };
+        }
+        appendLinkRow($block_body, link);
+        initLinksSorting($block_body.find('.js-links-list'));
+        changeSubmit();
+        return false;
+    });
+    $wrapper.on('change', '.js-link-type', function() {
+        const $row = $(this).closest('.js-links-item');
+        const icon = $row.data('icon');
+        updateLinkTargetOptions($row, null);
+        if (icon?.type === 'category' && $(this).val() !== 'category') {
+            $row.removeData('icon');
+        }
+        refreshLinkRow($row);
+        changeSubmit();
+    });
+    $wrapper.on('change', '.js-link-target', function() {
+        refreshLinkRow($(this).closest('.js-links-item'));
+        changeSubmit();
+    });
+    $wrapper.on('click', '.js-delete-link-row', function() {
+        $(this).closest('.js-links-item').remove();
+        changeSubmit();
+        return false;
+    });
+    $wrapper.on('click', '.js-select-fa-icon', function() {
+        const $row = $(this).closest('.js-links-item');
+        $row.data('icon', { type: 'fa', value: $(this).data('icon') });
+        refreshLinkRow($row);
+        changeSubmit();
+        return false;
+    });
+    $wrapper.on('click', '.js-use-category-icon', function() {
+        const $row = $(this).closest('.js-links-item');
+        if ($row.find('.js-link-type').val() === 'category') {
+            $row.data('icon', {
+                type: 'category',
+                url: getCategoryIconUrl($row.find('.js-link-target').val())
+            });
+            refreshLinkRow($row);
+            changeSubmit();
+        }
+        return false;
+    });
+    $wrapper.on('click', '.js-remove-link-icon', function() {
+        const $row = $(this).closest('.js-links-item');
+        $row.removeData('icon');
+        refreshLinkRow($row);
+        changeSubmit();
+        return false;
+    });
+    $wrapper.on('click', '.js-upload-link-icon', function() {
+        $(this).closest('.s-link-icon-picker').find('.js-link-icon-file').trigger('click');
+        return false;
+    });
+    $wrapper.on('change', '.js-link-icon-file', function() {
+        const input = this;
+        const file = input.files && input.files[0];
+        if (!file) {
+            return;
+        }
+
+        const $row = $(input).closest('.js-links-item');
+        const data = new FormData();
+        data.append('icon', file);
+
+        $.ajax({
+            url: icon_upload_url,
+            method: 'POST',
+            data: data,
+            processData: false,
+            contentType: false,
+            dataType: 'json'
+        }).done(function(response) {
+            if (response?.status === 'ok' && response?.data?.url && response?.data?.path) {
+                $row.data('icon', { type: 'upload', path: response.data.path, url: response.data.url });
+                refreshLinkRow($row);
+                changeSubmit();
+            } else {
+                alert(response?.errors?.[0]?.text || response?.errors?.[0]?.error_description || 'Upload error');
+            }
+        }).fail(function() {
+            alert('Upload error');
+        }).always(function() {
+            input.value = '';
+        });
     });
     $form.on('change', '[name="data[params][storefront]"]', function() {
         refreshPromoBlocks();

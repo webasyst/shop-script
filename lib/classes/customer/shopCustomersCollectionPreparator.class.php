@@ -225,6 +225,9 @@ class shopCustomersCollectionPreparator
             if ($f === 'email|name' || $f === 'name|email') {
                 $this->searchPrepareEmailName($op, $val, $auto_title);
                 unset($query[$k]);
+            } else if ($f === 'id_code|phone' || $f === 'phone|id_code') {
+                $this->searchPreparePhoneIdcode($op, $val, $auto_title);
+                unset($query[$k]);
             } else if (substr($f, 0, 13) == 'order_params.') {
                 $param_name = $this->getModel()->escape(substr($f, 13));
                 $expr = $this->getExpression($op, $val);
@@ -287,9 +290,9 @@ class shopCustomersCollectionPreparator
         } else if ($hash_ar['app']['consider_orders']['val'] !== 'paid') {
             $options['include_unpaid_orders'] = true;
         } // also see middlewareSearchPrepare
-        
+
         // `search/by_code=...` changes default behaviour from app.show_contacts=customers to app.show_contacts=all
-        $is_search_by_code = !empty($hash_ar['by_code']) && empty($hash_ar['app']['show_contacts']);  
+        $is_search_by_code = !empty($hash_ar['by_code']) && empty($hash_ar['app']['show_contacts']);
 
         $show_contacts_val = ifempty($hash_ar, 'app', 'show_contacts', 'val', 'customers');
         if ($show_contacts_val === 'all' || $is_search_by_code) {
@@ -407,8 +410,12 @@ class shopCustomersCollectionPreparator
 
     protected function searchPrepareIdCode($op, $val = '', $auto_title = true)
     {
-        self::searchByCodeOpVal($op, $val);
-        $expr = $this->getExpression($op, $val);
+        if ($val === ':null') {
+            $expr = 'IS '.($op === '!=' ? 'NOT ' : '').'NULL';
+        } else {
+            self::searchByCodeOpVal($op, $val);
+            $expr = $this->getExpression($op, $val);
+        }
         $this->addWhere("{$this->customer_table_alias}.id_code {$expr}");
     }
 
@@ -442,6 +449,10 @@ class shopCustomersCollectionPreparator
                 $val .= ','.substr($val, 0, 12);
             }
             return;
+        } else if ($op == '*=' || $op == '^=') {
+            if (self::isValidEac13($val)) {
+                $val = substr($val, 0, 12);
+            }
         }
     }
 
@@ -493,6 +504,15 @@ class shopCustomersCollectionPreparator
         $alias = $this->addLeftJoin('wa_contact_emails');
         $expr = $this->getExpression($op, $val);
         $this->addWhere("{$alias}.email {$expr} OR c.name {$expr}");
+    }
+
+    protected function searchPreparePhoneIdcode($op, $val = '', $auto_title = true)
+    {
+        $alias = $this->addLeftJoin('wa_contact_data');
+        $phone_expr = $this->getExpression($op, $val);
+        self::searchByCodeOpVal($op, $val);
+        $id_code_expr = $this->getExpression($op, $val);
+        $this->addWhere("{$this->customer_table_alias}.id_code {$id_code_expr} OR ({$alias}.value {$phone_expr} AND {$alias}.field='phone')");
     }
 
     protected function searchPrepareShipmentMethod($op, $val = '', $auto_title = true)

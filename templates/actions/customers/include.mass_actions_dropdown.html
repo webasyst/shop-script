@@ -1,0 +1,24 @@
+{$_actions = [
+    'export' => ['name' => _w('Export'), 'icon_class' => 'fas fa-file-export text-blue'],
+    'addCategory' => ['name' => _w('Add to category'), 'icon_class' => 'fas fa-folder-plus text-green'],
+    'removeCategory' => ['name' => _w('Remove from category'), 'icon_class' => 'fas fa-folder-minus text-orange'],
+    'addIdCode' => ['name' => _w('Issue loyalty cards'), 'icon_class' => 'fas fa-barcode']
+]}
+<div class="js-mass-actions-dropdown dropdown custom-mr-4" style="display: none;">
+    <button class="dropdown-toggle button light-gray" type="button" style="display: inline-flex;">
+        [`With selected`]
+        <span class="js-counter badge gray small custom-ml-4" style="display: none;"></span>
+    </button>
+    <div class="dropdown-body">
+        {foreach $_actions as $_id => $_action}
+        <div class="dropdown-item" data-action="{$_id}">
+            <div class="flexbox space-8">
+                <span class="icon size-16"><i class="{$_action.icon_class}"></i></span>
+                <span>{$_action.name}</span>
+            </div>
+        </div>
+        {/foreach}
+    </div>
+</div>
+<button type="button" class="js-show-mass-actions button outlined gray small"><i class="fas fa-check-square"></i> [`Select`]</button>
+<button type="button" class="js-hide-mass-actions button light-gray small" title="[`Cancel`]" style="display: none;"><i class="fas fa-times"></i></button>

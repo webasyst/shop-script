@@ -27,8 +27,8 @@ return [
     'widget' => [
         'class' => 'shopWidgetSalesChannel',
         'name' => /*_w*/('Widget'),
-        'menu_icon' => '<i class="fas fa-code"></i>',
-        'available' => false,
+        'menu_icon' => '<i class="fas fa-code text-black"></i>',
+        'available' => true,
     ],
     'qr' => [
         'class' => 'shopQrSalesChannel',

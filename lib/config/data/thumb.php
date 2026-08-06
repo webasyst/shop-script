@@ -43,12 +43,16 @@ $image_pattern = '#^((?:\d{2}/){2}([0-9]+)/(?:reviews/[0-9]+/)?images/)([0-9]+)/
 // /wa-data/public/shop/products/69/42/14269/video/96x96.jpg
 $video_pattern = '#^((?:\d{2}/){2}([0-9]+)/video)/(\d+(?:x\d+)?)(@2x)?\.([a-z]{3,4})$#i';
 if (preg_match($image_pattern, $request_file, $matches)) {
+    $product_id = $matches[2];
+    $image_id = $matches[3];
+    $is_review_image = strpos($matches[1], '/reviews/') !== false;
+    $thumbnail_ext = $matches[7];
     if ($matches[3] === $matches[4]) {
         $n = $matches[3];
     } else {
         $n = $matches[3].'.'.$matches[4];
     }
-    $file = $matches[1].$n.'.'.$matches[7];
+    $file = $matches[1].$n.'.'.$thumbnail_ext;
     $size = $matches[5];
     $gen_thumbs = $app_config->getOption('image_thumbs_on_demand');
 

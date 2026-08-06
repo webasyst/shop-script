@@ -756,6 +756,7 @@ return array(
         'filename' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'original_filename' => array('varchar', 255),
         'ext' => array('varchar', 10),
+        'original_ext' => array('varchar', 10),
         'badge_type' => array('int', 4),
         'badge_code' => array('text'),
         ':keys' => array(
@@ -855,6 +856,7 @@ return array(
         'filename' => array('varchar', 255),
         'original_filename' => array('varchar', 255),
         'ext' => array('varchar', 10),
+        'original_ext' => array('varchar', 10),
         ':keys' => array(
             'PRIMARY' => 'id',
         ),

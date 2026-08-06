@@ -166,6 +166,18 @@
                     </div>
                 </div>
             {/if}
+
+            <div class="field">
+                <div class="name">[`Loyalty card`]</div>
+                <div class="value">
+                    {$_options = [
+                        ['id' => '!=', 'name' => _w('Yes')],
+                        ['id' => '=', 'name' => _w('No')]
+                    ]}
+                    {select n='app.id_code.op' o=$_options c="non-wa-contact-field"}
+                    <input type="hidden" name="app.id_code.val" value=":null">
+                </div>
+            </div>
         </div>
 
         <h5 class="heading">
@@ -244,9 +256,8 @@
 {$container_id = $wa->param('container_id', 's-customers-search-form')}
 <div>
 {if !$wa->param('just_fields')}
-    <h1>
-        <a href="?action=customers" class="back"><i class="fas fa-arrow-circle-left"></i></a>
-        [`New search`]
+    <h1 class="s-header">
+        [`Advanced search`]
     </h1>
     <div class="s-order-customer-details">
         <form class="s-customers-search-form" id="{$container_id}">
@@ -263,6 +274,7 @@
 </div>
 <script>
     $(function() {
+
         (function(container) {
             var form = container;
 
@@ -319,6 +331,12 @@
                         };
                     }
                 });
+
+                for (const prop in hash) {
+                    if (typeof hash[prop].op === 'undefined') {
+                        delete hash[prop];
+                    }
+                }
 
                 function formatRange(key, el) {
                     if (el.val.from && el.val.to) {

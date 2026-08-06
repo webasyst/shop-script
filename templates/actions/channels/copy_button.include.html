@@ -1,0 +1,19 @@
+{$_id = uniqid('js-copy-')}
+<span id="{$_id}" style="font-size: 1rem;">
+    <a class="js-copy text-gray custom-mx-2" href="javascript:void(0)"><i class="fas fa-copy"></i></a>
+    <span class="js-copy-success state-success-hint lowercase valign-top" style="display: none;">[`Copied`]</span>
+    <script>
+        $(function() {
+            "use strict";
+            const $wrapper = $('#{$_id}');
+            $wrapper.find('.js-copy').on('click', function() {
+                const content = $('{$content_selector}').text().trim();
+                if (!content) return;
+                try {
+                    $.wa.copyToClipboard(content);
+                    $wrapper.find('.js-copy-success').stop(true, true).fadeIn(150).delay(1000).fadeOut(200);
+                } catch {}
+            });
+        });
+    </script>
+</span>

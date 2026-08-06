@@ -222,8 +222,10 @@ abstract class shopSalesChannelType
                 'field_name' => "data[params][{$field_name}]",
                 'field_value' => $field_value,
                 'product_sets' => ifset($field_config, 'product_sets', []),
+                'catalog_categories' => ifset($field_config, 'catalog_categories', []),
                 'banner_promos' => ifset($field_config, 'banner_promos', []),
                 'banner_promos_map' => ifset($field_config, 'banner_promos_map', []),
+                'coupons' => ifset($field_config, 'coupons', []),
                 'storefront' => ifset($field_config, 'storefront', ''),
             ]);
             return $view->fetch('file:templates/actions/channels/shop_homepage_blocks.include.html');

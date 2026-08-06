@@ -1,6 +1,7 @@
 <?php
 /**
  * Implements sales channel type 'telegram:<id>'
+ * Storefront via Telegram messenger bot.
  */
 class shopTelegramSalesChannel extends shopSalesChannelType implements shopSalesChannelWaidInterface
 {
@@ -18,8 +19,10 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
         }, shopStorefrontList::getAllStorefronts(true));
 
         $storefront = ifset($values, 'storefront', '');
+        $catalog_categories = $this->getCatalogCategories($storefront);
         $banner_promos_map = $this->getBannerPromosMap($storefronts);
         $banner_promos = ifset($banner_promos_map, $storefront, []);
+        $coupons = $this->getHomepageCouponOptions();
 
         $fields = [
             'storefront'       => array(
@@ -236,8 +239,10 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'homepage_blocks' => array(
                 'control_type'      => 'shop_homepage_blocks', // see templates/actions/channels/shop_homepage_blocks.include.html
                 'product_sets'      => $product_sets,
+                'catalog_categories' => $catalog_categories,
                 'banner_promos'     => $banner_promos,
                 'banner_promos_map' => $banner_promos_map,
+                'coupons'           => $coupons,
                 'storefront'        => $storefront,
             ),
 
@@ -349,7 +354,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
     {
         $params = ifset($channel, 'params', []);
 
-        return array_intersect_key($params, [
+        $result = array_intersect_key($params, [
             'accent_color'           => 1,
             'background_color_light' => 1,
             'background_color_dark'  => 1,
@@ -371,6 +376,14 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'is_custom_bot' => !empty($params['bot_token']),
             'homepage_blocks' => json_decode(ifempty($params, 'homepage_blocks', '[]')),
         ];
+
+        $result['homepage_blocks'] = $this->enrichStorefrontDependentHomepageBlocks(
+            $result['homepage_blocks'],
+            (string) ifset($params, 'storefront', '')
+        );
+        $result['homepage_blocks'] = $this->hydratePublicHomepageBlocks($result['homepage_blocks']);
+
+        return $result;
     }
 
     public function getWaidChannelParams(array $channel): array
@@ -461,7 +474,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             ? $banner_promos_map[$storefront]
             : [];
         $allowed_promo_ids = array_flip(array_column($storefront_promos, 'id'));
-
+        $allowed_coupon_ids = array_flip(array_column($this->getHomepageCouponOptions(), 'id'));
         $result = [];
         foreach ($homepage_blocks as $block) {
             if (!is_array($block) || empty($block['block_type'])) {
@@ -489,11 +502,59 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 continue;
             }
 
+            if ($block['block_type'] === 'coupons') {
+                $selection_mode = ifset($block, 'selection_mode', 'all') === 'selected' ? 'selected' : 'all';
+                $normalized_block = [
+                    'block_type' => 'coupons',
+                    'selection_mode' => $selection_mode,
+                ];
+
+                if ($selection_mode === 'selected') {
+                    $coupon_ids = array_values(array_filter(
+                        array_map('intval', (array) ifset($block, 'coupon_ids', [])),
+                        static function($coupon_id) use ($allowed_coupon_ids) {
+                            return $coupon_id > 0 && isset($allowed_coupon_ids[$coupon_id]);
+                        }
+                    ));
+                    $normalized_block['coupon_ids'] = $coupon_ids;
+                }
+
+                $result[] = $normalized_block;
+                continue;
+            }
+
             if ($block['block_type'] === 'productlist') {
+                $products_per_row = (string) ifset($block, 'products_per_row', '');
+                if (!in_array($products_per_row, ['1', '2', '3'], true)) {
+                    $products_per_row = '';
+                }
+
                 $result[] = [
                     'block_type' => 'productlist',
                     'set_id' => (string) ifset($block, 'set_id', ''),
+                    'block_title' => trim(strip_tags((string) ifset($block, 'block_title', ''))),
+                    'block_subtitle' => trim(strip_tags((string) ifset($block, 'block_subtitle', ''))),
+                    'products_per_row' => $products_per_row,
+                    'products_single_row_with_scroll' => !empty($block['products_single_row_with_scroll']),
                 ];
+                continue;
+            }
+
+            if ($block['block_type'] === 'links') {
+                $links = [];
+                foreach ((array) ifset($block, 'links', []) as $link) {
+                    $normalized_link = $this->normalizeHomepageLink($link);
+                    if ($normalized_link) {
+                        $links[] = $normalized_link;
+                    }
+                }
+
+                if ($links) {
+                    $result[] = [
+                        'block_type' => 'links',
+                        'links' => $links,
+                    ];
+                }
                 continue;
             }
 
@@ -501,6 +562,456 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
         }
 
         return $result;
+    }
+
+    protected function getHomepageCouponOptions(): array
+    {
+        if (!shopDiscounts::isEnabled('coupons')) {
+            return [];
+        }
+
+        $coupons = (new shopCouponModel())->getActiveCoupons();
+        $currencies = (new shopCurrencyModel())->getAll('code');
+        $result = [];
+
+        foreach ($coupons as $coupon) {
+            if (!shopCouponModel::isEnabled($coupon)) {
+               continue;
+            }
+            $formatted_value = shopCouponModel::formatValue($coupon, $currencies);
+            $result[] = [
+                'id' => (int) $coupon['id'],
+                'code' => (string) $coupon['code'],
+                'label' => trim($coupon['code'].' '.$formatted_value),
+            ];
+        }
+
+        usort($result, static function($a, $b) {
+            return strcmp($b['code'], $a['code']);
+        });
+
+        return $result;
+    }
+
+    protected function getCatalogCategories(string $storefront = ''): array
+    {
+        $category_model = new shopCategoryModel();
+        $categories = $storefront
+            ? $category_model->getTree(0, null, false, $storefront)
+            : $category_model->getFullTree('id, parent_id, depth, name, status, thumb_ext, edit_datetime, create_datetime');
+        $result = [];
+        foreach ($categories as $category) {
+            if (empty($category['status'])) {
+                continue;
+            }
+            $result[] = [
+                'id' => (int) $category['id'],
+                'name' => str_repeat('— ', max(0, (int) $category['depth'])).$category['name'],
+                'plain_name' => $category['name'],
+                'thumb' => shopCategoryHelper::getThumbInfo($category),
+            ];
+        }
+        return $result;
+    }
+
+    protected function normalizeHomepageLink($link): ?array
+    {
+        if (!is_array($link)) {
+            return null;
+        }
+
+        $type = (string) ifset($link, 'link_type', '');
+        if (!in_array($type, ['catalog', 'set', 'category'], true)) {
+            return null;
+        }
+
+        $result = [
+            'link_type' => $type,
+        ];
+
+        if ($type === 'set') {
+            $set_id = (string) ifset($link, 'set_id', '');
+            if ($set_id === '' || !(new shopSetModel())->getById($set_id)) {
+                return null;
+            }
+            $result['set_id'] = $set_id;
+        } elseif ($type === 'category') {
+            $category_id = (int) ifset($link, 'category_id', 0);
+            $category = $category_id > 0 ? (new shopCategoryModel())->getById($category_id) : null;
+            if (!$category || empty($category['status'])) {
+                return null;
+            }
+            $result['category_id'] = $category_id;
+        }
+
+        $title = trim(strip_tags((string) ifset($link, 'title', '')));
+        if ($title !== '') {
+            $result['title'] = $title;
+        }
+
+        $icon = $this->normalizeHomepageLinkIcon(ifset($link, 'icon', null), $type);
+        if ($icon) {
+            $result['icon'] = $icon;
+        }
+
+        return $result;
+    }
+
+    protected function normalizeHomepageLinkIcon($icon, string $link_type): ?array
+    {
+        if (!is_array($icon) || empty($icon['type'])) {
+            return null;
+        }
+
+        $type = (string) $icon['type'];
+        if ($type === 'fa') {
+            $value = (string) ifset($icon, 'value', '');
+            return in_array($value, $this->getHomepageLinkFaIcons(), true) ? [
+                'type' => 'fa',
+                'value' => $value,
+            ] : null;
+        }
+
+        if ($type === 'category' && $link_type === 'category') {
+            $result = ['type' => 'category'];
+            $url = trim((string) ifset($icon, 'url', ''));
+            $scheme = strtolower((string) parse_url($url, PHP_URL_SCHEME));
+            if ($url !== '' && in_array($scheme, ['http', 'https'], true) && filter_var($url, FILTER_VALIDATE_URL)) {
+                $result['url'] = $url;
+            }
+            return $result;
+        }
+
+        if ($type === 'upload') {
+            $path = $this->normalizeHomepageLinkIconPath((string) ifset($icon, 'path', ''));
+            if (!$path) {
+                $path = $this->normalizeHomepageLinkIconUrl((string) ifset($icon, 'url', ''));
+            }
+
+            if ($path) {
+                return [
+                    'type' => 'upload',
+                    'path' => $path,
+                    'url' => wa()->getDataUrl($path, true, 'shop', true),
+                ];
+            }
+        }
+
+        return null;
+    }
+
+    protected function normalizeHomepageLinkIconPath(string $path): string
+    {
+        $path = trim($path, '/');
+        if (!preg_match('~^homepage-link-icons/[a-f0-9]{32}\.(?:jpe?g|png|gif|webp)$~i', $path)) {
+            return '';
+        }
+
+        return file_exists(wa()->getDataPath($path, true, 'shop', false)) ? $path : '';
+    }
+
+    protected function normalizeHomepageLinkIconUrl(string $url): string
+    {
+        if ($url === '') {
+            return '';
+        }
+
+        $path = (string) parse_url($url, PHP_URL_PATH);
+        $prefix = '/wa-data/public/shop/homepage-link-icons/';
+        $pos = strpos($path, $prefix);
+        if ($pos === false) {
+            return '';
+        }
+
+        return $this->normalizeHomepageLinkIconPath('homepage-link-icons/'.basename($path));
+    }
+
+    protected function enrichStorefrontDependentHomepageBlocks($homepage_blocks, string $storefront = ''): array
+    {
+        if (!is_array($homepage_blocks)) {
+            return [];
+        }
+
+        $set_model = new shopSetModel();
+        $category_model = new shopCategoryModel();
+        $available_category_ids = null;
+        if ($storefront !== '') {
+            $available_category_ids = [];
+            foreach ($this->getCatalogCategories($storefront) as $category) {
+                $available_category_ids[(int) $category['id']] = true;
+            }
+        }
+        $result = [];
+
+        foreach ($homepage_blocks as $block) {
+            if (!is_object($block)) {
+                $result[] = $block;
+                continue;
+            }
+
+            if (($block->block_type ?? null) !== 'links' || empty($block->links) || !is_array($block->links)) {
+                $result[] = $block;
+                continue;
+            }
+
+            $links = [];
+            foreach ($block->links as $link) {
+                if (!is_object($link) || empty($link->link_type)) {
+                    continue;
+                }
+
+                if ($link->link_type === 'catalog') {
+                    $link->title = _w('All catalog');
+                    if (isset($link->icon) && is_object($link->icon) && ($link->icon->type ?? null) === 'upload' && !$this->refreshHomepageUploadedIconUrl($link->icon)) {
+                        unset($link->icon);
+                    }
+                    $links[] = $link;
+                    continue;
+                }
+
+                if ($link->link_type === 'set' && !empty($link->set_id)) {
+                    $set = $set_model->getById((string) $link->set_id);
+                    if (!$set) {
+                        continue;
+                    }
+                    $link->title = $set['name'];
+                    if (isset($link->icon) && is_object($link->icon) && ($link->icon->type ?? null) === 'upload' && !$this->refreshHomepageUploadedIconUrl($link->icon)) {
+                        unset($link->icon);
+                    }
+                    $links[] = $link;
+                    continue;
+                }
+
+                if ($link->link_type === 'category' && !empty($link->category_id)) {
+                    $category_id = (int) $link->category_id;
+                    if (is_array($available_category_ids) && empty($available_category_ids[$category_id])) {
+                        continue;
+                    }
+
+                    $category = $category_model->getById($category_id);
+                    if (!$category || empty($category['status'])) {
+                        continue;
+                    }
+                    $link->title = $category['name'];
+                    $thumb = shopCategoryHelper::getThumbInfo($category);
+                    $icon = isset($link->icon) && is_object($link->icon) ? $link->icon : null;
+                    if ($icon && ($icon->type ?? null) === 'category') {
+                        if ($thumb) {
+                            $icon->url = ifset($thumb, 'url96x96', ifset($thumb, 'default', ''));
+                        } else {
+                            unset($icon->url);
+                        }
+                    } elseif ($icon && ($icon->type ?? null) === 'upload' && !$this->refreshHomepageUploadedIconUrl($icon)) {
+                        unset($link->icon);
+                    }
+                    $links[] = $link;
+                }
+            }
+
+            if ($links) {
+                $block->links = $links;
+                $result[] = $block;
+            }
+        }
+
+        return $result;
+    }
+
+    protected function hydratePublicHomepageBlocks($homepage_blocks): array
+    {
+        if (!is_array($homepage_blocks)) {
+            return [];
+        }
+
+        $result = [];
+        foreach ($homepage_blocks as $block) {
+            if (!is_object($block)) {
+                $result[] = $block;
+                continue;
+            }
+
+            if (($block->block_type ?? null) !== 'coupons') {
+                $result[] = $block;
+                continue;
+            }
+
+            $coupons = $this->getHomepageCouponsForBlock($block);
+            if ($coupons) {
+                $block->coupons = $coupons;
+                $result[] = $block;
+            }
+        }
+
+        return $result;
+    }
+
+    protected function getHomepageCouponsForBlock($block): array
+    {
+        if (!shopDiscounts::isEnabled('coupons')) {
+            return [];
+        }
+
+        $coupon_model = new shopCouponModel();
+        $coupons = $coupon_model->getActiveCoupons();
+
+        if (($block->selection_mode ?? 'all') === 'selected') {
+            $selected_ids = array_flip(array_map('intval', (array) ($block->coupon_ids ?? [])));
+            $coupons = array_filter($coupons, static function($coupon) use ($selected_ids) {
+                return isset($selected_ids[(int) $coupon['id']]);
+            });
+        }
+
+        $currencies = (new shopCurrencyModel())->getAll('code');
+        $result = [];
+        foreach ($coupons as $coupon) {
+            if (!shopCouponModel::isEnabled($coupon)) {
+                continue;
+            }
+            $result[] = $this->formatHomepageCoupon($coupon, $currencies);
+        }
+
+        usort($result, static function($a, $b) {
+            return strcmp($b['code'], $a['code']);
+        });
+
+        return $result;
+    }
+
+    protected function formatHomepageCoupon(array $coupon, array $currencies): array
+    {
+        $formatted_value = shopCouponModel::formatValue($coupon, $currencies);
+        $scope = $this->getHomepageCouponScope((string) ifset($coupon, 'products_hash', ''));
+        $display_title = $this->getHomepageCouponDisplayTitle($coupon, $formatted_value, $scope);
+
+        $result = [
+            'id' => (int) $coupon['id'],
+            'code' => (string) $coupon['code'],
+            'type' => (string) $coupon['type'],
+            'value' => (float) $coupon['value'],
+            'expire_datetime' => ifempty($coupon, 'expire_datetime', null),
+            'formatted_value' => $formatted_value,
+            'display_title' => $display_title,
+            'scope_type' => $scope['scope_type'],
+            'scope_title' => $scope['scope_title'],
+        ];
+
+        if (!empty($scope['product_ids'])) {
+            $result['product_ids'] = $scope['product_ids'];
+        }
+
+        return $result;
+    }
+
+    protected function getHomepageCouponDisplayTitle(array $coupon, string $formatted_value, array $scope): string
+    {
+        if ($coupon['type'] === '$FS') {
+            return _w('Free shipping');
+        }
+
+        $discount = $coupon['type'] === '%' ? '−'.$formatted_value : '−'.$formatted_value;
+        if (!empty($scope['scope_title'])) {
+            return $scope['scope_title'].' '.$discount;
+        }
+
+        return _w('Discount').' '.$discount;
+    }
+
+    protected function getHomepageCouponScope(string $products_hash): array
+    {
+        $result = [
+            'scope_type' => 'all',
+            'scope_title' => '',
+        ];
+
+        if ($products_hash === '') {
+            return $result;
+        }
+
+        $hash = shopImportexportHelper::parseHash($products_hash);
+        if ($hash['type'] === 'type' && !empty($hash['type_id'])) {
+            $type = (new shopTypeModel())->getById((int) $hash['type_id']);
+            if ($type) {
+                return [
+                    'scope_type' => 'type',
+                    'scope_title' => $type['name'],
+                ];
+            }
+        }
+
+        if ($hash['type'] === 'set' && !empty($hash['set_id'])) {
+            $set = (new shopSetModel())->getById((string) $hash['set_id']);
+            if ($set) {
+                return [
+                    'scope_type' => 'set',
+                    'scope_title' => $set['name'],
+                ];
+            }
+        }
+
+        if ($hash['type'] === 'category' && !empty($hash['category_ids'])) {
+            $category_ids = array_filter(array_map('intval', explode(',', $hash['category_ids'])));
+            $category_id = reset($category_ids);
+            $category = $category_id ? (new shopCategoryModel())->getById($category_id) : null;
+            if ($category) {
+                return [
+                    'scope_type' => 'category',
+                    'scope_title' => $category['name'],
+                ];
+            }
+        }
+
+        if ($hash['type'] === 'id' && !empty($hash['product_ids'])) {
+            $product_ids = array_values(array_filter(array_map('intval', explode(',', $hash['product_ids']))));
+            if ($product_ids) {
+                return [
+                    'scope_type' => 'products',
+                    'scope_title' => _w('%d product', '%d products', count($product_ids)),
+                    'product_ids' => $product_ids,
+                ];
+            }
+        }
+
+        return $result;
+    }
+
+    protected function refreshHomepageUploadedIconUrl($icon): bool
+    {
+        $path = '';
+        if (is_array($icon)) {
+            $path = (string) ifset($icon, 'path', '');
+        } elseif (is_object($icon)) {
+            $path = (string) ($icon->path ?? '');
+        }
+
+        $path = $this->normalizeHomepageLinkIconPath($path);
+        if ($path) {
+            $icon->url = wa()->getDataUrl($path, true, 'shop', true);
+            return true;
+        }
+        return false;
+    }
+
+    protected function getHomepageLinkFaIcons(): array
+    {
+        return [
+            'th-large',
+            'fire',
+            'thumbs-up',
+            'bullhorn',
+            'tag',
+            'award',
+            'gem',
+            'leaf',
+            'certificate',
+            'clock',
+            'magic',
+            'gift',
+            'percent',
+            'lightbulb',
+            'check-circle',
+            'recycle',
+            'shipping-fast',
+        ];
     }
 
     /**

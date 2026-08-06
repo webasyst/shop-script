@@ -20,6 +20,18 @@ class shopCustomerModel extends waModel
         $this->insert($customer);
     }
 
+    public function createFromContacts(array $contact_ids)
+    {
+        if (!$contact_ids) {
+            return;
+        }
+        $res = $this->exec("
+            INSERT IGNORE INTO `{$this->table}` (contact_id)
+            SELECT id FROM wa_contact
+            WHERE id IN (?)
+        ", [$contact_ids]);
+    }
+
     public function updateFromNewOrder($customer_id, $order_id, $source=null)
     {
         $customer = $this->getById($customer_id);
@@ -219,7 +231,7 @@ class shopCustomerModel extends waModel
     }
 
     public function isValidIdCode($id_code) {
-        return (bool)preg_match('~^[1-9][0-9]{' . (self::ID_CODE_LENGTH - 1) . '}$~', $id_code);
+        return !$id_code || (bool)preg_match('~^[1-9][0-9]{' . (self::ID_CODE_LENGTH - 1) . '}$~', $id_code);
     }
 
     public function generateIdCode($contact_id, $attempt = 0) {
@@ -254,6 +266,50 @@ class shopCustomerModel extends waModel
         }
 
         return null;
+    }
+
+    public function getAvailableIdCodeBatch(array $contact_ids): array 
+    {
+        // make sure contact ids are unique
+        $contact_ids = array_keys(array_flip($contact_ids));
+
+        $result_id_codes = [];
+        for ($attempt = 0; $attempt < self::ID_CODE_MAX_ATTEMPTS; $attempt++) {
+            if (!$contact_ids) {
+                break;
+            }
+
+            // Generate a batch of codes
+            $id_codes = [];
+            $retry_contact_ids = [];
+            foreach ($contact_ids as $contact_id) {
+                $new_code = $this->generateIdCode($contact_id, $attempt);
+                if (isset($id_codes[$new_code])) {
+                    // two contacts in batch happened to have the same code
+                    $retry_contact_ids[] = $contact_id;
+                    continue;
+                }
+                $id_codes[$new_code] = $contact_id;
+            }
+
+            // Check if any of codes generated belong to a different contact saved in DB
+            $sql = "SELECT contact_id, id_code FROM {$this->table} WHERE id_code IN (?)";
+            $used_codes = $this->query($sql, [array_keys($id_codes)]);
+            foreach ($used_codes as $row) {
+                if ($row['contact_id'] != $id_codes[$row['id_code']]) {
+                    $retry_contact_ids[] = $id_codes[$row['id_code']];
+                    unset($id_codes[$row['id_code']]);
+                }
+            }
+            foreach ($id_codes as $code => $contact_id) {
+                $result_id_codes[$contact_id] = $code;
+            }
+
+            // Continue with contacts that have failed to generate unique code
+            $contact_ids = $retry_contact_ids;
+        }
+
+        return $result_id_codes;
     }
 
     public function isIdCodeAvailable($id_code, $contact_id = null) {

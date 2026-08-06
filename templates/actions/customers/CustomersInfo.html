@@ -1,6 +1,6 @@
-<div class="flexbox space-12">
-    <h1 class="wide">
-        <a href="?action=customers" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+<div class="flexbox space-12 wrap-mobile">
+    <a href="?action=customers" class="back largest"><i class="fas fa-arrow-circle-left valign-top"></i></a>
+    <h1 class="wide custom-mt-0 h3-mobile">
         {$contact_name = $contact.name|escape|default:'[`(no name)`]'}
         {$contact_name}
         <!-- plugin hook: 'backend_customer.name_suffix' -->
@@ -121,7 +121,7 @@
 
             {include file="./include.loyalty.html" inline}
 
-            <div class="s-block">
+            <div class="s-block s-grid">
                 <h2>
                     {if $total_paid_num > 0}
                         {$total_paid_str}
@@ -160,7 +160,7 @@
                 {/if}
             </div>
 
-            <div class="s-block">
+            <div class="s-block s-grid">
                 <h4>[`Affiliate program`]</h4>
 
                 {if !count($affiliate_history)}

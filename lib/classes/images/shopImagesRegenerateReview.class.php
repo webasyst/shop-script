@@ -14,24 +14,22 @@ class shopImagesRegenerateReview implements shopImagesRegenerateInterface
         $this->data['count'] += 1;
     }
 
-    protected function updateFilename($image, $filename = '')
+    public function updateFilename($image, $filename = '')
     {
-        $model = new shopProductReviewsImagesModel();
-        $model->updateById($image['id'], array('filename' => $filename));
+        $this->model()->updateById($image['id'], ['filename' => $filename]);
     }
 
     public function getImages()
     {
         $offset = $this->data['offset'];
-        $images = (new shopProductReviewsImagesModel())->getAvailableImages($offset, $this->data['chunk']);
+        $images = $this->model()->getAvailableImages($offset, $this->data['chunk']);
 
         return $images;
     }
 
     public function getImageCount()
     {
-        $count = (new shopProductReviewsImagesModel())->countAvailableImages();
-        return $count;
+        return $this->model()->countAvailableImages();
     }
 
     public function getReport()
@@ -51,5 +49,21 @@ HTML;
         return wa('shop')->event('image_upload', $image);
     }
 
+    public function saveThumbExt($image)
+    {
+        $this->model()->updateById($image['id'], [
+            'original_ext' => ifempty($image, 'original_ext', $image['ext']),
+            'ext' => $image['ext'],
+        ]);
+    }
+
+    protected function model()
+    {
+        static $m = null;
+        if (!$m) {
+            $m = new shopProductReviewsImagesModel();
+        }
+        return $m;
+    }
 }
 

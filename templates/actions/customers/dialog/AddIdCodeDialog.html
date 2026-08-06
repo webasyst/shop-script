@@ -1,0 +1,60 @@
+<div class="s-add-id-code-dialog dialog">
+    <div class="dialog-background"></div>
+    <div class="dialog-body">
+        <header class="dialog-header">
+            <h3>[`Issue loyalty cards`]</h3>
+        </header>
+        <div class="dialog-content">
+            <p class="small">[`This will create loyalty card codes for all selected customers who do not have them yet. Please confirm.`]</p>
+            <div class="js-message">
+                <span class="js-success-icon custom-mr-4" style="display: none;"><i class="fas fa-check-circle"></i> </span>
+                <span class="js-text"></span>
+            </div>
+        </div>
+        <footer class="dialog-footer">
+            <div class="state-error-hint csutom-mb-8"></div>
+            <div>
+                <button class="js-submit button green" type="button">
+                    <span class="js-loading custom-mr-4" style="display: none;"><i class="fas fa-spinner fa-spin"></i></span>
+                    [`Issue loyalty cards`]
+                </button>
+                <button class="js-close-dialog button light-gray" type="button">[`Cancel`]</button>
+            </div>
+        </footer>
+    </div>
+</div>
+<script>
+    (function() {
+        const contact_ids = {$contact_ids|json_encode};
+        const url = '?module=customersMass&action=addIdCode';
+        const $wrapper = $('.s-add-id-code-dialog');
+        const $submit = $wrapper.find('.js-submit');
+        const $loading= $wrapper.find('.js-loading');
+        const $message = $wrapper.find('.js-message');
+        const $place_for_error = $wrapper.find('.state-error-hint');
+
+        $submit.on('click', () => {
+            $submit.prop('disabled', true);
+            $loading.show();
+            $.post(url, { ids: contact_ids } , handleResponse)
+                .always(() => {
+                    $loading.hide();
+                    $submit.prop('disabled', false);
+                });
+        });
+
+        function handleResponse (response) {
+            if (response.status === 'ok') {
+                $submit.remove();
+                $message.find('.js-text').html(response.data.message);
+                if (response.data.contacts_updated > 0) {
+                    $message.addClass('text-green');
+                    $message.find('.js-success-icon').show();
+                    $.customers.redispatch();
+                }
+            } else if (response.errors) {
+                $place_for_error.text(response.errors.error_description);
+            }
+        }
+    })();
+</script>

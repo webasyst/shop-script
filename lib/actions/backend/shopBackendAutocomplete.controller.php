@@ -858,6 +858,8 @@ SQL;
                 }
             }
 
+            $hashes['id_code'] = 'search/by_code^='.$q;
+
             // search as substring
             $search_hash_t = "search/phone*={PHONES}";
 
@@ -866,9 +868,9 @@ SQL;
             $hashes["phone_{$hash}"] = $hash;
             $phone_terms[] = $query_phone;
 
-
         } else {
             $hashes['email|name'] = 'search/email|name*='.$q;
+            $hashes['id_code'] = 'search/by_code='.$q;
             $hashes['city'] = 'search/address:city*='.$q;
             $hashes['region'] = 'search/address:region*='.$q;
             $hashes['country'] = 'search/address:country*='.$q;
@@ -883,7 +885,7 @@ SQL;
             $count = count($customers);
             if ($count < $limit) {
                 $col = new shopCustomersCollection($hash);
-                $res = $col->getCustomers('id,name,firstname,middlename,lastname,email,phone,address', 0, $limit - $count);
+                $res = $col->getCustomers('id,name,firstname,middlename,lastname,email,phone,address,id_code', 0, $limit - $count);
                 foreach ($res as $customer) {
                     $customers[$customer['id']] = $customer;
                 }
@@ -902,6 +904,7 @@ SQL;
             $customer['address_formatted'] = array();
             $customer['email_formatted'] = array();
             $customer['phone_formatted'] = array();
+            $customer['id_code_formatted'] = array();
 
             foreach ($used_hashes as $hash_id => $is_used) {
                 if (empty($is_used)) {
@@ -923,6 +926,13 @@ SQL;
                         foreach ($customer['phone'] as $i => $phone) {
                             $customer['phone_formatted'][$i] = (string)ifset($phone['value']);
                         }
+                    }
+                    continue;
+                }
+
+                if (wa()->whichUI() != '1.3' && substr($hash_id, 0, 7) === 'id_code') {
+                    if (isset($customer['id_code'])) {
+                        $customer['id_code_formatted'][] = $customer['id_code'];
                     }
                     continue;
                 }
@@ -968,6 +978,20 @@ SQL;
                 }
             }
 
+            $id_codes = array();
+            foreach ($c['id_code_formatted'] as $id_code) {
+                $id_code = trim(preg_replace('~(\d{4})~', '$1 ', $id_code));
+                $phone_terms = array_unique($phone_terms);
+                foreach ($phone_terms as $phone_term) {
+                    $phone_term_safe = htmlspecialchars($phone_term, ENT_QUOTES, 'utf-8');
+                    $phone_term_safe = trim(preg_replace('~(\d{4})~', '$1 ', $phone_term_safe));
+                    if ($this->match($id_code, $phone_term_safe, false)) {
+                        $id_codes[] = '<i class="icon16 id_code fas fa-barcode"></i> '.$this->prepare($id_code, $phone_term_safe, false);
+                        break 2;
+                    }
+                }
+            }
+
             $addresses = array();
             foreach ($c['address_formatted'] as $address) {
                 if ($this->match($address, $term_safe, false)) {
@@ -979,7 +1003,7 @@ SQL;
 
             $result[] = array(
                 'value' => $c['name'],
-                'label' => implode(' ', array_merge(array($name), $emails, $phones, $addresses)),
+                'label' => implode(' ', array_merge(array($name), $emails, $phones, $id_codes, $addresses)),
                 'id'    => $c['id'],
             );
         }

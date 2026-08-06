@@ -1,7 +1,7 @@
 {$class_id = 's-customer-orders-wrapper'}
 {$wrapper_id = uniqid($class_id)}
 
-<div id="{$wrapper_id}" data-page="{$page}">
+<div id="{$wrapper_id}" data-page="{$page}" class="table-scrollable-x">
     {if !count($orders)}
         <p class="small gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
     {else}

@@ -112,6 +112,11 @@
          */
         templates: {},
 
+        /**
+         * At least an order is assigned to current user
+         * {Boolean}
+         */
+        has_assigned_to_me: false,
 
         init: function (options) {
             this.options = options = options || {};
@@ -217,6 +222,7 @@
             })
 
             if (options.orders && options.orders.length && options.view) {
+                this.has_assigned_to_me = !!options.orders[0].assigned_to_me;
                 try {
                     // template variants:
                     // template-order-list-table
@@ -305,6 +311,7 @@
             }
 
             this.initView();
+            this.toggleAssignedToMeHint();
         },
 
         initLazyLoad: function (options) {
@@ -1494,13 +1501,13 @@
         buildLoadListUrl: function (id, lt, counters, order_update_datetime = null, sort = null, state_id = null) {
 
             if (order_update_datetime && this.filter_params_str && this.filter_params_str.includes('hash')) {
-                this.filter_params_str = this.filter_params_str.split(/%26/g).filter((a) => { 
+                this.filter_params_str = this.filter_params_str.split(/%26/g).filter((a) => {
                     return a.substr(0, 15) !== 'update_datetime' ;
                 }).join('%26');
                 this.filter_params_str = this.filter_params_str + encodeURIComponent(`&update_datetime>=${order_update_datetime}`);
                 order_update_datetime = null;
             }
-            
+
             let param_state_id = state_id ? `&state_id=${state_id}` : '';
             sort = sort || this.sort;
 
@@ -1823,6 +1830,12 @@
                 }
             }
         },
+
+        toggleAssignedToMeHint() {
+            const is_show = this.has_assigned_to_me && this.options.view === 'split' && !this.is_view_pos;
+            $('.js-orders-assigned-to-me-hint').toggle(is_show);
+        },
+
         isMobile() {
             // $.shop.helper.isMobile();
             return $('#js-media-mobile').is(':visible');

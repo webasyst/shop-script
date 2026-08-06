@@ -92,6 +92,7 @@ ul.tags a { display: inline-block; }
 .s-category-settings .s-category-error{ display: inline-block; margin-left: 10px; margin-top: 0px; }
 
 ul.menu-v.dropdown > li.is-opened > ul { display: block }
+.dropdown > .dropdown-body > .dropdown-item.disabled { pointer-events: none; opacity: .5; }
 
 /* ORDERS
 --------- */

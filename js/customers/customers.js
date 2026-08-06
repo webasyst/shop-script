@@ -8,6 +8,8 @@
         lastView: null,
 
         init: function (options) {
+            $(document).off("wa_loaded.sidebar");
+
             var that = this;
             that.options = options;
             if (typeof($.History) != "undefined") {
@@ -25,7 +27,6 @@
                         text = $('<div class="block double-padded"></div>').append(text.find(':not(style)'));
                     }
                     $("#s-content").empty().append(text);
-                    that.onPageNotFound();
                     return false;
                 }
                 return true;
@@ -42,6 +43,8 @@
             };
 
             $(document).on('wa_loaded', () => {
+                this.initMobileSidebar();
+                this.initMassActions();
                 this.initSearch();
                 this.initLoyalty();
             });
@@ -67,7 +70,7 @@
                 }
 
                 const search = (event) => {
-                    event.preventDefault();
+                    if (event) event.preventDefault();
                     let q = search_field.val().trim();
                     let query = '';
 
@@ -77,7 +80,7 @@
                         } catch (e) {
                         }
 
-                        query = 'phone*=' + q;
+                        query = 'phone|id_code*=' + q;
                     } else if (q.indexOf('@') !== -1) {
                         query = 'email*=' + q;
                     } else {
@@ -259,6 +262,26 @@
                     return false;
                 });
 
+                $card.on('click', '.js-loyalty-copy', function () {
+                    const $self = $(this);
+                    const $success_icon = $self.find('.js-success-icon');
+                    const $text = $self.find('[data-default-text]');
+                    try {
+                        const id_code = $code.text().trim();
+                        $.wa.copyToClipboard(id_code).then(() => {
+                            $self.prop('disabled', true);
+                            $success_icon.show();
+                            $text.text($text.data('success-text'));
+                            setTimeout(() => {
+                                $success_icon.hide();
+                                $text.text($text.data('default-text'));
+                                $self.prop('disabled', false);
+                            }, 1000)
+                        });
+                    } catch {}
+                    return false;
+                });
+
                 $input.on('input', function () {
                     const value = $.customers.normalizeLoyaltyCodeValue($(this).val());
                     if ($(this).val() !== value) {
@@ -304,8 +327,8 @@
                     }, function (response) {
                         const data = response && response.data ? response.data : null;
 
-                        if (response && response.status === 'ok' && data && data.id_code) {
-                            if (data.message) {
+                        if (response && response.status === 'ok' && data) {
+                            if (data.id_code !== null && data.message) {
                                 if (data.id_code != idCode) {
                                     $error.text(data.message).show();
                                 }else{
@@ -343,7 +366,7 @@
         },
 
         isValidLoyaltyCode: function(value) {
-            return /^[1-9][0-9]{11}$/.test(value);
+            return !value || /^[1-9][0-9]{11}$/.test(value);
         },
 
         getLoyaltyEan13: function(value) {
@@ -617,14 +640,8 @@
         },
 
         preExecute: function(actionName, attr) {
-            $('#s-sidebar').show();
             const $skeleton = $('.skeleton').filter(`.js-action-${actionName}`);
-
             if($skeleton.length) {
-                if ($skeleton.hasClass('js-sidebar-hide')) {
-                    $('#s-sidebar').hide();
-                }
-
                 $('#s-customers').addClass('hidden');
                 $skeleton.removeClass('hidden');
             }
@@ -840,8 +857,110 @@
             });
         },
 
-        onPageNotFound: function() {
-            //this.allAction();
+        initMassActions: function() {
+            const base_url = '?module=customersMass&action=';
+            const $wrapper = $('.s-customers-list-menu');
+            const $dropdown = $wrapper.find('.js-mass-actions-dropdown');
+            const $dropdown_actions = $dropdown.find('.dropdown-item');
+            const $show_actions_button = $wrapper.find('.js-show-mass-actions');
+            const $hide_actions_button = $wrapper.find('.js-hide-mass-actions');
+            const $top_buttons = $wrapper.children('a,button,input').not($hide_actions_button).not($dropdown);
+
+            const $list = $('table.s-customers');
+            const $toggle_all_checkboxes = $list.find('.js-toggle-checkboxes');
+            const checkboxes = () => $list.find('td.s-col-checkbox :checkbox');
+            const checked = () => checkboxes().filter(':checked');
+
+            const updateCount = () => {
+                const count = checked().length;
+                $dropdown.find('.js-counter').toggle(!!count).text(count);
+                $dropdown_actions.toggleClass('disabled', !count);
+            };
+
+            const sendRequest = (action_id) => {
+                if (!action_id) return;
+                const ids = $.map(checked().closest('[data-customer-id]'), (el) => el.dataset.customerId);
+                if (!ids.length) return;
+
+                const url = `${base_url}${action_id}Dialog`;
+                $.post(url, { ids }, html => {
+                    if (!html) return;
+                    $.waDialog({ html });
+                });
+            }
+
+            // init events
+            $dropdown.waDropdown({ hover: false });
+            $dropdown_actions.addClass('disabled');
+
+            $show_actions_button.on('click', () => {
+                $top_buttons.hide();
+
+                $dropdown.show();
+                $list.addClass('is-mass-actions');
+                $hide_actions_button.show();
+                $wrapper.addClass('is-sticky');
+            });
+
+            $hide_actions_button.on('click', () => {
+                $top_buttons.show();
+
+                $dropdown.hide();
+                $list.removeClass('is-mass-actions');
+                $hide_actions_button.hide();
+                $toggle_all_checkboxes.prop('checked', false).trigger('change');
+                $wrapper.removeClass('is-sticky');
+            });
+
+            $list.on('click', '.s-col-checkbox :checkbox', function(e) {
+                const $self = $(this);
+                if (e.shiftKey) {
+                    const checked = $self.is(':checked');
+                    let stop = false;
+                    if (checked) {
+                        const $items_prev_all = $self.closest('[data-customer-id]').prevAll();
+                        if (!$items_prev_all.find(':checkbox:checked').length) return;
+                        for (let i = 0; i < $items_prev_all.length; i++) {
+                            if (stop) break;
+                            const $item = $items_prev_all.eq(i);
+                            const $checkbox = $item.find(':checkbox');
+                            stop = $checkbox.is(':checked');
+                            $checkbox.prop('checked', true);
+                        }
+                    } else {
+                        const $items_next_all = $self.closest('[data-customer-id]').nextAll();
+                        $items_next_all.find(':checkbox:checked').prop('checked', false);
+                    }
+                }
+                updateCount();
+            });
+
+            $toggle_all_checkboxes.on('change', function() {
+                const checked = $(this).is(':checked');
+                checkboxes().prop('checked', checked);
+                updateCount();
+            });
+
+            $dropdown_actions.on('click', function() {
+                const $self = $(this);
+                if ($self.hasClass('disabled')) return false;
+
+                const action_id = $self.data('action');
+                sendRequest(action_id);
+            });
+        },
+
+        initMobileSidebar() {
+            $.shop.initMobileSidebar({
+                $sidebar: $("#s-sidebar"),
+                $content: $("#s-customers .article"),
+                $additionalLinks: $('#s-sidebar .count a'),
+                openAfterReload: true,
+                storageId: 'customers',
+                appendButtonBack ($defaultButtonBack) {
+                    return $defaultButtonBack.insertBefore('#s-customers h1.s-header');
+                }
+            });
         }
     };
 })(jQuery);

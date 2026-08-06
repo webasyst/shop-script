@@ -14,17 +14,16 @@ class shopImagesRegenerateProduct implements shopImagesRegenerateInterface
         $this->data['count'] += 1;
     }
 
-    protected function updateFilename($image, $filename = '')
+    public function updateFilename($image, $filename = '')
     {
-        $model = new shopProductImagesModel();
-        $model->updateById($image['id'], array('filename' => $filename));
+        $this->model()->updateById($image['id'], ['filename' => $filename]);
         $this->updateFilenameInProduct($image, $filename);
     }
 
     protected function updateFilenameInProduct($image, $filename = '')
     {
         if (!$image['sort']) {
-            (new shopProductModel())->updateById($image['product_id'], array(
+            $this->productModel()->updateById($image['product_id'], array(
                 'image_filename' => $filename,
             ));
         }
@@ -33,14 +32,14 @@ class shopImagesRegenerateProduct implements shopImagesRegenerateInterface
     public function getImages()
     {
         $offset = $this->data['offset'];
-        $images = (new shopProductImagesModel())->getAvailableImages($offset, $this->data['chunk']);
+        $images = $this->model()->getAvailableImages($offset, $this->data['chunk']);
 
         return $images;
     }
 
     public function getImageCount()
     {
-        $count = (new shopProductImagesModel())->countAvailableImages();
+        $count = $this->model()->countAvailableImages();
         return $count;
     }
 
@@ -61,5 +60,36 @@ HTML;
         return wa('shop')->event('image_upload', $image);
     }
 
-}
+    public function saveThumbExt($image)
+    {
+        $this->model()->updateById($image['id'], [
+            'original_ext' => ifempty($image, 'original_ext', $image['ext']),
+            'ext' => $image['ext'],
+        ]);
 
+        $this->productModel()->updateByField([
+            'id' => $image['product_id'],
+            'image_id' => $image['id'],
+         ], array(
+            'ext' => $image['ext'],
+        ));
+    }
+
+    protected function model()
+    {
+        static $m = null;
+        if (!$m) {
+            $m = new shopProductImagesModel();
+        }
+        return $m;
+    }
+
+    protected function productModel()
+    {
+        static $m = null;
+        if (!$m) {
+            $m = new shopProductModel();
+        }
+        return $m;
+    }
+}

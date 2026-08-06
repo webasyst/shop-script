@@ -159,6 +159,57 @@
                 <div class="fields-group">
                     <div class="field">
                         <div class="name">
+                            [`Thumbnail format`]
+                        </div>
+
+                        <div class="value">
+                            <label>
+                                <span class="wa-radio">
+                                    <input type="radio" name="image_thumbnail_format" value=""{if empty($settings.image_thumbnail_format)} checked{/if}>
+                                    <span></span>
+                                </span>
+                                [`Keep original image format`]
+                            </label>
+
+                            <div class="custom-mt-8">
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="image_thumbnail_format" value="webp"
+                                            {if ifset($settings, 'image_thumbnail_format', '') === 'webp'}
+                                                checked
+                                            {elseif !$is_webp_supported}
+                                                disabled
+                                            {/if}
+                                        >
+                                        <span></span>
+                                    </span>
+                                    [`Optimized WebP`]
+                                    {if $is_webp_supported}
+                                        [`(recommended)`]
+                                    {else}
+                                        [`(not supported by your server)`]
+                                    {/if}
+                                </label>
+                            </div>
+
+                            <div class="custom-mt-8">
+                                <label>
+                                    <span class="wa-radio">
+                                        <input type="radio" name="image_thumbnail_format" value="jpeg"{if ifset($settings, 'image_thumbnail_format', '') === 'jpeg'} checked{/if}>
+                                        <span></span>
+                                    </span>
+                                    JPEG
+                                </label>
+                            </div>
+
+                            <div class="hint custom-mt-8">[`This setting applies to all images uploaded in Shop-Script, including product images, category images, and customer reviews uploads.`]</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="fields-group">
+                    <div class="field">
+                        <div class="name">
                             [`Sharpen`]
                         </div>
 

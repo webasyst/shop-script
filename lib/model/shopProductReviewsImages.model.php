@@ -40,6 +40,8 @@ class shopProductReviewsImagesModel extends waModel
             'original_filename' => pathinfo($original_filename, PATHINFO_BASENAME),
             'ext'               => pathinfo($original_filename, PATHINFO_EXTENSION),
         );
+        $this->setOriginalExt($data);
+        $image_changed = $image_changed || (!empty($data['original_ext']) && $data['original_ext'] !== $data['ext']);
 
         $data['id'] = $this->add($data);
 
@@ -47,6 +49,7 @@ class shopProductReviewsImagesModel extends waModel
             throw new waException("Database error");
         }
 
+        $data = $this->getById($data['id']);
         $path = $this->getImagePath($data);
 
         if (!$this->createFile($path)) {
@@ -73,6 +76,15 @@ class shopProductReviewsImagesModel extends waModel
         return $data;
     }
 
+    protected function setOriginalExt(&$data)
+    {
+        $thumbnail_format = wa('shop')->getConfig()->getOption('image_thumbnail_format');
+        if ($thumbnail_format && $thumbnail_format !== $data['ext']) {
+            $data['original_ext'] = $data['ext'];
+            $data['ext'] = $thumbnail_format;
+        }
+    }
+
     /**
      * @param array $data
      * @return bool|int|resource
@@ -83,6 +95,8 @@ class shopProductReviewsImagesModel extends waModel
         if (!isset($data['review_id'])) {
             return false;
         }
+
+        $this->setOriginalExt($data);
         $data['sort'] = $this->getSort($data['review_id']);
         $image_id = $this->insert($data);
 

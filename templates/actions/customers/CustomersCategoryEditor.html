@@ -1,7 +1,10 @@
 {if $category.id}
-    <h1>{$category.name|escape}</h1>
+    <h1>
+        <a href="?action=customers#/category/{$category.id}" class="back"><i class="fas fa-arrow-circle-left"></i></a>
+        {$category.name|escape}
+    </h1>
 {else}
-    <h1>[`New customer category`]</h1>
+    <h1 class="s-header">[`New customer category`]</h1>
 {/if}
 
 <form id="category-editor-form" action="?module=customers&action=categoryEditor">

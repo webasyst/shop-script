@@ -99,6 +99,15 @@ class shopProductImagesModel extends waModel
         return true;
     }
 
+    protected function setOriginalExt(&$data)
+    {
+        $thumbnail_format = wa('shop')->getConfig()->getOption('image_thumbnail_format');
+        if ($thumbnail_format && $thumbnail_format !== $data['ext']) {
+            $data['original_ext'] = $data['ext'];
+            $data['ext'] = $thumbnail_format;
+        }
+    }
+
     public function add($data, $is_default = false)
     {
         $product_id = 0;
@@ -108,8 +117,10 @@ class shopProductImagesModel extends waModel
         if (!$product_id) {
             return false;
         }
-        $info = $this->select('MAX(`sort`)+1 AS `max`, COUNT(1) AS `cnt`')->where($this->getWhereByField('product_id', $product_id))->fetch();
 
+        $this->setOriginalExt($data);
+
+        $info = $this->select('MAX(`sort`)+1 AS `max`, COUNT(1) AS `cnt`')->where($this->getWhereByField('product_id', $product_id))->fetch();
         $data['sort'] = $info['cnt'] ? $info['max'] : 0;
         if (!$info['cnt']) {
             $is_default = true;
@@ -359,6 +370,8 @@ SQL;
             'original_filename' => pathinfo($original_filename, PATHINFO_BASENAME),
             'ext'               => pathinfo($original_filename, PATHINFO_EXTENSION),
         );
+        $this->setOriginalExt($data);
+        $image_changed = $image_changed || (!empty($data['original_ext']) && $data['original_ext'] !== $data['ext']);
 
         if ($image_id) {
             $data['edit_datetime'] = date('Y-m-d H:i:s');
@@ -379,6 +392,7 @@ SQL;
         if (empty($data['id'])) {
             throw new waException("Database error");
         }
+        $data = $this->getById($data['id']);
 
         $image_path = shopImage::getPath($data);
         if ((file_exists($image_path) && !is_writable($image_path))

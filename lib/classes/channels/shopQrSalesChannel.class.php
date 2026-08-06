@@ -1,7 +1,6 @@
 <?php
 /**
  * Implements sales channel type 'qr:<id>'
- * (point of sale)
  */
 class shopQrSalesChannel extends shopSalesChannelType
 {

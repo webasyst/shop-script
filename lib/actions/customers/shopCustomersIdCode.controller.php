@@ -33,10 +33,14 @@ class shopCustomersIdCodeController extends waJsonController {
             $customer_model->createFromContact($contact_id);
         }
 
-        $saved_id_code = $customer_model->getAvailableIdCode($contact_id, $id_code);
-        if (!$saved_id_code) {
-            $this->errors = _w('Unable to generate a unique loyalty card code.');
-            return;
+        if ($id_code) {
+            $saved_id_code = $customer_model->getAvailableIdCode($contact_id, $id_code);
+            if (!$saved_id_code) {
+                $this->errors = _w('Unable to generate a unique loyalty card code.');
+                return;
+            }
+        } else {
+            $saved_id_code = null;
         }
 
         $customer_model->updateById($contact_id, [
@@ -45,7 +49,7 @@ class shopCustomersIdCodeController extends waJsonController {
 
         $this->response = [
             'id_code' => $saved_id_code,
-            'message' => $saved_id_code === $id_code
+            'message' => $saved_id_code === null || $saved_id_code === $id_code
                 ? _w('Loyalty card code has been saved.')
                 : _w('The entered code was already taken. Another available code has been saved.'),
         ];

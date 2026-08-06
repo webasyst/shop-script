@@ -14991,3 +14991,114 @@ msgstr "плагином"
 
 msgid "Fiscalization performed %s “%s”."
 msgstr "Фискализация произведена %s «%s»."
+
+msgid "Widget embed code"
+msgstr "Код для встраивания"
+
+msgid "Save this sales channel to get the widget embed code."
+msgstr "Сохраните этот канал продаж, чтобы получить код для встраивания виджета."
+
+msgid "Inline mode"
+msgstr "На страницу"
+
+msgid "Dialog mode"
+msgstr "В диалоге"
+
+msgid "Embed any of these codes in an external site’s HTML code."
+msgstr "Встройте любой из этих вариантов кода в исходный HTML-код страницы другого сайта."
+
+msgid "In-widget checkout payment is based on <a %s>Webasyst Pay</a>."
+msgstr "Оплата заказов внутри виджета работает на основе <a %s>Webasyst Pay</a>."
+
+msgid "Issue loyalty cards"
+msgstr "Выдать карты лояльности"
+
+msgid "Advanced search"
+msgstr "Расширенный поиск"
+
+msgid "Subtitle"
+msgstr "Подзаголовок"
+
+msgid "Overrides the channel-wide <em>Products per row</em> setting for this block."
+msgstr "Переопределяет настройку канала «<em>Товаров в ряд</em>» для этого блока."
+
+msgid "Show products in a single horizontally scrollable row"
+msgstr "Показывать товары в один ряд с горизонтальной прокруткой"
+
+msgid "Assigned to me are on top"
+msgstr "Заказы на мне всегда наверху"
+
+msgid "Displays links to selected product sets or categories. Icons for product category links can be uploaded separately in the <a %s>Catalog › Categories</a> section."
+msgstr "Отображает ссылки на избранные списки с товарами или категории каталога. Иконки в ссылках на категории товаров можно отдельно загрузить в разделе «<a %s>Товары › Категории</a>»."
+
+msgid "Add link"
+msgstr "Добавить ссылку"
+
+msgid "Use preset icon"
+msgstr "Использовать готовую иконку"
+
+msgid "Use category icon"
+msgstr "Использовать иконку категории"
+
+msgid "Upload custom icon"
+msgstr "Загрузить свою иконку"
+
+msgid "Delete icon"
+msgstr "Удалить иконку"
+
+msgid "Change icon"
+msgstr "Изменить иконку"
+
+msgid "Add icon"
+msgstr "Добавить иконку"
+
+msgid "Catalog section links"
+msgstr "Ссылки на разделы каталога"
+
+msgid "Maximum allowed file size is %s."
+msgstr "Максимально допустимый размер файла — %s."
+
+msgid "Maximum allowed image size is %dx%d pixels."
+msgstr "Максимально допустимый размер изображения — %dx%d пикселей."
+
+msgid "This will create loyalty card codes for all selected customers who do not have them yet. Please confirm."
+msgstr "Для всех выбранных покупателей будут созданы коды карт лояльности, у кого их еще нет. Подтвердите выполнение действия."
+
+msgid "This will export the primary contact information of all selected customers to a CSV file (spreadsheet)."
+msgstr "Основные контактные данные всех выбранных покупателей будут экспортированы в CSV-файл (электронную таблицу)."
+
+msgid "Thumbnail format"
+msgstr "Формат эскиза"
+
+msgid "Keep original image format"
+msgstr "Сохранять исходный формат изображения"
+
+msgid "Optimized WebP"
+msgstr "Оптимизированный WebP"
+
+msgid "(recommended)"
+msgstr "(рекомендуется)"
+
+msgid "This setting applies to all images uploaded in Shop-Script, including product images, category images, and customer reviews uploads."
+msgstr "Эта настройка применяется ко всем изображениям, загружаемым в Shop-Script, включая изображения товаров, категорий и файлов в отзывах покупателей."
+
+msgid "All catalog"
+msgstr "Весь каталог"
+
+msgid "%d loyalty card issued."
+msgid_plural "%d loyalty cards issued."
+msgstr[0] "Создана %d карта лояльности."
+msgstr[1] "Созданы %d карты лояльности."
+msgstr[2] "Создано %d карт лояльности."
+
+msgid "Contact ID"
+msgstr "ID контакта"
+
+msgid "Loyalty card code"
+msgstr "Код карты лояльности"
+
+msgid "Failed to save the image."
+msgstr "Не удалось сохранить изображение."
+
+msgid "(not supported by your server)"
+msgstr "(не поддерживается на вашем сервере)"

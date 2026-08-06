@@ -22,7 +22,27 @@ class shopSettingsImagesAction extends waViewAction
         $this->view->assign(array(
             'settings' => $this->settings,
             'has_required_files' => $has_required_files,
+            'is_webp_supported' => self::isWebpSupported(),
         ));
+    }
+
+    public static function isWebpSupported()
+    {
+        $adapters[] = waSystemConfig::systemOption('image_adapter');
+        $adapters[] = waImage::Imagick;
+        $adapters[] = waImage::Gd;
+        foreach($adapters as $adapter) {
+            if ($adapter && extension_loaded(strtolower($adapter))) {
+                if ($adapter == waImage::Gd) {
+                    return function_exists('imagewebp');
+                } else if ($adapter == waImage::Imagick) {
+                    return class_exists('Imagick') && in_array('WEBP', Imagick::queryFormats());
+                } else {
+                    return true; // unknown adapter hopefully supports WEBP
+                }
+            }
+        }
+        return false; // no extension loaded
     }
 
     protected function formatSizes($sizes)
@@ -63,6 +83,10 @@ class shopSettingsImagesAction extends waViewAction
         $settings['image_filename'] = waRequest::post('image_filename') ? 1 : 0;
         $settings['image_save_original'] = waRequest::post('image_save_original') ? 1 : 0;
         $settings['image_thumbs_on_demand'] = waRequest::post('image_thumbs_on_demand') ? 1 : 0;
+        $settings['image_thumbnail_format'] = waRequest::post('image_thumbnail_format', '', 'string');
+        if (!in_array($settings['image_thumbnail_format'], ['', 'jpeg', 'webp', 'png'])) {
+            $settings['image_thumbnail_format'] = '';
+        }
 
         if ($settings['image_thumbs_on_demand']) {
             $settings['image_max_size'] = waRequest::post('image_max_size', 1000, waRequest::TYPE_INT);

@@ -1,12 +1,160 @@
-<h1>[`Embed your store in any site`]</h1>
+{$app_preview_url = 'https://app.shop-script.ru/s/%s/'}
+<style>
+    @media screen and (min-width: 761px) {
+        .s-channels-content { container-type: inline-size; }
+        .s-channels-content .s-mini-app-preview { height: 100%; position: sticky; top: 8rem; }
+        .s-channels-content .s-mini-app-preview iframe { border-radius: 1rem; }
+        .s-channels-content > .content:has(.s-mini-app-preview) .article { display: flex; gap: 0.5rem; max-width: calc(960px + var(--iframe-width, 0px)); }
+        .s-channels-content > .content:has(.s-mini-app-preview) .article-body { padding-right: 1rem; }
+        @container (width < 1024px) {
+            .s-mini-app-preview { display: none; }
+        }
+    }
+</style>
 
-<p><em>[`Coming soon.`]</em></p>
+<p class="small">
+    [`A universal JavaScript widget for embedding an online store & shopping flow in any website.`]
+    [`Embed either as an inline dedicated section within the existing site layout or as a “Shop now” button that opens up a blurred background with an &lt;iframe&gt; focusing a customer’s attention on the full-screen shopping experience without making them leave your site.`]
+</p>
 
-<div class="box contentbox blank rounded">
-    <p class="small italic">
-        [`A universal JavaScript widget for embedding an online store & shopping flow in any website.`]
-    </p>
-    <p class="small italic">
-        [`Embed either as an inline dedicated section within the existing site layout or as a “Shop now” button that opens up a blurred background with an &lt;iframe&gt; focusing a customer’s attention on the full-screen shopping experience without making them leave your site.`]
-    </p>
+<div class="fields form js-widget-settings-form">
+    <form action="{$wa_app_url}?module=channels&action=save" id="js-sales-channel-form">
+        <div class="fields-group custom-mt-16">
+
+            {if !empty($channel.id)}
+                <input type="hidden" name="id" value="{$channel.id|escape}">
+            {else}
+                <input type="hidden" name="is_new" value="1">
+            {/if}
+            <input type="hidden" name="data[type]" value="{$channel.type|escape}">
+
+            <div class="field">
+                <div class="name">
+                    [`Enabled`]
+                </div>
+                <div class="value">
+                    <label>
+                        <input type="checkbox" name="data[status]" value="1"{if !empty($channel.status)} checked{/if}>
+                    </label>
+                </div>
+            </div>
+
+            {foreach $form_fields as $name => $control_html}
+            <div class="field{if $name == 'background_color_light'} light-mark{/if}{if $name == 'background_color_dark'} dark-mark{/if}">
+                {$control_html}
+            </div>
+            {/foreach}
+
+            <div class="field">
+                <div class="name">[`Widget embed code`]</div>
+                <div class="value js-embed-code">
+                    {if !$is_waid}
+                        <p class="state-caution small">
+                            <i class="fas fa-exclamation-triangle text-orange"></i>
+                            {sprintf('[`For the mini-app to work, enable Webasyst ID and services in the <a %s>Settings app</a>.`]', 'href="'|cat:$wa_backend_url|cat:'webasyst/settings/"')}
+                        </p>
+                    {elseif empty($channel.wa_channel_id)}
+                        <em class="small">[`Save this sales channel to get the widget embed code.`]</em>
+                    {else}
+                        <h4>
+                            [`Inline mode`]
+                            {include file="./copy_button.include.html" content_selector='.js-code-1' inline}
+                        </h4>
+                        <pre class="js-code-1 box small highlighted">{$widget_embed_code_inline|escape}</pre>
+
+                        <h4>
+                            [`Dialog mode`]
+                            {include file="./copy_button.include.html" content_selector='.js-code-2' inline}
+                        </h4>
+                        <pre class="js-code-2 box small highlighted">{$widget_embed_code_modal|escape}</pre>
+                        <p class="hint">
+                            [`Embed any of these codes in an external site’s HTML code.`]
+                            <br> [`The URL will never change unless the channel is deleted.`]
+                        </p>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Payment`]</div>
+                <div class="value small">
+                    <i class="fas fa-check-circle text-green"></i>
+                    {sprintf_wp(
+                        'In-widget checkout payment is based on <a %s>Webasyst Pay</a>.',
+                        'href="'|cat:$wa_app_url|cat:'?action=settings#/payment/" class="nowrap"'
+                    )}
+                </div>
+            </div>
+        </div>
+        {include file="./channel.footer.include.html" inline}
+    </form>
 </div>
+{capture assign="_app_preview"}
+<div class="s-mini-app-preview">
+    <iframe width="375" height="670" src="" frameborder="0"></iframe>
+    <div class="align-center custom-mx-32 custom-mt-8">
+        <p class="hint">[`This is a preview of how the mini-app will look within the messaging app. The shopping functionality is disabled in the preview mode.`]</p>
+        <button type="button" class="js-reload-mini-app button light-gray rounded smaller custom-mt-4"><i class="fas fa-redo opacity-50 custom-mr-4"></i> [`Update`]</button>
+    </div>
+</div>
+{/capture}
+<script type="text/javascript" src="{$wa_app_static_url}js/backend/channels/channels.js?{$wa->version()}"></script>
+<script>
+    $(function () {
+        "use strict";
+        const spinner_html = '<span class="spinner" />';
+        const $form = $('#js-sales-channel-form');
+        const $place_for_errors = $form.find('.js-place-for-errors');
+        const $submit_button = $form.find(':submit').last();
+
+        const controller = new SalesChannelForm({
+            $place_for_errors,
+            $form,
+        });
+
+        showMiniAppPreview();
+
+        $form.on('save_request', function () {
+            $place_for_errors.empty();
+            $submit_button.prop('disabled', true).after(spinner_html);
+        });
+        $form.on('save_success save_fail', function (evt, data) {
+            if (data.result?.error_description) {
+                $place_for_errors.append('<span class="state-caution-hint">'+ data.result.error_description +'</span>');
+            }
+            $submit_button.prop('disabled', false).siblings('.spinner').remove();
+        });
+
+        $form.on('save_success', function (evt, data) {
+            showMiniAppPreview();
+            {if empty($channel.id)}
+                // After successfull save of a new channel, redirect to its proper URL containing id
+                window.location = {$wa_app_url|json_encode} + 'channels/editor/' + data.result.id;
+            {/if}
+        });
+
+        function showMiniAppPreview() {
+            const wa_channel_id = {$channel.wa_channel_id|default:''|escape|json_encode};
+            if (!wa_channel_id) return;
+
+            const url = "{$app_preview_url}".replace('%s', wa_channel_id);
+            const $settings_wrapper = $('#js-channels-content .article');
+            const $app = $({$_app_preview|json_encode});
+            const $iframe = $('iframe', $app);
+            const width = $iframe.prop('width') + 'px';
+
+            $settings_wrapper.find('.s-mini-app-preview').remove();
+            $settings_wrapper.css('--iframe-width', width);
+
+            const $reload_button = $('.js-reload-mini-app', $app);
+            $reload_button.on('click', () => {
+                $reload_button.prop('disabled', true);
+                showMiniAppPreview();
+            });
+
+            $iframe.prop('src', url);
+
+            $settings_wrapper.append($app);
+        }
+    });
+</script>

@@ -15,6 +15,8 @@ trait shopImagesRegenerateTrait
 
     abstract public function upCount($image);
 
+    abstract public function saveThumbExt($image);
+
     public function __construct()
     {
         $this->data = [
@@ -55,7 +57,7 @@ trait shopImagesRegenerateTrait
                 $this->regenerateThumbs($image);
                 $this->upSuccess(); //Image count - count of successful processed images
             } catch (Exception $e) {
-                $this->error($e->getMessage());
+                $this->error((string)$e);
             }
 
             $this->upCount($image);
@@ -72,6 +74,74 @@ trait shopImagesRegenerateTrait
         $this->data['success'] += 1;
     }
 
+    protected function changeExt(&$image, $new_ext, &$do_restore_originals)
+    {
+        // Получаем путь до исходника (не оригинала) картинки, как есть.
+        $source_image = $this->getPath($image);
+        $original_image = $this->getOriginalPath($image);
+
+        // If we can restore from original photo, then siply do that (better quality).
+        $do_restore_originals = file_exists($original_image);
+
+        // Change ext in database (will affect thumbnail format)
+        $prev_ext = $image['ext'];
+        $image['original_ext'] = ifempty($image, 'original_ext', $image['ext']);
+        $image['ext'] = $new_ext;
+
+        // If unable to restore from original, convert from product image.
+        if (!$do_restore_originals) {
+
+            if (!file_exists($source_image)) {
+                waLog::log([
+                    'Unable to change image extension: no source image and no original',
+                    'source' => $source_image,
+                    'original_image' => $original_image,
+                    'image' => $image,
+                ], 'shop/images_regenerate.log');
+                return;
+            }
+
+            $new_path = $this->getPath($image);
+            try {
+                $quality = wa('shop')->getConfig()->getSaveQuality();
+                waImage::factory($source_image)->save($new_path, $quality);
+            } catch (Throwable $e) {
+                waLog::log([
+                    'Unable to change image extension',
+                    'source' => $source_image,
+                    'destination' => $new_path,
+                    'quality' => $quality,
+                    'image' => $image,
+                    (string) $e,
+                ], 'shop/images_regenerate.log');
+            }
+            if (file_exists($new_path) && file_exists($source_image)) {
+                if (wa('shop')->getConfig()->getOption('image_save_original')) {
+                    $image['original_ext'] = $prev_ext;
+                    waFiles::move($source_image, $this->getOriginalPath($image));
+                } else {
+                    waFiles::delete($source_image);
+                }
+                $this->saveThumbExt($image);
+            } else {
+                // in case something went wrong converting image format,
+                // we generate thumbs in old format
+                $image['ext'] = $prev_ext;
+
+                waLog::log([
+                    'Revert image ext change',
+                    'source' => $source_image,
+                    'image' => $image,
+                ], 'shop/images_regenerate.log');
+            }
+        } else {
+            $this->saveThumbExt($image);
+            if (file_exists($source_image)) {
+                waFiles::delete($source_image);
+            }
+        }
+    }
+
     /**
      * @param $image
      * @throws waException
@@ -81,7 +151,19 @@ trait shopImagesRegenerateTrait
         // Delete existing thumbnails
         $this->deleteExistingThumbs($image);
 
-        if (waRequest::post('restore_originals')) {
+        $do_restore_originals = waRequest::post('restore_originals');
+
+        $thumbnail_format = wa('shop')->getConfig()->getOption('image_thumbnail_format');
+        if ($thumbnail_format && $image['ext'] != $thumbnail_format) {
+            $this->changeExt($image, $thumbnail_format, $do_restore_originals);
+        } else if (!$thumbnail_format && $image['ext'] != $image['original_ext']) {
+            $original_image = $this->getOriginalPath($image);
+            if (file_exists($original_image)) {
+                $this->changeExt($image, $image['original_ext'], $do_restore_originals);
+            }
+        }
+
+        if ($do_restore_originals) {
             $this->restoreOriginals($image);
         }
 
@@ -104,7 +186,6 @@ trait shopImagesRegenerateTrait
         if (is_readable($original_path)) {
             try {
                 $new_path = $this->getPath($image_data);
-                $new_original_path = $this->getOriginalPath($image_data);
                 $image = waImage::factory($original_path);
                 $image_changed = false;
                 $event = $this->runEvent($image);
@@ -115,16 +196,10 @@ trait shopImagesRegenerateTrait
                 }
 
                 if ($image_changed) {
-                    if ($original_path != $new_original_path) {
-                        waFiles::copy($original_path, $new_original_path);
-                    }
                     $image->save($new_path);
                 } else {
                     if ($original_path != $new_path) {
                         waFiles::copy($original_path, $new_path);
-                    }
-                    if (is_writable($new_original_path)) {
-                        waFiles::delete($new_original_path);
                     }
                 }
             } catch (Exception $e) {

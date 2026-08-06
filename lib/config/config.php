@@ -51,7 +51,7 @@ return array(
     'image_thumbs_on_demand' => 1,
     'image_save_original'    => 1,
     'image_save_quality'     => 90,
-
+    'image_thumbnail_format' => '', // empty means use original format
     'enable_2x'             => 1,
     'image_save_quality_2x' => 70,
 

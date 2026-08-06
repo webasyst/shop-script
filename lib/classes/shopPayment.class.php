@@ -1054,16 +1054,10 @@ class shopPayment extends waAppPayment
         }
         unset($m, $ix);
 
-        // Sort payment plugins, fancy modern ones first
+        // Sort payment plugins, WA Pay has priority
         uasort($methods, function($a, $b) {
-            $aa = $a['instance'] instanceof waIPaymentMultipleOptions;
-            $bb = $b['instance'] instanceof waIPaymentMultipleOptions;
-            if ($aa xor $bb) {
-                return $aa ? -1 : 1;
-            }
-
-            $aa = $a['instance'] instanceof waIPaymentImage;
-            $bb = $b['instance'] instanceof waIPaymentImage;
+            $aa = $a['instance'] instanceof waPayPayment;
+            $bb = $b['instance'] instanceof waPayPayment;
             if ($aa xor $bb) {
                 return $aa ? -1 : 1;
             }
