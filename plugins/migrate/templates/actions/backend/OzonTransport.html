@@ -70,12 +70,15 @@
     .s-ozon-import-flow__icon img {display:block;width:auto;height:auto;max-width:96px;max-height:96px;}
     .s-ozon-import-flow__icon--ozon img {max-width:90px;max-height:90px;border-radius:24px;animation:s-ozon-import-icon-pulse-ozon 3.5s ease-in-out infinite;}
     .s-ozon-import-flow__icon--shop img {animation:s-ozon-import-icon-pulse-shop 3.5s ease-in-out infinite;}
-    .s-ozon-import-flow__arrows {display:flex;align-items:center;gap:8px;color:var(--text-color-weak);}
-    .s-ozon-import-flow__chev {display:inline-flex;align-items:center;justify-content:center;line-height:1;opacity:1;transition:opacity .6s ease;}
+    .s-ozon-import-flow.is-post-triangle-sync .s-ozon-import-flow__icon--shop img {animation-delay:-.16s;}
+    .s-ozon-import-flow__arrows {display:flex;align-items:center;justify-content:center;gap:8px;width:64px;height:72px;color:var(--text-color-weak);transform-origin:center;will-change:transform;}
+    .s-ozon-import-flow__chev {display:inline-flex;align-items:center;justify-content:center;line-height:1;opacity:1;transition:opacity .6s ease,transform .9s cubic-bezier(.22,.61,.36,1);will-change:transform,opacity;}
     .s-ozon-import-flow.is-finishing .s-ozon-import-flow__chev--1 {opacity:0;transition-delay:0s;}
     .s-ozon-import-flow.is-finishing .s-ozon-import-flow__chev--2 {opacity:0;transition-delay:.2s;}
     .s-ozon-import-flow.is-finishing .s-ozon-import-flow__chev--3 {opacity:0;transition-delay:.4s;}
     .s-ozon-import-flow.is-finishing .s-ozon-import-flow__icon img {animation:none !important;}
+    .s-ozon-import-flow.is-animation-reset .s-ozon-import-flow__icon img,
+    .s-ozon-import-flow.is-animation-reset .s-ozon-import-flow__chev svg {animation:none !important;}
     .s-ozon-import-flow.is-ozon-moving .s-ozon-import-flow__icon--ozon {transform:translateX(var(--ozon-shift-x, 0px));}
     .s-ozon-import-flow.is-shop-moving .s-ozon-import-flow__icon--shop {transform:translateX(var(--shop-shift-x, 0px));}
     .s-ozon-import-flow__chev svg{
@@ -91,8 +94,33 @@
     .s-ozon-import-flow__chev--1 svg {animation-name:s-ozon-import-chev-spin-1;}
     .s-ozon-import-flow__chev--2 svg {animation-name:s-ozon-import-chev-spin-2;}
     .s-ozon-import-flow__chev--3 svg {animation-name:s-ozon-import-chev-spin-3;}
+    .s-ozon-import-flow__arrows.is-triangle .s-ozon-import-flow__chev--1 {transform:translate(12px,-16px) scale(1.08);}
+    .s-ozon-import-flow__arrows.is-triangle .s-ozon-import-flow__chev--2 {transform:translate(-12px,16px) scale(1.08);}
+    .s-ozon-import-flow__arrows.is-triangle .s-ozon-import-flow__chev--3 {transform:translate(-8px,0) scale(1.08);}
+    .s-ozon-import-flow__arrows.is-triangle-sync .s-ozon-import-flow__chev svg {animation-name:s-ozon-import-chev-spin-triangle;animation-duration:1.25s;animation-timing-function:ease-in-out;animation-delay:0s;}
+    .s-ozon-import-flow__arrows.is-triangle-orbit {animation:s-ozon-import-triangle-orbit 2.1s cubic-bezier(.45,0,.2,1) 1;}
     .s-ozon-import-flow__chev svg path {fill:currentColor;}
-    .s-ozon-import-dialog__status {margin:0;text-align:center;color:var(--text-color);}
+    .s-ozon-import-dialog__progress {position:relative;width:100%;margin:14px 0 0;}
+    .s-ozon-import-dialog__progress .progressbar,
+    .s-ozon-import-dialog__progress .progressbar-line-wrapper,
+    .s-ozon-import-dialog__progress .progressbar-outer {width:100%;}
+    .s-ozon-import-dialog__progress .progressbar-text {display:none !important;}
+    .s-ozon-import-dialog__progress .progressbar-outer {height:28px;border-radius:14px;overflow:hidden;background:rgba(0,0,0,.08);}
+    .s-ozon-import-dialog__progress .progressbar-inner {height:100%;border-radius:14px;background:#1a73e8 !important;position:relative;overflow:hidden;transition:width .2s ease;}
+    .s-ozon-import-dialog__progress .progressbar-inner::before {
+        content:'';
+        position:absolute;
+        inset:0;
+        width:420%;
+        background:linear-gradient(90deg,#1a73e8 0%,#005bff 10%,#3157ff 18%,#7047f2 30%,#9857ff 42%,#00a970 55%,#00c6a6 67%,#12a8ff 82%,#1a73e8 100%);
+        animation:s-ozon-import-progress-flow 24s ease-in-out infinite;
+        transform:translateX(0);
+    }
+    .s-ozon-import-dialog__progress-text {position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:0 12px;box-sizing:border-box;color:#fff;font-size:13px;font-weight:600;line-height:1;text-align:center;text-shadow:0 1px 2px rgba(0,0,0,.85),0 0 1px rgba(0,0,0,.9);pointer-events:none;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .s-ozon-import-dialog__status {margin:12px 0 0;text-align:center;color:var(--text-color);}
+    .s-ozon-import-dialog__status-title {display:block;color:var(--text-color-strong);font-size:18px;font-weight:600;line-height:1.35;text-align:center;}
+    .s-ozon-import-dialog__status-details {display:block;margin-top:6px;color:var(--text-color);font-size:13px;line-height:1.45;text-align:center;}
+    #js-ozon-import-dialog.is-complete .s-ozon-import-dialog__progress {display:none;}
     @keyframes s-ozon-import-icon-pulse-ozon {
         0%, 100% {transform:scale(1);}
         3% {transform:scale(1.06);}
@@ -120,6 +148,19 @@
         32.857% {transform:rotate(270deg);}
         100% {transform:rotate(270deg);}
     }
+    @keyframes s-ozon-import-chev-spin-triangle {
+        0% {transform:rotate(-90deg);}
+        55%, 100% {transform:rotate(270deg);}
+    }
+    @keyframes s-ozon-import-triangle-orbit {
+        0% {transform:rotate(0deg) scale(1);}
+        45% {transform:rotate(210deg) scale(1.08);}
+        100% {transform:rotate(360deg) scale(1);}
+    }
+    @keyframes s-ozon-import-progress-flow {
+        0%, 100% {transform:translateX(0);}
+        50% {transform:translateX(-76%);}
+    }
     @media (max-width: 760px) {
         #js-ozon-import-dialog .dialog-body {min-width:0;width:calc(100vw - 36px);}
         .s-ozon-import-flow {gap:12px;}
@@ -136,12 +177,23 @@
      data-test-url="?plugin=migrate&action=ozonTestCredentials"
      data-load-url="?plugin=migrate&action=ozonLoad"
      data-import-url="?plugin=migrate&action=ozonImport"
+     data-import-batch-size="25"
      data-clean-url="?plugin=migrate&action=ozonCleanup"
      data-state="{if $ozon_snapshot}import{else}load{/if}"
      data-load-label="[`Load data`]"
      data-import-label="[`Import data`]"
      data-import-progress="[`Import in progress. Do not close this page until it is complete.`]"
-     data-import-success="[`Import completed successfully`]">
+     data-import-success="[`Import completed successfully`]"
+     data-import-success-title="[`Импорт завершен!`]"
+     data-importing-products="[`Importing products`]"
+     data-products-processed="[`Products processed`]"
+     data-processed-label="[`обработано`]"
+     data-created-label="[`создано`]"
+     data-updated-label="[`обновлено`]"
+     data-skipped-label="[`пропущено`]"
+     data-incomplete-cleaned-label="[`Incomplete products cleaned`]"
+     data-snapshot-products="{if $ozon_snapshot}{$ozon_snapshot.meta.products|default:0}{else}0{/if}"
+     data-invalid-progress="[`Import progress is invalid. Please restart import.`]">
 
     <div class="s-ozon-card">
         <div class="s-ozon-card__header">
@@ -335,7 +387,7 @@
                             <tr>
                                 <th>
                                     <span class="s-ozon-col-icon">
-                                        <img src="{$wa_app_static_url}plugins/migrate/img/ozon400x400.png" alt="Ozon">
+                                        <img src="{$wa_app_static_url}plugins/migrate/img/Ozon400x400.png" alt="Ozon">
                                         <span>[`Ozon category`]</span>
                                     </span>
                                 </th>
@@ -384,7 +436,7 @@
                             <tr>
                                 <th>
                                     <span class="s-ozon-col-icon">
-                                        <img src="{$wa_app_static_url}plugins/migrate/img/ozon400x400.png" alt="Ozon">
+                                        <img src="{$wa_app_static_url}plugins/migrate/img/Ozon400x400.png" alt="Ozon">
                                         <span>[`Ozon category`]</span>
                                     </span>
                                 </th>
@@ -426,7 +478,7 @@
                             <tr>
                                 <th>
                                     <span class="s-ozon-col-icon">
-                                        <img src="{$wa_app_static_url}plugins/migrate/img/ozon400x400.png" alt="Ozon">
+                                        <img src="{$wa_app_static_url}plugins/migrate/img/Ozon400x400.png" alt="Ozon">
                                         <span>[`Ozon warehouse`]</span>
                                     </span>
                                 </th>

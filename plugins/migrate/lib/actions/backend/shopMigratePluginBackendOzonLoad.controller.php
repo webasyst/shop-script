@@ -12,20 +12,39 @@ class shopMigratePluginBackendOzonLoadController extends waJsonController
             }
 
             $logger = new shopMigratePluginOzonLogger($settings->getLogMode());
-            $api = new shopMigratePluginOzonApiClient($credentials['client_id'], $credentials['api_key'], $logger);
+            $api = new shopMigratePluginOzonApiClient(
+                $credentials['client_id'],
+                $credentials['api_key'],
+                $logger,
+                array(
+                    'timeout'            => 12,
+                    'max_retry_attempts' => 1,
+                )
+            );
             $repository = new shopMigratePluginOzonSnapshotRepository();
             $builder = new shopMigratePluginOzonSnapshotBuilder($api, $repository, $settings);
-            $snapshot_id = $builder->build();
-            $snapshot = $repository->getSnapshotsModel()->getByIdSafe($snapshot_id);
-            $warning = $this->extractSnapshotWarning($snapshot);
+            $result = $builder->advance(waRequest::post('snapshot_id', 0, waRequest::TYPE_INT));
+            $snapshot_id = (int) $result['snapshot_id'];
 
-            $this->response = array(
-                'snapshot_id' => $snapshot_id,
-            );
-            if ($warning !== '') {
-                $this->response['warning'] = $warning;
+            if (!empty($result['done'])) {
+                $snapshot = $repository->getSnapshotsModel()->getByIdSafe($snapshot_id);
+                $warning = $this->extractSnapshotWarning($snapshot);
+                if ($warning !== '') {
+                    $result['warning'] = $warning;
+                }
             }
-        } catch (Exception $e) {
+            $this->response = $result;
+        } catch (Throwable $e) {
+            waLog::log(
+                sprintf(
+                    '[OzonSnapshotBuilder] AJAX batch failed: %s: %s at %s:%d',
+                    get_class($e),
+                    $e->getMessage(),
+                    $e->getFile(),
+                    $e->getLine()
+                ),
+                shopMigratePluginOzonLogger::LOG_FILE
+            );
             $this->setError($e->getMessage());
         }
     }

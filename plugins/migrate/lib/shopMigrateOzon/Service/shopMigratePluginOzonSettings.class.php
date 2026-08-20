@@ -37,8 +37,14 @@ class shopMigratePluginOzonSettings
 
     public function saveCredentials($client_id, $api_key)
     {
+        $current = $this->getCredentials();
+        $changed = $current['client_id'] !== (string) $client_id
+            || $current['api_key'] !== (string) $api_key;
         $this->set('client_id', (string) $client_id);
         $this->set('api_key', (string) $api_key);
+        if ($changed) {
+            $this->clearBuildingSnapshotReference();
+        }
     }
 
     public function getLogMode()
@@ -78,6 +84,31 @@ class shopMigratePluginOzonSettings
     public function clearSnapshotReference()
     {
         $this->settings_model->del(self::NS_APP, self::NS_PLUGIN, 'snapshot_id');
+    }
+
+    public function getBuildingSnapshotId()
+    {
+        return (int) $this->get('building_snapshot_id', 0);
+    }
+
+    public function setBuildingSnapshotId($snapshot_id)
+    {
+        $this->set('building_snapshot_id', (int) $snapshot_id);
+    }
+
+    public function clearBuildingSnapshotReference()
+    {
+        $this->settings_model->del(self::NS_APP, self::NS_PLUGIN, 'building_snapshot_id');
+    }
+
+    public function shouldPreferImageCdn()
+    {
+        return (bool) $this->get('prefer_image_cdn', 0);
+    }
+
+    public function setPreferImageCdn($prefer)
+    {
+        $this->set('prefer_image_cdn', $prefer ? 1 : 0);
     }
 
     public function getFeatureImportMode()

@@ -46,10 +46,13 @@
             this.$mainButtonWrapper = null;
             this.importDialog = null;
             this.$importDialog = null;
+            this.importDialogProgressbar = null;
             this.importDialogFinishing = false;
             this.importDialogConvergeTimer = null;
             this.importDialogShopMoveTimer = null;
             this.importDialogRevealTimer = null;
+            this.importDialogArrowTimer = null;
+            this.importDialogArrowSequenceTimers = [];
             this.initModeSwitch();
             this.initFeatureSwitch();
             this.bind();
@@ -459,33 +462,227 @@
             if (!$btn || !$btn.length) { return; }
             if (state === 'import') {
                 this.openImportDialog();
+                this.runImportBatches(url, $btn);
+                return;
+            }
+            if (state === 'load') {
+                this.runSnapshotBatches(url, $btn);
+                return;
             }
             var loading_html = '<i class="icon16 loading"></i>';
-            if (state === 'load') {
-                this.toggleMainButtonLoader(true);
-            }
             $btn.prop('disabled', true).after(loading_html);
             this.post(url, {}, function (response) {
                 var warning = response && response.warning ? String(response.warning) : '';
-                if (state === 'load') {
-                    self.setPrimaryState('import');
-                    self.reload(true, warning);
-                } else {
-                    if (warning) {
-                        self.status('js-ozon-progress', warning, false);
-                    }
-                    self.showImportSuccess();
+                if (warning) {
+                    self.status('js-ozon-progress', warning, false);
                 }
+                self.showImportSuccess();
             }, {
                 target: 'js-ozon-progress',
                 always: function () {
                     $btn.prop('disabled', false);
                     $btn.next('.icon16.loading').remove();
-                    if (state === 'load') {
-                        self.toggleMainButtonLoader(false);
-                    }
                 }
             });
+        },
+
+        runSnapshotBatches: function (url, $btn) {
+            var self = this;
+            var snapshotId = 0;
+            var loadingHtml = '<i class="icon16 loading"></i>';
+
+            $btn.prop('disabled', true).after(loadingHtml);
+            this.toggleMainButtonLoader(true);
+
+            var finish = function () {
+                $btn.prop('disabled', false);
+                $btn.next('.icon16.loading').remove();
+                self.toggleMainButtonLoader(false);
+            };
+
+            var requestBatch = function () {
+                self.post(url, {snapshot_id: snapshotId}, function (response) {
+                    response = response || {};
+                    snapshotId = parseInt(response.snapshot_id, 10) || snapshotId;
+                    if (!snapshotId) {
+                        finish();
+                        self.status('js-ozon-progress', self.$root.data('invalid-progress') || 'Snapshot progress is invalid. Please restart loading.', false);
+                        return;
+                    }
+
+                    if (response.message) {
+                        self.status('js-ozon-progress', self.escapeHtml(String(response.message)), true);
+                    }
+                    if (response.done) {
+                        finish();
+                        self.setPrimaryState('import');
+                        self.reload(true, response.warning ? String(response.warning) : '');
+                        return;
+                    }
+                    window.setTimeout(requestBatch, 300);
+                }, {
+                    target: 'js-ozon-progress',
+                    fail: finish
+                });
+            };
+
+            requestBatch();
+        },
+
+        runImportBatches: function (url, $btn) {
+            var self = this;
+            var cursor = 0;
+            var batchSize = parseInt(this.$root.data('import-batch-size'), 10) || 25;
+            var totals = {created: 0, updated: 0, skipped: 0, cleaned_orphans: 0};
+            var imageContinuation = false;
+            var imageOffset = 0;
+            var imageHost = '';
+            var stalledImageBatches = 0;
+            var loading_html = '<i class="icon16 loading"></i>';
+
+            $btn.prop('disabled', true).after(loading_html);
+            this.toggleMainButtonLoader(true);
+
+            var finish = function (success, message) {
+                $btn.prop('disabled', false);
+                $btn.next('.icon16.loading').remove();
+                self.toggleMainButtonLoader(false);
+                if (success) {
+                    self.showImportSuccess(message);
+                }
+            };
+
+            var requestBatch = function () {
+                self.post(url, {
+                    batch: 1,
+                    batch_size: batchSize,
+                    cursor: cursor,
+                    image_continuation: imageContinuation ? 1 : 0,
+                    image_offset: imageOffset,
+                    image_host: imageHost
+                }, function (response) {
+                    response = response || {};
+                    if (typeof response.image_host === 'string' && response.image_host) {
+                        imageHost = response.image_host;
+                    }
+                    totals.created += parseInt(response.created, 10) || 0;
+                    totals.updated += parseInt(response.updated, 10) || 0;
+                    totals.skipped += parseInt(response.skipped, 10) || 0;
+                    totals.cleaned_orphans += parseInt(response.cleaned_orphans, 10) || 0;
+
+                    var progressMessage = self.formatImportProgress(response);
+                    self.status('js-ozon-progress', progressMessage, true);
+                    self.updateImportDialogProgress(response, progressMessage);
+
+                    var imagePending = response.image_pending === true || parseInt(response.image_pending, 10) === 1;
+                    if (imagePending) {
+                        var continuationCursor = parseInt(response.next_cursor, 10);
+                        var continuationOffset = parseInt(response.image_offset, 10);
+                        var continuationTotal = parseInt(response.image_total, 10);
+                        if (!isFinite(continuationCursor) || continuationCursor < cursor
+                            || !isFinite(continuationOffset) || continuationOffset < 0
+                            || !isFinite(continuationTotal) || continuationTotal <= continuationOffset) {
+                            finish(false, '');
+                            self.status('js-ozon-progress', self.$root.data('invalid-progress') || 'Import progress is invalid. Please restart import.', false);
+                            return;
+                        }
+                        if (imageContinuation && continuationCursor === cursor && continuationOffset === imageOffset) {
+                            stalledImageBatches++;
+                        } else {
+                            stalledImageBatches = 0;
+                        }
+                        if (stalledImageBatches >= 3) {
+                            finish(false, '');
+                            self.status('js-ozon-progress', self.$root.data('invalid-progress') || 'Import progress is invalid. Please restart import.', false);
+                            return;
+                        }
+                        cursor = continuationCursor;
+                        imageOffset = continuationOffset;
+                        imageContinuation = true;
+                        window.setTimeout(requestBatch, 150);
+                        return;
+                    }
+
+                    imageContinuation = false;
+                    imageOffset = 0;
+                    stalledImageBatches = 0;
+                    if (response.done) {
+                        finish(true, self.buildImportSummary(response, totals));
+                        return;
+                    }
+
+                    var nextCursor = parseInt(response.next_cursor, 10);
+                    if (!isFinite(nextCursor) || nextCursor <= cursor) {
+                        finish(false, '');
+                        self.status('js-ozon-progress', self.$root.data('invalid-progress') || 'Import progress is invalid. Please restart import.', false);
+                        return;
+                    }
+                    cursor = nextCursor;
+                    window.setTimeout(requestBatch, 150);
+                }, {
+                    target: 'js-ozon-progress',
+                    fail: function () {
+                        finish(false, '');
+                    }
+                });
+            };
+
+            requestBatch();
+        },
+
+        formatImportProgress: function (response) {
+            var total = parseInt(response.total, 10) || 0;
+            var processed = parseInt(response.processed_total, 10) || 0;
+            var progress = this.getImportProgressPercentage(response);
+            var progressText = this.formatProgressPercent(progress);
+            if (total > 0) {
+                return processed + ' / ' + total + ' (' + progressText + '%)';
+            }
+            return progressText + '%';
+        },
+
+        formatImportSummary: function (response, totals) {
+            return this.buildImportSummary(response, totals).message;
+        },
+
+        buildImportSummary: function (response, totals) {
+            response = response || {};
+            totals = totals || {};
+            var processed = parseInt(response.processed_total, 10) || parseInt(response.total, 10) || 0;
+            var title = this.$root.data('import-success-title') || 'Импорт завершен!';
+            var details = (this.$root.data('processed-label') || this.$root.data('products-processed') || 'Processed') + ': ' + processed;
+            details += ', ' + (this.$root.data('created-label') || 'Created') + ': ' + (parseInt(totals.created, 10) || 0);
+            details += ', ' + (this.$root.data('updated-label') || 'updated') + ': ' + (parseInt(totals.updated, 10) || 0);
+            details += ', ' + (this.$root.data('skipped-label') || 'skipped') + ': ' + (parseInt(totals.skipped, 10) || 0);
+            if (totals.cleaned_orphans > 0) {
+                details += ', ' + (this.$root.data('incomplete-cleaned-label') || 'Incomplete products cleaned') + ': ' + totals.cleaned_orphans;
+            }
+            return {
+                title: title,
+                details: details,
+                message: title + ' ' + details
+            };
+        },
+
+        getImportProgressPercentage: function (response) {
+            response = response || {};
+            var total = parseInt(response.total, 10) || 0;
+            var processed = parseInt(response.processed_total, 10) || 0;
+            var progress = parseFloat(response.progress);
+            if (!isFinite(progress)) {
+                progress = total ? Math.round((processed / total) * 1000) / 10 : 0;
+            }
+            progress = Math.max(0, Math.min(100, progress));
+            return Math.round(progress * 10) / 10;
+        },
+
+        formatProgressPercent: function (progress) {
+            progress = parseFloat(progress);
+            if (!isFinite(progress)) {
+                progress = 0;
+            }
+            var rounded = Math.round(progress * 10) / 10;
+            return rounded % 1 === 0 ? String(Math.round(rounded)) : String(rounded);
         },
 
         setPrimaryState: function (state) {
@@ -507,9 +704,10 @@
             this.$root.data('state', state);
         },
 
-        showImportSuccess: function () {
+        showImportSuccess: function (successMessage) {
             var $btn = this.$mainButton;
-            var message = this.$root.data('import-success') || $_('Import completed successfully');
+            var summary = this.normalizeImportSummary(successMessage);
+            var message = summary.message;
             if ($btn && $btn.length) {
                 this.toggleMainButtonLoader(false);
                 var $wrapper = $btn.parent('.s-ozon-button-wrapper');
@@ -521,8 +719,8 @@
                 }
                 this.$mainButton = null;
             }
-            this.status('js-ozon-progress', message, true);
-            this.showImportDialogFooter(message);
+            this.status('js-ozon-progress', this.escapeHtml(message), true);
+            this.showImportDialogFooter(summary);
         },
 
         openImportDialog: function () {
@@ -540,12 +738,15 @@
                 onOpen: function ($dialog, dialog_instance) {
                     self.$importDialog = $dialog;
                     self.bindImportDialog($dialog, dialog_instance);
+                    self.initImportDialogProgress();
+                    self.scheduleImportDialogArrowAnimation();
                 },
                 onClose: function () {
                     self.clearImportDialogTimers();
                     self.importDialogFinishing = false;
                     self.$importDialog = null;
                     self.importDialog = null;
+                    self.importDialogProgressbar = null;
                 }
             });
         },
@@ -557,13 +758,101 @@
             });
         },
 
+        updateImportDialogStatus: function (message) {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length || !message) {
+                return;
+            }
+            $dialog.find('.js-ozon-import-dialog-status').text(message);
+        },
+
+        initImportDialogProgress: function () {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length) {
+                return;
+            }
+
+            var $bar = $dialog.find('.js-ozon-import-progressbar');
+            if (!$bar.length) {
+                return;
+            }
+
+            this.importDialogProgressbar = null;
+            if (typeof $bar.waProgressbar === 'function') {
+                $bar.waProgressbar({
+                    percentage: 0,
+                    color: '#1a73e8',
+                    'display-text': false
+                });
+                this.importDialogProgressbar = $bar.data('progressbar') || null;
+            } else if (!$bar.find('.progressbar-inner').length) {
+                $bar.html('<div class="progressbar-line-wrapper"><div class="progressbar-outer"><div class="progressbar-inner" style="width:0%;"></div></div></div>');
+            }
+
+            this.updateImportDialogProgress({
+                progress: 0,
+                processed_total: 0,
+                total: parseInt(this.$root.data('snapshot-products'), 10) || 0
+            });
+        },
+
+        updateImportDialogProgress: function (response, message) {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length) {
+                return;
+            }
+
+            var progress = this.getImportProgressPercentage(response);
+            var $bar = $dialog.find('.js-ozon-import-progressbar');
+            if (this.importDialogProgressbar && typeof this.importDialogProgressbar.set === 'function') {
+                this.importDialogProgressbar.set({ percentage: progress });
+            } else {
+                $bar.find('.progressbar-inner').css('width', progress + '%');
+            }
+
+            $dialog.find('.js-ozon-import-progress-text').text(message || this.formatImportProgress(response || {}));
+        },
+
+        updateImportDialogCompletion: function (summary) {
+            var $dialog = this.$importDialog;
+            if (!$dialog || !$dialog.length) {
+                return;
+            }
+
+            summary = this.normalizeImportSummary(summary);
+            var $status = $dialog.find('.js-ozon-import-dialog-status').empty();
+            $('<span class="s-ozon-import-dialog__status-title"></span>').text(summary.title).appendTo($status);
+            if (summary.details) {
+                $('<span class="s-ozon-import-dialog__status-details"></span>').text(summary.details).appendTo($status);
+            }
+        },
+
+        normalizeImportSummary: function (summary) {
+            if (summary && typeof summary === 'object') {
+                var title = summary.title || this.$root.data('import-success-title') || 'Импорт завершен!';
+                var details = summary.details || '';
+                return {
+                    title: title,
+                    details: details,
+                    message: summary.message || (title + (details ? ' ' + details : ''))
+                };
+            }
+
+            var message = summary || this.$root.data('import-success') || $_('Import completed successfully');
+            return {
+                title: message,
+                details: '',
+                message: message
+            };
+        },
+
         showImportDialogFooter: function (message) {
             var $dialog = this.$importDialog;
             if (!$dialog || !$dialog.length) {
                 return;
             }
             if (message) {
-                $dialog.find('.js-ozon-import-dialog-status').text(message);
+                this.updateImportDialogCompletion(message);
             }
             if (this.importDialogFinishing) {
                 return;
@@ -601,6 +890,115 @@
             }, revealDelay);
         },
 
+        scheduleImportDialogArrowAnimation: function () {
+            var self = this;
+            var $dialog = this.$importDialog;
+            this.clearImportDialogArrowTimers(true);
+            if (!this.isImportDialogArrowAnimationAvailable($dialog)) {
+                return;
+            }
+
+            this.importDialogArrowTimer = setTimeout(function () {
+                self.importDialogArrowTimer = null;
+                self.runImportDialogArrowAnimation();
+            }, this.getImportDialogArrowDelay());
+        },
+
+        getImportDialogArrowDelay: function () {
+            return 15000 + Math.floor(Math.random() * 15001);
+        },
+
+        runImportDialogArrowAnimation: function () {
+            var self = this;
+            var $dialog = this.$importDialog;
+            if (!this.isImportDialogArrowAnimationAvailable($dialog)) {
+                return;
+            }
+
+            var $arrows = $dialog.find('.s-ozon-import-flow__arrows').first();
+            if (!$arrows.length) {
+                return;
+            }
+
+            this.clearImportDialogArrowTimers(true);
+            $arrows.addClass('is-triangle');
+
+            this.addImportDialogArrowSequenceTimer(function () {
+                if (self.isImportDialogArrowAnimationAvailable($dialog)) {
+                    $arrows.addClass('is-triangle-sync');
+                }
+            }, 900);
+
+            this.addImportDialogArrowSequenceTimer(function () {
+                if (self.isImportDialogArrowAnimationAvailable($dialog)) {
+                    $arrows.addClass('is-triangle-orbit');
+                }
+            }, 3600);
+
+            this.addImportDialogArrowSequenceTimer(function () {
+                if (self.isImportDialogArrowAnimationAvailable($dialog)) {
+                    $arrows.removeClass('is-triangle-orbit');
+                }
+            }, 5800);
+
+            this.addImportDialogArrowSequenceTimer(function () {
+                if (self.isImportDialogArrowAnimationAvailable($dialog)) {
+                    $arrows.removeClass('is-triangle is-triangle-sync is-triangle-orbit');
+                    self.restartImportDialogFlowAnimations($dialog);
+                }
+            }, 8200);
+
+            this.addImportDialogArrowSequenceTimer(function () {
+                self.scheduleImportDialogArrowAnimation();
+            }, 9400);
+        },
+
+        addImportDialogArrowSequenceTimer: function (callback, delay) {
+            this.importDialogArrowSequenceTimers.push(setTimeout(callback, delay));
+        },
+
+        restartImportDialogFlowAnimations: function ($dialog) {
+            if (!this.isImportDialogArrowAnimationAvailable($dialog)) {
+                return;
+            }
+
+            var $flow = $dialog.find('.s-ozon-import-flow').first();
+            if (!$flow.length) {
+                return;
+            }
+
+            $flow.addClass('is-animation-reset');
+            void $flow[0].offsetWidth;
+            $flow.removeClass('is-animation-reset').addClass('is-post-triangle-sync');
+        },
+
+        isImportDialogArrowAnimationAvailable: function ($dialog) {
+            if (!$dialog || !$dialog.length || !$.contains(document, $dialog[0]) || $dialog.hasClass('is-complete')) {
+                return false;
+            }
+
+            var $flow = $dialog.find('.s-ozon-import-flow').first();
+            return $flow.length && !$flow.hasClass('is-finishing');
+        },
+
+        clearImportDialogArrowTimers: function (resetClasses) {
+            if (this.importDialogArrowTimer) {
+                clearTimeout(this.importDialogArrowTimer);
+                this.importDialogArrowTimer = null;
+            }
+            if (this.importDialogArrowSequenceTimers && this.importDialogArrowSequenceTimers.length) {
+                $.each(this.importDialogArrowSequenceTimers, function (index, timer) {
+                    clearTimeout(timer);
+                });
+            }
+            this.importDialogArrowSequenceTimers = [];
+
+            if (resetClasses !== false && this.$importDialog && this.$importDialog.length) {
+                this.$importDialog.find('.s-ozon-import-flow__arrows').removeClass('is-triangle is-triangle-sync is-triangle-orbit');
+                this.$importDialog.find('.s-ozon-import-flow').removeClass('is-post-triangle-sync');
+            }
+        },
+
         clearImportDialogTimers: function () {
             if (this.importDialogConvergeTimer) {
                 clearTimeout(this.importDialogConvergeTimer);
@@ -614,6 +1012,7 @@
                 clearTimeout(this.importDialogRevealTimer);
                 this.importDialogRevealTimer = null;
             }
+            this.clearImportDialogArrowTimers(true);
         },
 
         startImportDialogOzonMove: function (durationMs) {
@@ -688,10 +1087,6 @@
         getImportDialogHtml: function () {
             var premiumHtml = '';
             var $premiumTemplate = $('#js-ozon-import-premium-template');
-            var progressMessage = (this.$root && this.$root.length) ? this.$root.data('import-progress') : '';
-            if (!progressMessage) {
-                progressMessage = 'Import in progress. Do not close this page until it is complete.';
-            }
             if ($premiumTemplate.length) {
                 premiumHtml = $premiumTemplate.html();
             }
@@ -706,7 +1101,7 @@
                         '<div class="dialog-content">',
                             '<div class="s-ozon-import-flow">',
                                 '<div class="s-ozon-import-flow__icon s-ozon-import-flow__icon--ozon">',
-                                    '<img src="/wa-apps/shop/plugins/migrate/img/ozon400x400.png" alt="Ozon">',
+                                    '<img src="/wa-apps/shop/plugins/migrate/img/Ozon400x400.png" alt="Ozon">',
                                 '</div>',
                                 '<div class="s-ozon-import-flow__arrows" aria-hidden="true">',
                                     '<span class="card__chev s-ozon-import-flow__chev s-ozon-import-flow__chev--1"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640"><path d="M160 352C147.1 352 135.4 359.8 130.4 371.8C125.4 383.8 128.2 397.5 137.4 406.6L297.4 566.6C309.9 579.1 330.2 579.1 342.7 566.6L502.7 406.6C511.9 397.4 514.6 383.7 509.6 371.7C504.6 359.7 492.9 352 480 352L160 352z"/></svg></span>',
@@ -718,7 +1113,11 @@
                                 '</div>',
                             '</div>',
                             premiumHtml,
-                            '<p class="s-ozon-import-dialog__status js-ozon-import-dialog-status">' + progressMessage + '</p>',
+                            '<div class="s-ozon-import-dialog__progress js-ozon-import-progress">',
+                                '<div class="progressbar js-ozon-import-progressbar"></div>',
+                                '<div class="s-ozon-import-dialog__progress-text js-ozon-import-progress-text"></div>',
+                            '</div>',
+                            '<div class="s-ozon-import-dialog__status js-ozon-import-dialog-status"></div>',
                         '</div>',
                         '<footer class="dialog-footer js-ozon-import-dialog-footer">',
                             '<button class="button green js-ozon-import-close" type="button">Закрыть</button>',
@@ -791,6 +1190,10 @@
             });
         },
 
+        escapeHtml: function (value) {
+            return $('<div></div>').text(value == null ? '' : String(value)).html();
+        },
+
         status: function (className, message, positive) {
             var $target = this.$root.find('.'+className);
             $target.removeClass('text-red text-green');
@@ -837,17 +1240,32 @@
             options = options || {};
             var target = options.target || 'js-ozon-status';
             var alwaysCallback = options.always;
+            var failCallback = options.fail;
             $.post(url, data, function (response) {
                 if (response && response.status === 'ok') {
-                    if (onSuccess) { onSuccess(response); }
+                    if (onSuccess) { onSuccess(response.data || {}, response); }
                 } else if (response && response.errors) {
                     self.status(target, self.formatErrors(response.errors), false);
+                    if (typeof failCallback === 'function') {
+                        failCallback(response);
+                    }
                 } else if (response && response.error) {
                     self.status(target, response.error, false);
+                    if (typeof failCallback === 'function') {
+                        failCallback(response);
+                    }
+                } else {
+                    self.status(target, $_('Invalid server response'), false);
+                    if (typeof failCallback === 'function') {
+                        failCallback(response || {});
+                    }
                 }
             }, 'json').fail(function (xhr) {
                 var text = xhr && xhr.responseText ? xhr.responseText : $_('Request failed');
                 self.status(target, text, false);
+                if (typeof failCallback === 'function') {
+                    failCallback(xhr);
+                }
             }).always(function () {
                 if (typeof alwaysCallback === 'function') {
                     alwaysCallback();
@@ -879,6 +1297,10 @@
                 $("#plugin-migrate-submit").show();
                 $fields.find('script').each(function () {
                     var $script = $(this);
+                    var type = ($script.attr('type') || '').toLowerCase().split(';')[0];
+                    if (type && type !== 'text/javascript' && type !== 'application/javascript') {
+                        return;
+                    }
                     var src = $script.attr('src');
                     if (src) {
                         $.ajax({

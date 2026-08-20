@@ -657,3 +657,33 @@ msgstr "Hide extra"
 msgid "Hide"
 msgstr "Hide"
 
+msgid "Collecting Ozon data before import"
+msgstr "Collecting Ozon data before import"
+
+msgid "warehouses"
+msgstr "warehouses"
+
+msgid "product list"
+msgstr "product list"
+
+msgid "product details"
+msgstr "product details"
+
+msgid "categories"
+msgstr "categories"
+
+msgid "category attributes"
+msgstr "category attributes"
+
+msgid "product attributes"
+msgstr "product attributes"
+
+msgid "stocks"
+msgstr "stocks"
+
+msgid "finalization"
+msgstr "finalization"
+
+msgid "complete"
+msgstr "complete"
+

@@ -35,6 +35,23 @@ class shopMigratePluginOzonAttributesModel extends shopMigratePluginOzonModel
             ->fetchAll('attribute_id');
     }
 
+    public function getByAttributeIds($snapshot_id, array $attribute_ids)
+    {
+        $attribute_ids = array_values(array_unique(array_filter(array_map('intval', $attribute_ids))));
+        if (!$attribute_ids) {
+            return array();
+        }
+
+        $placeholders = implode(',', array_fill(0, count($attribute_ids), '?'));
+        $sql = sprintf(
+            'SELECT * FROM %s WHERE snapshot_id = ? AND attribute_id IN (%s)',
+            $this->table,
+            $placeholders
+        );
+        $params = array_merge(array((int) $snapshot_id), $attribute_ids);
+        return $this->query($sql, $params)->fetchAll('attribute_id');
+    }
+
     public function getForCategoryPairs($snapshot_id, array $pairs)
     {
         if (!$pairs) {

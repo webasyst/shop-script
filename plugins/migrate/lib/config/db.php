@@ -4,7 +4,7 @@ return array(
     'shop_migrate_ozon_snapshots' => array(
         'id' => array('int', 11, 'unsigned' => 1, 'autoincrement' => 1),
         'status' => array('varchar', 16, 'null' => 0, 'default' => 'draft'),
-        'meta' => array('text', 'null' => 1),
+        'meta' => array('longtext', 'null' => 1),
         'created_at' => array('datetime', 'null' => 0),
         'updated_at' => array('datetime', 'null' => 0),
         ':keys' => array(
@@ -18,8 +18,11 @@ return array(
         'snapshot_id' => array('int', 11, 'unsigned' => 1, 'null' => 0),
         'product_id' => array('bigint', 20, 'unsigned' => 1, 'null' => 0),
         'offer_id' => array('varchar', 128, 'null' => 0, 'default' => ''),
+        'ozon_sku' => array('varchar', 64, 'null' => 1),
         'description_category_id' => array('bigint', 20, 'unsigned' => 1, 'null' => 0),
         'type_id' => array('bigint', 20, 'unsigned' => 1, 'null' => 0),
+        'model_id' => array('bigint', 20, 'unsigned' => 1, 'null' => 0, 'default' => 0),
+        'model_count' => array('int', 11, 'unsigned' => 1, 'null' => 0, 'default' => 0),
         'name' => array('varchar', 255, 'null' => 0, 'default' => ''),
         'flags' => array('text', 'null' => 1),
         'details' => array('longtext', 'null' => 1),
@@ -29,6 +32,7 @@ return array(
             'PRIMARY' => array('id'),
             'snapshot_product' => array('snapshot_id', 'product_id', 'unique' => 1),
             'snapshot_offer' => array('snapshot_id', 'offer_id'),
+            'snapshot_model' => array('snapshot_id', 'model_id', 'product_id'),
         ),
         ':options' => array('charset' => 'utf8mb4', 'collate' => 'utf8mb4_general_ci'),
     ),
@@ -101,7 +105,7 @@ return array(
         'updated_at' => array('datetime', 'null' => 0),
         ':keys' => array(
             'PRIMARY' => array('id'),
-            'snapshot_stock' => array('snapshot_id', 'product_id', 'warehouse_id'),
+            'snapshot_stock' => array('snapshot_id', 'product_id', 'warehouse_id', 'unique' => 1),
             'snapshot_offer_stock' => array('snapshot_id', 'offer_id', 'warehouse_id'),
         ),
         ':options' => array('charset' => 'utf8mb4', 'collate' => 'utf8mb4_general_ci'),

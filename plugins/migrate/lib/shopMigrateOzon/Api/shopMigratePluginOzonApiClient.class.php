@@ -10,7 +10,8 @@ class shopMigratePluginOzonApiClient
     const DEFAULT_RETRY_MAX_DELAY_MS = 30000;
     const DEFAULT_429_BASE_DELAY_MS = 5000;
     const MAX_PRODUCT_PAGE = 100;
-    const MAX_INFO_BATCH = 100;
+    const MAX_INFO_BATCH = 25;
+    const MAX_STOCK_BATCH = 25;
 
     private $client_id;
     private $api_key;
@@ -125,10 +126,23 @@ class shopMigratePluginOzonApiClient
         return $this->batchRequest('v3/product/info/list', 'product_id', $product_ids);
     }
 
+    public function eachProductsInfoBatch(array $product_ids, $callback)
+    {
+        $this->batchRequestEach('v3/product/info/list', 'product_id', $product_ids, $callback);
+    }
+
     public function getProductsAttributesBatch(array $product_ids)
     {
-        $chunks = array_chunk(array_values(array_unique(array_map('intval', $product_ids))), self::MAX_INFO_BATCH);
         $result = array();
+        $this->eachProductsAttributesBatch($product_ids, function (array $items) use (&$result) {
+            $result = array_merge($result, $items);
+        });
+        return $result;
+    }
+
+    public function eachProductsAttributesBatch(array $product_ids, $callback)
+    {
+        $chunks = array_chunk(array_values(array_unique(array_map('intval', $product_ids))), self::MAX_INFO_BATCH);
         foreach ($chunks as $chunk) {
             if (!$chunk) {
                 continue;
@@ -141,16 +155,24 @@ class shopMigratePluginOzonApiClient
             );
             $response = $this->request('v4/product/info/attributes', $payload);
             if (!empty($response['result']) && is_array($response['result'])) {
-                $result = array_merge($result, $response['result']);
+                call_user_func($callback, $response['result']);
             } elseif (!empty($response['items']) && is_array($response['items'])) {
-                $result = array_merge($result, $response['items']);
+                call_user_func($callback, $response['items']);
             }
+            unset($response);
         }
-
-        return $result;
     }
 
     public function getStocksByWarehouseFbsBatch($identifiers, $warehouse_id = null)
+    {
+        $result = array();
+        $this->eachStocksByWarehouseFbsBatch($identifiers, function (array $items) use (&$result) {
+            $result = array_merge($result, $items);
+        }, $warehouse_id);
+        return $result;
+    }
+
+    public function eachStocksByWarehouseFbsBatch($identifiers, $callback, $warehouse_id = null)
     {
         $sku_values = array();
         $offer_values = array();
@@ -186,29 +208,31 @@ class shopMigratePluginOzonApiClient
             }
         }
 
-        $field = '';
-        $values = array();
-        if ($sku_values) {
-            $field = 'sku';
-            $values = array_values(array_unique($sku_values));
-        } elseif ($offer_values) {
-            $field = 'offer_id';
-            $values = array_values(array_unique($offer_values));
-        } else {
-            return array();
-        }
-
         $payload_sets = array();
-        foreach (array_chunk($values, self::MAX_INFO_BATCH) as $chunk) {
-            if ($chunk) {
-                $payload_sets[] = array(
-                    $field  => $chunk,
-                    'limit' => 1000,
-                );
+        if ($sku_values) {
+            foreach (array_chunk(array_values(array_unique($sku_values)), self::MAX_STOCK_BATCH) as $chunk) {
+                if ($chunk) {
+                    $payload_sets[] = array(
+                        'sku'   => $chunk,
+                        'limit' => 1000,
+                    );
+                }
             }
         }
+        if ($offer_values) {
+            foreach (array_chunk(array_values(array_unique($offer_values)), self::MAX_STOCK_BATCH) as $chunk) {
+                if ($chunk) {
+                    $payload_sets[] = array(
+                        'offer_id' => $chunk,
+                        'limit'    => 1000,
+                    );
+                }
+            }
+        }
+        if (!$payload_sets) {
+            return;
+        }
 
-        $result = array();
         foreach ($payload_sets as $payload) {
             if ($warehouse_id !== null) {
                 $payload['warehouse_id'] = (int) $warehouse_id;
@@ -218,16 +242,17 @@ class shopMigratePluginOzonApiClient
             while (true) {
                 $response = $this->request('v2/product/info/stocks-by-warehouse/fbs', $payload);
 
+                $items = array();
                 if (!empty($response['products']) && is_array($response['products'])) {
                     foreach ($response['products'] as $item) {
                         if (is_array($item)) {
-                            $result[] = $item;
+                            $items[] = $item;
                         }
                     }
                 } elseif (!empty($response['items']) && is_array($response['items'])) {
                     foreach ($response['items'] as $item) {
                         if (is_array($item)) {
-                            $result[] = $item;
+                            $items[] = $item;
                         }
                     }
                 } elseif (!empty($response['result']) && is_array($response['result'])) {
@@ -237,19 +262,23 @@ class shopMigratePluginOzonApiClient
                             foreach ($record['items'] as $item) {
                                 $item['warehouse_id'] = ifset($record['warehouse_id']);
                                 if ($item['warehouse_id']) {
-                                    $result[] = $item;
+                                    $items[] = $item;
                                 }
                             }
                             continue;
                         }
                         if ($wid) {
-                            $result[] = $record;
+                            $items[] = $record;
                         }
                     }
+                }
+                if ($items) {
+                    call_user_func($callback, $items);
                 }
 
                 $has_next = !empty($response['has_next']);
                 $cursor = (string) ifset($response['cursor'], '');
+                unset($items, $response);
                 if (!$has_next || $cursor === '' || isset($seen_cursors[$cursor])) {
                     break;
                 }
@@ -258,25 +287,32 @@ class shopMigratePluginOzonApiClient
                 $payload['cursor'] = $cursor;
             }
         }
-        return $result;
     }
 
     private function batchRequest($path, $key, array $values)
     {
-        $chunks = array_chunk(array_values(array_unique(array_map('intval', $values))), self::MAX_INFO_BATCH);
         $result = array();
+        $this->batchRequestEach($path, $key, $values, function (array $items) use (&$result) {
+            $result = array_merge($result, $items);
+        });
+        return $result;
+    }
+
+    private function batchRequestEach($path, $key, array $values, $callback)
+    {
+        $chunks = array_chunk(array_values(array_unique(array_map('intval', $values))), self::MAX_INFO_BATCH);
         foreach ($chunks as $chunk) {
             if (!$chunk) {
                 continue;
             }
             $response = $this->request($path, array($key => $chunk));
             if (!empty($response['items']) && is_array($response['items'])) {
-                $result = array_merge($result, $response['items']);
+                call_user_func($callback, $response['items']);
             } elseif (!empty($response['result']) && is_array($response['result'])) {
-                $result = array_merge($result, $response['result']);
+                call_user_func($callback, $response['result']);
             }
+            unset($response);
         }
-        return $result;
     }
 
     private function request($path, array $payload)

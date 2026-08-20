@@ -2,6 +2,8 @@
 
 class shopMigratePluginOzonSnapshotRepository
 {
+    const MAX_ERROR_MESSAGE_LENGTH = 4000;
+
     private $snapshots_model;
     private $products_model;
     private $categories_model;
@@ -36,6 +38,16 @@ class shopMigratePluginOzonSnapshotRepository
         return $this->snapshots_model->create('draft', $meta);
     }
 
+    public function createBuildingSnapshot(array $meta = array())
+    {
+        return $this->snapshots_model->create('building', $meta);
+    }
+
+    public function saveBuildState($snapshot_id, array $meta)
+    {
+        $this->snapshots_model->updateStatus($snapshot_id, 'building', $meta);
+    }
+
     public function markReady($snapshot_id, array $meta = array())
     {
         $this->snapshots_model->updateStatus($snapshot_id, 'ready', $meta);
@@ -43,7 +55,18 @@ class shopMigratePluginOzonSnapshotRepository
 
     public function markFailed($snapshot_id, $message)
     {
-        $this->snapshots_model->updateStatus($snapshot_id, 'failed', array('error' => $message));
+        $this->snapshots_model->updateStatus($snapshot_id, 'failed', array(
+            'error' => $this->truncateMessage($message),
+        ));
+    }
+
+    private function truncateMessage($message)
+    {
+        $message = (string) $message;
+        if (strlen($message) <= self::MAX_ERROR_MESSAGE_LENGTH) {
+            return $message;
+        }
+        return substr($message, 0, self::MAX_ERROR_MESSAGE_LENGTH).'...';
     }
 
     public function dropSnapshotData($snapshot_id)

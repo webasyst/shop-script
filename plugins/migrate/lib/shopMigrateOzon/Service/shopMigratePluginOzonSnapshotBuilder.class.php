@@ -2,9 +2,16 @@
 
 class shopMigratePluginOzonSnapshotBuilder
 {
-    const SCRIPT_TIME_LIMIT_SECONDS = 600;
-    const HARD_DEADLINE_SECONDS = 590;
+    const SCRIPT_TIME_LIMIT_SECONDS = 30;
+    const HARD_DEADLINE_SECONDS = 24;
+    const MAX_STEPS_PER_REQUEST = 2;
+    const NEXT_STEP_RESERVE_SECONDS = 14;
+    const PRODUCT_DETAILS_BATCH_SIZE = 25;
+    const PRODUCT_ATTRIBUTES_BATCH_SIZE = 25;
+    const STOCKS_BATCH_SIZE = 25;
+    const CATEGORY_PAIRS_BATCH_SIZE = 1;
     const MAX_INVALID_PAIRS_IN_META = 50;
+    const MAX_TYPE_PATHS_IN_META = 500;
 
     private $api;
     private $repository;
@@ -23,68 +30,514 @@ class shopMigratePluginOzonSnapshotBuilder
 
     public function build(array $options = array())
     {
+        $snapshot_id = 0;
+        do {
+            $result = $this->advance($snapshot_id);
+            $snapshot_id = (int) $result['snapshot_id'];
+        } while (empty($result['done']));
+
+        return $snapshot_id;
+    }
+
+    public function advance($snapshot_id = 0)
+    {
         if (function_exists('set_time_limit')) {
             @set_time_limit(self::SCRIPT_TIME_LIMIT_SECONDS);
         }
         $this->startHardDeadline(self::HARD_DEADLINE_SECONDS);
-        $this->invalid_attribute_pairs = array();
-        $this->first_invalid_attribute_error = '';
-        $snapshot_id = $this->repository->createSnapshot();
-        $this->repository->dropSnapshotData($snapshot_id);
 
-        try {
-            $this->ensureRuntimeNotExceeded('collect warehouses');
-            $this->collectWarehouses($snapshot_id);
-            $this->ensureRuntimeNotExceeded('collect products');
-            $products = $this->collectProducts($snapshot_id);
-            $this->ensureRuntimeNotExceeded('collect product details');
-            $this->collectProductDetails($snapshot_id, $products);
-            $this->ensureRuntimeNotExceeded('collect categories');
-            $this->collectCategories($snapshot_id);
-            $this->ensureRuntimeNotExceeded('collect category attributes');
-            list($pairs, $type_paths) = $this->collectAttributes($snapshot_id, $products);
-            $this->ensureRuntimeNotExceeded('collect product attributes');
-            $this->collectProductAttributes($snapshot_id, array_keys($products));
-            $this->ensureRuntimeNotExceeded('collect stocks');
-            $this->collectStocks($snapshot_id, $products);
-            $warehouses_count = count($this->repository->getWarehousesModel()->getAllBySnapshot($snapshot_id));
-
-            $category_usage = array();
-            foreach ($products as $product) {
-                $this->ensureRuntimeNotExceeded('build snapshot meta');
-                if (!empty($product['description_category_id'])) {
-                    $category_usage[$product['description_category_id']] = true;
-                }
-            }
-
-            $meta = array(
-                'products'   => count($products),
-                'categories' => count($category_usage),
-                'warehouses' => $warehouses_count,
-                'pairs'      => count($pairs),
-                'stocks'     => true,
-                'type_paths' => $type_paths,
-            );
-            if ($this->invalid_attribute_pairs) {
-                $invalid_pairs = array_values($this->invalid_attribute_pairs);
-                $meta['invalid_attribute_pairs'] = array_slice($invalid_pairs, 0, self::MAX_INVALID_PAIRS_IN_META);
-                $meta['invalid_attribute_pairs_count'] = count($invalid_pairs);
-                $meta['invalid_attribute_products_count'] = $this->countProductsInInvalidPairs();
-                $meta['invalid_attribute_pairs_truncated'] = count($invalid_pairs) > self::MAX_INVALID_PAIRS_IN_META ? 1 : 0;
-                if ($this->first_invalid_attribute_error !== '') {
-                    $meta['invalid_attribute_error'] = $this->first_invalid_attribute_error;
-                }
-            }
-
-            $this->repository->markReady($snapshot_id, $meta);
-            $this->settings->setCurrentSnapshotId($snapshot_id);
-
-            return $snapshot_id;
-        } catch (Exception $e) {
-            $this->repository->markFailed($snapshot_id, $e->getMessage());
-            $this->settings->clearSnapshotReference();
-            throw $e;
+        $snapshot_id = $this->resolveBuildingSnapshotId($snapshot_id);
+        $snapshot = $this->repository->getSnapshotsModel()->getByIdSafe($snapshot_id);
+        if (!$snapshot) {
+            throw new waException('Snapshot is not found');
         }
+        if ($snapshot['status'] === 'ready') {
+            $this->settings->setCurrentSnapshotId($snapshot_id);
+            $this->settings->clearBuildingSnapshotReference();
+            return $this->buildBatchResponse($snapshot_id, array('phase' => 'done'), true);
+        }
+        if (!in_array($snapshot['status'], array('building', 'draft'), true)) {
+            throw new waException('Snapshot cannot be resumed because its status is '.$snapshot['status']);
+        }
+
+        $meta = $this->repository->getSnapshotsModel()->decodeMeta($snapshot);
+        $state = ifset($meta['build'], array());
+        if (!is_array($state) || empty($state['phase'])) {
+            $state = $this->createInitialBuildState();
+        }
+
+        $done = false;
+        $steps = 0;
+        while (!$done
+            && $steps < self::MAX_STEPS_PER_REQUEST
+            && $this->hasRuntimeBudget(self::NEXT_STEP_RESERVE_SECONDS)
+        ) {
+            $done = $this->advancePhase($snapshot_id, $state);
+            $steps++;
+        }
+
+        if (!$done) {
+            $meta['build'] = $state;
+            $this->repository->saveBuildState($snapshot_id, $meta);
+        }
+
+        $this->logBatchMemory($snapshot_id, (string) ifset($state['phase'], 'done'));
+        return $this->buildBatchResponse($snapshot_id, $state, $done);
+    }
+
+    private function resolveBuildingSnapshotId($snapshot_id)
+    {
+        $snapshot_id = (int) $snapshot_id;
+        if ($snapshot_id > 0) {
+            return $snapshot_id;
+        }
+
+        $saved_id = $this->settings->getBuildingSnapshotId();
+        if ($saved_id > 0) {
+            $saved = $this->repository->getSnapshotsModel()->getByIdSafe($saved_id);
+            if ($saved && in_array($saved['status'], array('building', 'draft'), true)) {
+                return $saved_id;
+            }
+            if ($saved && $saved['status'] === 'ready') {
+                $this->settings->setCurrentSnapshotId($saved_id);
+                $this->settings->clearBuildingSnapshotReference();
+                return $saved_id;
+            }
+            $this->settings->clearBuildingSnapshotReference();
+        }
+
+        $state = $this->createInitialBuildState();
+        $snapshot_id = $this->repository->createBuildingSnapshot(array('build' => $state));
+        $this->repository->dropSnapshotData($snapshot_id);
+        $this->settings->setBuildingSnapshotId($snapshot_id);
+        waLog::log(
+            sprintf('[OzonSnapshotBuilder] Started resumable snapshot #%d', $snapshot_id),
+            shopMigratePluginOzonLogger::LOG_FILE
+        );
+        return $snapshot_id;
+    }
+
+    private function createInitialBuildState()
+    {
+        return array(
+            'version'                           => 1,
+            'phase'                             => 'warehouses',
+            'started_at'                        => date('Y-m-d H:i:s'),
+            'product_last_id'                   => '',
+            'products_loaded'                   => 0,
+            'products_expected'                 => 0,
+            'details_cursor'                    => 0,
+            'details_processed'                 => 0,
+            'category_pair_offset'              => 0,
+            'category_pairs_total'              => 0,
+            'product_attributes_cursor'         => 0,
+            'product_attributes_processed'      => 0,
+            'stocks_cursor'                     => 0,
+            'stocks_processed'                  => 0,
+            'type_paths'                        => array(),
+            'type_paths_count'                  => 0,
+            'invalid_attribute_pairs'           => array(),
+            'invalid_attribute_pairs_count'     => 0,
+            'invalid_attribute_products_count'  => 0,
+            'invalid_attribute_error'           => '',
+        );
+    }
+
+    private function advancePhase($snapshot_id, array &$state)
+    {
+        switch ((string) ifset($state['phase'], 'warehouses')) {
+            case 'warehouses':
+                $this->collectWarehouses($snapshot_id);
+                $state['phase'] = 'products';
+                return false;
+
+            case 'products':
+                $this->collectProductsPage($snapshot_id, $state);
+                return false;
+
+            case 'details':
+                $this->collectProductDetailsPage($snapshot_id, $state);
+                return false;
+
+            case 'categories':
+                $this->collectCategories($snapshot_id);
+                $state['type_paths'] = array_slice($this->category_type_paths, 0, self::MAX_TYPE_PATHS_IN_META, true);
+                $state['type_paths_count'] = count($this->category_type_paths);
+                $state['category_pairs_total'] = $this->repository->getProductsModel()->countCategoryTypePairs($snapshot_id);
+                $state['phase'] = 'category_attributes';
+                return false;
+
+            case 'category_attributes':
+                $this->collectCategoryAttributesPage($snapshot_id, $state);
+                return false;
+
+            case 'product_attributes':
+                $this->collectProductAttributesPage($snapshot_id, $state);
+                return false;
+
+            case 'stocks':
+                $this->collectStocksPage($snapshot_id, $state);
+                return false;
+
+            case 'finalize':
+                $this->finalizeSnapshot($snapshot_id, $state);
+                $state['phase'] = 'done';
+                return true;
+
+            case 'done':
+                return true;
+        }
+
+        throw new waException('Unknown snapshot build phase: '.(string) $state['phase']);
+    }
+
+    private function collectProductsPage($snapshot_id, array &$state)
+    {
+        $request_last_id = (string) ifset($state['product_last_id'], '');
+        $response = $this->api->listProducts($request_last_id);
+        $result = ifset($response['result'], array());
+        $items = ifset($result['items'], array());
+        $formatted = array();
+
+        foreach ((array) $items as $item) {
+            $product_id = (int) ifset($item['product_id']);
+            if ($product_id <= 0) {
+                continue;
+            }
+            $formatted[] = array(
+                'product_id'              => $product_id,
+                'offer_id'                => ifset($item['offer_id']),
+                'sku'                     => $this->extractSkuFromApiProduct($item),
+                'description_category_id' => ifset($item['description_category_id']),
+                'type_id'                 => ifset($item['type_id']),
+                'name'                    => ifset($item['name']),
+                'flags'                   => array(
+                    'fbo' => !empty($item['has_fbo_sales']) || !empty($item['has_fbo_stocks']),
+                    'fbs' => !empty($item['has_fbs_sales']) || !empty($item['has_fbs_stocks']),
+                ),
+            );
+        }
+        $this->repository->getProductsModel()->addBatch($snapshot_id, $formatted);
+
+        if (!empty($result['total'])) {
+            $state['products_expected'] = (int) $result['total'];
+        }
+        $state['products_loaded'] = (int) ifset($state['products_loaded'], 0) + count($formatted);
+        $next_last_id = (string) ifset($result['last_id'], '');
+        $has_next = !empty($result['has_next']);
+        $can_continue = ($has_next || $next_last_id !== '')
+            && $next_last_id !== $request_last_id
+            && !empty($items);
+
+        if ($can_continue) {
+            $state['product_last_id'] = $next_last_id;
+            return;
+        }
+
+        $state['products_loaded'] = $this->repository->getProductsModel()->countBySnapshot($snapshot_id);
+        if (empty($state['products_expected'])) {
+            $state['products_expected'] = $state['products_loaded'];
+        }
+        $state['phase'] = 'details';
+    }
+
+    private function collectProductDetailsPage($snapshot_id, array &$state)
+    {
+        $products_model = $this->repository->getProductsModel();
+        $ids = $products_model->getIdsAfter(
+            $snapshot_id,
+            (int) ifset($state['details_cursor'], 0),
+            self::PRODUCT_DETAILS_BATCH_SIZE
+        );
+        if (!$ids) {
+            $state['phase'] = 'categories';
+            return;
+        }
+
+        $this->api->eachProductsInfoBatch($ids, function (array $details) use ($products_model, $snapshot_id) {
+            foreach ($details as $item) {
+                $product_id = (int) ifset($item['id'], ifset($item['product_id']));
+                if ($product_id > 0) {
+                    $products_model->updateDetails($snapshot_id, $product_id, $item);
+                }
+            }
+        });
+        $state['details_cursor'] = (int) max($ids);
+        $state['details_processed'] = (int) ifset($state['details_processed'], 0) + count($ids);
+    }
+
+    private function collectCategoryAttributesPage($snapshot_id, array &$state)
+    {
+        $offset = (int) ifset($state['category_pair_offset'], 0);
+        $pairs = $this->repository->getProductsModel()->getCategoryTypePairs(
+            $snapshot_id,
+            $offset,
+            self::CATEGORY_PAIRS_BATCH_SIZE
+        );
+        if (!$pairs) {
+            $state['phase'] = 'product_attributes';
+            return;
+        }
+
+        $category_paths = $this->repository->getCategoriesModel()->getPathMap($snapshot_id);
+        foreach ($pairs as $pair) {
+            $this->collectCategoryAttributePair($snapshot_id, $pair, $category_paths, $state);
+        }
+        $state['category_pair_offset'] = $offset + count($pairs);
+        if (count($pairs) < self::CATEGORY_PAIRS_BATCH_SIZE
+            || $state['category_pair_offset'] >= (int) ifset($state['category_pairs_total'], 0)
+        ) {
+            $state['phase'] = 'product_attributes';
+        }
+    }
+
+    private function collectCategoryAttributePair($snapshot_id, array $pair, array $category_paths, array &$state)
+    {
+        $category_id = (int) ifset($pair['description_category_id']);
+        $type_id = (int) ifset($pair['type_id']);
+        $key = $category_id.':'.$type_id;
+        try {
+            $response = $this->api->getAttributesForCategory($category_id, $type_id);
+        } catch (Exception $e) {
+            if (!$this->isMissingCategoryTypePairError($e)) {
+                throw $e;
+            }
+            $type_paths = (array) ifset($state['type_paths'], array());
+            $path = isset($type_paths[$key])
+                ? $type_paths[$key]
+                : ifset($category_paths[$category_id], '');
+            $this->recordInvalidAttributePair($state, array(
+                'description_category_id' => $category_id,
+                'type_id'                 => $type_id,
+                'path'                    => (string) $path,
+                'products_count'          => (int) ifset($pair['products_count'], 0),
+            ), $e->getMessage());
+            waLog::log(
+                sprintf('[OzonSnapshotBuilder] Category/type pair %s skipped: %s', $key, $e->getMessage()),
+                shopMigratePluginOzonLogger::LOG_FILE
+            );
+            return;
+        }
+
+        $formatted = array();
+        foreach ((array) ifset($response['result'], array()) as $item) {
+            $formatted[] = array(
+                'description_category_id' => $category_id,
+                'type_id'                 => $type_id,
+                'attribute_id'            => ifset($item['id'], ifset($item['attribute_id'])),
+                'name'                    => ifset($item['name'], ''),
+                'type'                    => ifset($item['type'], ''),
+                'unit'                    => ifset($item['unit']),
+                'is_required'             => !empty($item['is_required']),
+                'is_collection'           => !empty($item['is_collection']),
+                'meta'                    => $item,
+            );
+        }
+        $this->repository->getAttributesModel()->addBatch($snapshot_id, $formatted);
+    }
+
+    private function recordInvalidAttributePair(array &$state, array $pair, $message)
+    {
+        $state['invalid_attribute_pairs_count'] = (int) ifset($state['invalid_attribute_pairs_count'], 0) + 1;
+        $state['invalid_attribute_products_count'] = (int) ifset($state['invalid_attribute_products_count'], 0)
+            + (int) ifset($pair['products_count'], 0);
+        if (count((array) ifset($state['invalid_attribute_pairs'], array())) < self::MAX_INVALID_PAIRS_IN_META) {
+            $state['invalid_attribute_pairs'][] = $pair;
+        }
+        if (empty($state['invalid_attribute_error'])) {
+            $state['invalid_attribute_error'] = (string) $message;
+        }
+    }
+
+    private function collectProductAttributesPage($snapshot_id, array &$state)
+    {
+        $ids = $this->repository->getProductsModel()->getIdsAfter(
+            $snapshot_id,
+            (int) ifset($state['product_attributes_cursor'], 0),
+            self::PRODUCT_ATTRIBUTES_BATCH_SIZE
+        );
+        if (!$ids) {
+            $state['phase'] = 'stocks';
+            return;
+        }
+        $this->collectProductAttributes($snapshot_id, $ids);
+        $state['product_attributes_cursor'] = (int) max($ids);
+        $state['product_attributes_processed'] = (int) ifset($state['product_attributes_processed'], 0) + count($ids);
+    }
+
+    private function collectStocksPage($snapshot_id, array &$state)
+    {
+        $rows = $this->repository->getProductsModel()->getStockRowsAfter(
+            $snapshot_id,
+            (int) ifset($state['stocks_cursor'], 0),
+            self::STOCKS_BATCH_SIZE
+        );
+        if (!$rows) {
+            $state['phase'] = 'finalize';
+            return;
+        }
+        foreach ($rows as &$row) {
+            $row['sku'] = ifset($row['ozon_sku']);
+        }
+        unset($row);
+        $this->collectStocks($snapshot_id, $rows);
+        $state['stocks_cursor'] = (int) max(array_keys($rows));
+        $state['stocks_processed'] = (int) ifset($state['stocks_processed'], 0) + count($rows);
+    }
+
+    private function finalizeSnapshot($snapshot_id, array $state)
+    {
+        $products_model = $this->repository->getProductsModel();
+        $type_paths = (array) ifset($state['type_paths'], array());
+        $meta = array(
+            'products'   => $products_model->countBySnapshot($snapshot_id),
+            'categories' => $products_model->countCategoriesBySnapshot($snapshot_id),
+            'warehouses' => count($this->repository->getWarehousesModel()->getAllBySnapshot($snapshot_id)),
+            'pairs'      => $products_model->countCategoryTypePairs($snapshot_id),
+            'stocks'     => true,
+        );
+        if ($type_paths) {
+            $meta['type_paths'] = $type_paths;
+            $meta['type_paths_count'] = (int) ifset($state['type_paths_count'], count($type_paths));
+            $meta['type_paths_truncated'] = $meta['type_paths_count'] > count($type_paths) ? 1 : 0;
+        }
+        $invalid_count = (int) ifset($state['invalid_attribute_pairs_count'], 0);
+        if ($invalid_count > 0) {
+            $meta['invalid_attribute_pairs'] = array_values((array) ifset($state['invalid_attribute_pairs'], array()));
+            $meta['invalid_attribute_pairs_count'] = $invalid_count;
+            $meta['invalid_attribute_products_count'] = (int) ifset($state['invalid_attribute_products_count'], 0);
+            $meta['invalid_attribute_pairs_truncated'] = $invalid_count > count($meta['invalid_attribute_pairs']) ? 1 : 0;
+            if (!empty($state['invalid_attribute_error'])) {
+                $meta['invalid_attribute_error'] = (string) $state['invalid_attribute_error'];
+            }
+        }
+
+        $this->repository->markReady($snapshot_id, $meta);
+        $this->settings->setCurrentSnapshotId($snapshot_id);
+        $this->settings->clearBuildingSnapshotReference();
+        waLog::log(
+            sprintf('[OzonSnapshotBuilder] Snapshot #%d is ready: %d products', $snapshot_id, $meta['products']),
+            shopMigratePluginOzonLogger::LOG_FILE
+        );
+    }
+
+    private function extractSkuFromApiProduct(array $item)
+    {
+        if (isset($item['sku']) && $item['sku'] !== '') {
+            return (string) $item['sku'];
+        }
+        foreach ((array) ifset($item['sources'], array()) as $source) {
+            if (isset($source['sku']) && $source['sku'] !== '') {
+                return (string) $source['sku'];
+            }
+        }
+        return null;
+    }
+
+    private function buildBatchResponse($snapshot_id, array $state, $done)
+    {
+        $progress = $done ? 100.0 : $this->calculateBuildProgress($state);
+        return array(
+            'snapshot_id' => (int) $snapshot_id,
+            'done'        => (bool) $done,
+            'phase'       => (string) ifset($state['phase'], 'done'),
+            'progress'    => $progress,
+            'processed'   => $this->getBuildProcessed($state),
+            'total'       => (int) ifset($state['products_expected'], ifset($state['products_loaded'], 0)),
+            'message'     => $this->getBuildPhaseMessage($state, $progress),
+        );
+    }
+
+    private function calculateBuildProgress(array $state)
+    {
+        $phase = (string) ifset($state['phase'], 'warehouses');
+        $ranges = array(
+            'warehouses'          => array(0, 2),
+            'products'            => array(2, 20),
+            'details'             => array(20, 40),
+            'categories'          => array(40, 45),
+            'category_attributes' => array(45, 60),
+            'product_attributes'  => array(60, 80),
+            'stocks'              => array(80, 98),
+            'finalize'            => array(98, 100),
+        );
+        if (!isset($ranges[$phase])) {
+            return 0.0;
+        }
+        list($start, $end) = $ranges[$phase];
+        $ratio = 0.0;
+        $products_total = max(1, (int) ifset($state['products_expected'], ifset($state['products_loaded'], 1)));
+        if ($phase === 'products') {
+            $ratio = min(0.95, (int) ifset($state['products_loaded'], 0) / $products_total);
+        } elseif ($phase === 'details') {
+            $ratio = min(1, (int) ifset($state['details_processed'], 0) / $products_total);
+        } elseif ($phase === 'category_attributes') {
+            $ratio = min(1, (int) ifset($state['category_pair_offset'], 0) / max(1, (int) ifset($state['category_pairs_total'], 1)));
+        } elseif ($phase === 'product_attributes') {
+            $ratio = min(1, (int) ifset($state['product_attributes_processed'], 0) / $products_total);
+        } elseif ($phase === 'stocks') {
+            $ratio = min(1, (int) ifset($state['stocks_processed'], 0) / $products_total);
+        }
+        return round($start + ($end - $start) * $ratio, 1);
+    }
+
+    private function getBuildProcessed(array $state)
+    {
+        switch ((string) ifset($state['phase'], '')) {
+            case 'products':
+                return (int) ifset($state['products_loaded'], 0);
+            case 'details':
+                return (int) ifset($state['details_processed'], 0);
+            case 'category_attributes':
+                return (int) ifset($state['category_pair_offset'], 0);
+            case 'product_attributes':
+                return (int) ifset($state['product_attributes_processed'], 0);
+            case 'stocks':
+                return (int) ifset($state['stocks_processed'], 0);
+        }
+        return 0;
+    }
+
+    private function getBuildPhaseMessage(array $state, $progress)
+    {
+        $labels = array(
+            'warehouses'          => _wp('warehouses'),
+            'products'            => _wp('product list'),
+            'details'             => _wp('product details'),
+            'categories'          => _wp('categories'),
+            'category_attributes' => _wp('category attributes'),
+            'product_attributes'  => _wp('product attributes'),
+            'stocks'              => _wp('stocks'),
+            'finalize'            => _wp('finalization'),
+            'done'                => _wp('complete'),
+        );
+        $phase = (string) ifset($state['phase'], 'done');
+        return sprintf(
+            '%s: %s%% (%s)',
+            _wp('Collecting Ozon data before import'),
+            $progress,
+            ifset($labels[$phase], $phase)
+        );
+    }
+
+    private function hasRuntimeBudget($reserve_seconds)
+    {
+        return $this->hard_deadline_at <= 0
+            || microtime(true) + max(0, (int) $reserve_seconds) < $this->hard_deadline_at;
+    }
+
+    private function logBatchMemory($snapshot_id, $phase)
+    {
+        waLog::log(
+            sprintf(
+                '[OzonSnapshotBuilder] Batch #%d phase=%s memory=%.1fM peak=%.1fM',
+                (int) $snapshot_id,
+                (string) $phase,
+                memory_get_usage(true) / 1048576,
+                memory_get_peak_usage(true) / 1048576
+            ),
+            shopMigratePluginOzonLogger::LOG_FILE
+        );
     }
 
     private function collectWarehouses($snapshot_id)
@@ -313,41 +766,42 @@ class shopMigratePluginOzonSnapshotBuilder
             return;
         }
         $product_ids = array_keys($products);
-        $details = $this->api->getProductsInfoBatch($product_ids);
         $products_model = $this->repository->getProductsModel();
-        foreach ($details as $item) {
-            $this->ensureRuntimeNotExceeded('process product details');
-            $product_id = ifset($item['id'], ifset($item['product_id']));
-            if (!$product_id) {
-                continue;
-            }
-            if (isset($products[$product_id])) {
-                if (isset($item['description_category_id'])) {
-                    $products[$product_id]['description_category_id'] = $item['description_category_id'];
+        $this->api->eachProductsInfoBatch($product_ids, function (array $details) use (&$products, $products_model, $snapshot_id) {
+            foreach ($details as $item) {
+                $this->ensureRuntimeNotExceeded('process product details');
+                $product_id = ifset($item['id'], ifset($item['product_id']));
+                if (!$product_id) {
+                    continue;
                 }
-                if (isset($item['type_id'])) {
-                    $products[$product_id]['type_id'] = $item['type_id'];
-                }
-                if (isset($item['name']) && $item['name'] !== '') {
-                    $products[$product_id]['name'] = $item['name'];
-                }
-                if (empty($products[$product_id]['sku'])) {
-                    $sources = ifset($item['sources'], array());
-                    if (is_array($sources)) {
-                        foreach ($sources as $source) {
-                            if (!empty($source['sku'])) {
-                                $products[$product_id]['sku'] = (string) $source['sku'];
-                                break;
+                if (isset($products[$product_id])) {
+                    if (isset($item['description_category_id'])) {
+                        $products[$product_id]['description_category_id'] = $item['description_category_id'];
+                    }
+                    if (isset($item['type_id'])) {
+                        $products[$product_id]['type_id'] = $item['type_id'];
+                    }
+                    if (isset($item['name']) && $item['name'] !== '') {
+                        $products[$product_id]['name'] = $item['name'];
+                    }
+                    if (empty($products[$product_id]['sku'])) {
+                        $sources = ifset($item['sources'], array());
+                        if (is_array($sources)) {
+                            foreach ($sources as $source) {
+                                if (!empty($source['sku'])) {
+                                    $products[$product_id]['sku'] = (string) $source['sku'];
+                                    break;
+                                }
                             }
                         }
-                    }
-                    if (empty($products[$product_id]['sku']) && isset($item['sku']) && $item['sku'] !== '') {
-                        $products[$product_id]['sku'] = (string) $item['sku'];
+                        if (empty($products[$product_id]['sku']) && isset($item['sku']) && $item['sku'] !== '') {
+                            $products[$product_id]['sku'] = (string) $item['sku'];
+                        }
                     }
                 }
+                $products_model->updateDetails($snapshot_id, $product_id, $item);
             }
-            $products_model->updateDetails($snapshot_id, $product_id, $item);
-        }
+        });
     }
 
     private function collectProductAttributes($snapshot_id, array $product_ids)
@@ -356,32 +810,33 @@ class shopMigratePluginOzonSnapshotBuilder
             return;
         }
         $attribute_values_model = $this->repository->getAttributeValuesModel();
-        $batches = $this->api->getProductsAttributesBatch($product_ids);
-        foreach ($batches as $item) {
-            $this->ensureRuntimeNotExceeded('process product attributes');
-            $product_id = ifset($item['product_id'], ifset($item['id']));
-            if (!$product_id || empty($item['attributes'])) {
-                continue;
-            }
-            $values = array();
-            foreach ($item['attributes'] as $attribute) {
-                $attribute_id = ifset($attribute['attribute_id'], ifset($attribute['id']));
-                if (!$attribute_id) {
+        $this->api->eachProductsAttributesBatch($product_ids, function (array $batches) use ($attribute_values_model, $snapshot_id) {
+            foreach ($batches as $item) {
+                $this->ensureRuntimeNotExceeded('process product attributes');
+                $product_id = ifset($item['product_id'], ifset($item['id']));
+                if (!$product_id || empty($item['attributes'])) {
                     continue;
                 }
-                $position = 0;
-                foreach (ifset($attribute['values'], array()) as $value) {
-                    $values[] = array(
-                        'product_id'         => $product_id,
-                        'attribute_id'       => $attribute_id,
-                        'dictionary_value_id'=> ifset($value['dictionary_value_id']),
-                        'value'              => $this->sanitizeValue(ifset($value['value'])),
-                        'position'           => $position++,
-                    );
+                $values = array();
+                foreach ($item['attributes'] as $attribute) {
+                    $attribute_id = ifset($attribute['attribute_id'], ifset($attribute['id']));
+                    if (!$attribute_id) {
+                        continue;
+                    }
+                    $position = 0;
+                    foreach (ifset($attribute['values'], array()) as $value) {
+                        $values[] = array(
+                            'product_id'         => $product_id,
+                            'attribute_id'       => $attribute_id,
+                            'dictionary_value_id'=> ifset($value['dictionary_value_id']),
+                            'value'              => $this->sanitizeValue(ifset($value['value'])),
+                            'position'           => $position++,
+                        );
+                    }
                 }
+                $attribute_values_model->addBatch($snapshot_id, $values);
             }
-            $attribute_values_model->addBatch($snapshot_id, $values);
-        }
+        });
     }
 
     private function collectStocks($snapshot_id, array $products)
@@ -391,73 +846,79 @@ class shopMigratePluginOzonSnapshotBuilder
         }
         $sku_index = array();
         $offer_index = array();
+        $identifiers = array();
         foreach ($products as $product) {
             if (!empty($product['sku'])) {
                 $sku_index[(string) $product['sku']] = $product['product_id'];
+                $identifiers[] = array('sku' => (string) $product['sku']);
+            } elseif (!empty($product['offer_id'])) {
+                $identifiers[] = array('offer_id' => (string) $product['offer_id']);
             }
             if (!empty($product['offer_id'])) {
                 $offer_index[(string) $product['offer_id']] = $product['product_id'];
             }
         }
-        $identifiers = array();
-        if ($sku_index) {
-            foreach (array_keys($sku_index) as $sku) {
-                $identifiers[] = array('sku' => $sku);
-            }
-        } elseif ($offer_index) {
-            foreach (array_keys($offer_index) as $offer_id) {
-                $identifiers[] = array('offer_id' => $offer_id);
-            }
-        }
         if (!$identifiers) {
             return;
         }
-        $responses = $this->api->getStocksByWarehouseFbsBatch($identifiers);
         $stocks = array();
         $existing_warehouses = $this->repository->getWarehousesModel()->getAllBySnapshot($snapshot_id);
         $existing_ids = array_fill_keys(array_keys($existing_warehouses), true);
         $new_warehouses = array();
+        $stocks_model = $this->repository->getStocksModel();
+        $flush_stocks = function () use (&$stocks, $stocks_model, $snapshot_id) {
+            if (!$stocks) {
+                return;
+            }
+            $stocks_model->addBatch($snapshot_id, $stocks);
+            $stocks = array();
+        };
 
-        foreach ($responses as $item) {
-            $this->ensureRuntimeNotExceeded('process warehouse stocks');
-            $warehouse_id = ifset($item['warehouse_id']);
-            if (!$warehouse_id) {
-                continue;
-            }
-            if (!isset($existing_ids[$warehouse_id]) && !isset($new_warehouses[$warehouse_id])) {
-                $warehouse_name = trim((string) ifset($item['warehouse_name'], ''));
-                if ($warehouse_name === '') {
-                    $warehouse_name = 'Ozon '.$warehouse_id;
+        $this->api->eachStocksByWarehouseFbsBatch($identifiers, function (array $responses) use (&$stocks, &$new_warehouses, $existing_ids, &$products, &$sku_index, &$offer_index, $flush_stocks) {
+            foreach ($responses as $item) {
+                $this->ensureRuntimeNotExceeded('process warehouse stocks');
+                $warehouse_id = ifset($item['warehouse_id']);
+                if (!$warehouse_id) {
+                    continue;
                 }
-                $new_warehouses[$warehouse_id] = array(
-                    'warehouse_id' => $warehouse_id,
-                    'name'         => $warehouse_name,
-                    'type'         => '',
+                if (!isset($existing_ids[$warehouse_id]) && !isset($new_warehouses[$warehouse_id])) {
+                    $warehouse_name = trim((string) ifset($item['warehouse_name'], ''));
+                    if ($warehouse_name === '') {
+                        $warehouse_name = 'Ozon '.$warehouse_id;
+                    }
+                    $new_warehouses[$warehouse_id] = array(
+                        'warehouse_id' => $warehouse_id,
+                        'name'         => $warehouse_name,
+                        'type'         => '',
+                    );
+                }
+                $product_id = null;
+                if (!empty($item['sku']) && isset($sku_index[(string) $item['sku']])) {
+                    $product_id = $sku_index[(string) $item['sku']];
+                }
+                if (!$product_id && !empty($item['offer_id']) && isset($offer_index[(string) $item['offer_id']])) {
+                    $product_id = $offer_index[(string) $item['offer_id']];
+                }
+                if (!$product_id && !empty($item['product_id']) && isset($products[(int) $item['product_id']])) {
+                    $product_id = (int) $item['product_id'];
+                }
+                if (!$product_id) {
+                    continue;
+                }
+                $product = ifset($products[$product_id], array());
+                $offer_id = ifset($product['offer_id'], ifset($item['offer_id'], ifset($item['sku'])));
+                $stocks[] = array(
+                    'product_id'  => (int) $product_id,
+                    'offer_id'    => (string) $offer_id,
+                    'warehouse_id'=> $warehouse_id,
+                    'quantity'    => ifset($item['present'], ifset($item['quantity'], ifset($item['free_stock'], 0))),
                 );
+                if (count($stocks) >= 500) {
+                    call_user_func($flush_stocks);
+                }
             }
-            $product_id = null;
-            if (!empty($item['sku']) && isset($sku_index[(string) $item['sku']])) {
-                $product_id = $sku_index[(string) $item['sku']];
-            }
-            if (!$product_id && !empty($item['offer_id']) && isset($offer_index[(string) $item['offer_id']])) {
-                $product_id = $offer_index[(string) $item['offer_id']];
-            }
-            if (!$product_id && !empty($item['product_id']) && isset($products[(int) $item['product_id']])) {
-                $product_id = (int) $item['product_id'];
-            }
-            if (!$product_id) {
-                continue;
-            }
-            $product = ifset($products[$product_id], array());
-            $offer_id = ifset($product['offer_id'], ifset($item['offer_id'], ifset($item['sku'])));
-            $stocks[] = array(
-                'product_id'  => (int) $product_id,
-                'offer_id'    => (string) $offer_id,
-                'warehouse_id'=> $warehouse_id,
-                'quantity'    => ifset($item['present'], ifset($item['quantity'], ifset($item['free_stock'], 0))),
-            );
-        }
-        $this->repository->getStocksModel()->addBatch($snapshot_id, $stocks);
+        });
+        call_user_func($flush_stocks);
         if ($new_warehouses) {
             $this->repository->getWarehousesModel()->addBatch($snapshot_id, array_values($new_warehouses));
         }

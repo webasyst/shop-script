@@ -903,3 +903,33 @@ msgstr "Категорий"
 
 msgid "Products from these categories will be imported without characteristics."
 msgstr "Для товаров из следующих категорий характеристики перенесены не будут."
+
+msgid "Collecting Ozon data before import"
+msgstr "Собираем данные Ozon перед импортом"
+
+msgid "warehouses"
+msgstr "склады"
+
+msgid "product list"
+msgstr "список товаров"
+
+msgid "product details"
+msgstr "карточки товаров"
+
+msgid "categories"
+msgstr "категории"
+
+msgid "category attributes"
+msgstr "характеристики категорий"
+
+msgid "product attributes"
+msgstr "характеристики товаров"
+
+msgid "stocks"
+msgstr "остатки"
+
+msgid "finalization"
+msgstr "завершение"
+
+msgid "complete"
+msgstr "готово"
