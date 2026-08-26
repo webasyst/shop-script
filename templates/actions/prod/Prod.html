@@ -1,0 +1,70 @@
+<div id="js-product-summary-section" class="article wider s-product-summary-section" style="visibility: hidden;">
+    <script>
+    (function($) {
+        const $wrapper = $('#js-product-summary-section');
+        const section = localStorage.getItem('shop/product/last_section');
+        if (section) {
+            setTimeout(() => {
+                $('a[data-tab-id="'+section+'"]').trigger('click');
+            }, 100);
+            $wrapper.remove();
+            return;
+        } else {
+            $wrapper.css('visibility', 'visible');
+        }
+        $("#js-product-summary-section").data("ready", $.Deferred());
+    })(jQuery);
+    </script>
+
+    <div class="s-section-body custom-mt-0">
+        {* SALES GRAPH *}
+        {if $report_rights}
+        <div id="s-report-sales" class="custom-mb-32">
+            <link rel="stylesheet" href="{$wa_app_static_url}css/charts.css?{$wa->version()}">
+            <script src="{$wa_app_static_url}js/charts/d3chart-sales.js?{$wa->version()}"></script>
+            <div class="graph-wrapper blank box rounded">
+                <!-- CHART WRAPPERS -->
+                <div class="sales-wrapper"></div>
+                <div class="hint-wrapper" id="hint-wrapper"></div>
+            </div>
+        </div>
+        {/if}
+
+        {* TABS *}
+        <ul id="js-product-tabs" class="chips rounded custom-mb-24">
+            <li data-default data-url="{$wa_app_url}products/{$product_id}/prices/">
+                <a href="javascript:void(0)">[`Prices & availability`]</a>
+            </li>
+            <li data-url="{$wa_app_url}?module=product&action=stocksLog&id={$product_id}">
+                <a href="javascript:void(0)">[`Stock updates`]</a>
+            </li>
+            <li data-url="{$wa_app_url}?module=product&action=orders&view=split&id={$product_id}">
+                <a href="javascript:void(0)">[`Recent orders`]</a>
+            </li>
+            <li data-url="{$wa_app_url}products/{$product_id}/reviews/">
+                <a href="javascript:void(0)">[`Reviews`]</a>
+            </li>
+        </ul>
+        <div id="js-product-tab-container" class="custom-mt-8 custom-mb-32"></div>
+    </div>
+
+    <script src="{$wa_app_static_url}js/backend/products/product/product.summary.js?v{$wa->version()}"></script>
+
+    <script>
+        (function() {
+            $.wa_shop_products.init.initProductSummarySection({
+                $wrapper: $('#js-product-summary-section'),
+                $tabs: $('#js-product-tabs'),
+                $tab_container: $('#js-product-tab-container'),
+                product_id: {$product_id|json_encode},
+                product: {$product|json_encode},
+                report_rights: {$report_rights|json_encode},
+                primary_currency_html: {wa_currency_html(0, $primary_currency)|replace:'0':'%s'|json_encode},
+                sales_data: {$sales_data|default:[]|json_encode},
+                templates: {
+                    loading_tab: '<div class="flexbox custom-my-48"><div class="custom-mx-auto spinner custom-p-24"></div></div>'
+                }
+            });
+        })();
+    </script>
+</div>

@@ -104,6 +104,23 @@ class shopFrontendApiProductsSearchController extends shopFrontApiJsonController
             ];
         }
         $this->response['products'] = array_values($formatter->format($products));
+
+        if ($this->getConfig()->getOption('can_use_smarty')) {
+            $view = wa()->getView();
+            foreach ($this->response['products'] as &$product) {
+                if (!empty($product['description']) && false !== strpos($product['description'], '{')) {
+                    try {
+                        $view->assign('product', $product);
+                        $product['description'] = $view->fetch('string:'.$product['description']);
+                    } catch (Throwable $e) {
+                        if (waSystemConfig::isDebug()) {
+                            $product['description'] .= nl2br("\n".$e->getMessage()."\n\n".($e instanceof waException ? $e->getFullTraceAsString() : $e->getTraceAsString()));
+                        }
+                    }
+                }
+            }
+            unset($product);
+        }
     }
 
     protected function getCollectionFields()

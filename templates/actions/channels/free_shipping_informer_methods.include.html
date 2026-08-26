@@ -1,0 +1,20 @@
+{if empty($shipping_methods)}
+    <p class="hint">[`No shipping methods available for selected storefront.`]</p>
+{else}
+    <div class="small custom-mb-8">
+        [`Shipping methods available on the selected storefront`]
+        <span class="js-free-shipping-methods-loading hidden"><span class="spinner custom-mr-4"></span>[`Updating...`]</span>
+    </div>
+    <div class="js-free-shipping-methods-list">
+        {foreach $shipping_methods as $_method}
+            {$_method_value = ifset($per_method, $_method.id, [])}
+            {$_method_amount = ifset($_method_value, 'amount', '')}
+            <div class="js-free-shipping-method-row custom-mb-8" data-shipping-id="{$_method.id|escape}">
+                <div class="small bold custom-mb-4">{$_method.name|escape}</div>
+                <div>
+                    <input type="text" class="js-free-shipping-digits" inputmode="numeric" pattern="[0-9]*" name="data[params][free_shipping_informer_per_method][{$_method.id|escape}][amount]" value="{$_method_amount|escape}">
+                </div>
+            </div>
+        {/foreach}
+    </div>
+{/if}

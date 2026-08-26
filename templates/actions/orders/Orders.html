@@ -131,7 +131,16 @@
 
                         {% if (!$.isEmptyObject(order.contact)) { %}
                             <a class="image" href="#/orders/{/literal}{if $params_str}{$params_str|escape}&{/if}{literal}id={%#order.id%}/">
-                                <img src="{%#order.contact.photo_50x50%}" class="userpic userpic-48">
+                                <span class="userpic userpic-48">
+                                    <img src="{%#order.contact.photo_50x50%}">
+                                    {% if (order.sales_channel) { %}
+                                        {% if (order.sales_channel.menu_icon) { %}
+                                            <span class="s-order-userstatus userstatus" title="{%=order.sales_channel.name%}">{%#order.sales_channel.menu_icon%}</span>
+                                        {% } else if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                                            <span class="s-order-userstatus userstatus"><i class="fas fa-cash-register large text-gray"></i></span>
+                                        {% } %}
+                                    {% } %}
+                                </span>
                             </a>
                             {% var state_color = '#ccc'; %}
                             {% var state_name = ''; %}
@@ -158,11 +167,7 @@
                                 <span class="text-ellipsis">{%#o.state_name%}</span>
                             </strong>
                             {% if (o.order.sales_channel && o.order.sales_channel.menu_icon) { %}
-                            <span class="small gray text-ellipsis">
-                                {%#o.order.sales_channel.menu_icon%} {%#o.order.sales_channel.name%}
-                            </span>
-                            {% } else if ((o.order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
-                            <i class="fas fa-cash-register text-light-gray"></i>
+                                <span class="small gray text-ellipsis">{%=o.order.sales_channel.name%}</span>
                             {% } %}
                         </span>
                         <span class="count align-right">

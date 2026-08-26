@@ -122,19 +122,32 @@
             {include file="./include.loyalty.html" inline}
 
             <div class="s-block s-grid">
-                <h2>
-                    {if $total_paid_num > 0}
-                        {$total_paid_str}
-                        <br>
-                        {if $days_ago < 1}
-                            <span class="hint">[`Last paid order: today`]</span>
+                <div class="js-order-header flexbox wrap space-8">
+                    <h2 class="wide custom-m-0">
+                        {if $total_paid_num > 0}
+                            {$total_paid_str}
+                            <br>
+                            {if $days_ago < 1}
+                                <span class="hint">[`Last paid order: today`]</span>
+                            {else}
+                                <span class="hint">{_w('Last paid order: %d day ago', 'Last paid order: %d days ago', $days_ago)}</span>
+                            {/if}
                         {else}
-                            <span class="hint">{_w('Last paid order: %d day ago', 'Last paid order: %d days ago', $days_ago)}</span>
+                            [`No paid orders yet`]
                         {/if}
-                    {else}
-                        [`No paid orders yet`]
-                    {/if}
-                </h2>
+                    </h2>
+                </div>
+
+                {if $wa->userRights('reports')}
+                    <!-- SALES GRAPH BLOCK -->
+                    {include
+                        file="./include.sales_graph.html"
+                        contact_id=$contact.id
+                        def_cur_tmpl=$def_cur_tmpl
+                        dropdown_after_selector='.js-order-header h2'
+                        height_px='140'
+                    inline}
+                {/if}
 
                 <!-- ORDER LIST HTML BLOCK -->
                 {$orders_html|default:''}

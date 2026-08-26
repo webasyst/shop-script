@@ -1,5 +1,7 @@
 <?php
 
+return []; // creation of promos during onboarding is disabled for now
+
 if (wa()->getLocale() == 'ru_RU') {
     return [
         [

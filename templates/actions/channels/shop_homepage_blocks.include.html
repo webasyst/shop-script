@@ -243,11 +243,13 @@
     const $form = $wrapper.closest('form');
     const $blocks_container = $wrapper.find('.js-block-forms').first();
     let sortable_instance = null;
+    let is_adding_or_removing_block = false;
 
     // Init "Add block" dropdown and its on-click
     $.each(sub_templates, function(id, data) {
         var $li = $('<li>');
         var $a = $('<a href="javascript:void(0);">').click(function() {
+            is_adding_or_removing_block = true;
             let $b = addBlock(id, data);
             makeBlockVisible($b);
             return false;
@@ -265,6 +267,7 @@
         makeBlockHidden($(this).closest('.s-block-section'));
     });
     $wrapper.on('click', '.js-delete-link', function() {
+        is_adding_or_removing_block = true;
         deleteBlock($(this).closest('.s-block-section'));
     });
 
@@ -700,6 +703,23 @@
         const block_count = $blocks_container.children('.s-block-section').length;
         const is_sort_enabled = block_count > 1;
 
+        const scrollToSection = () => {
+            if (!is_adding_or_removing_block) return;
+            const safe_top = ($('#wa-nav').height() || 0) + 20;
+            const homepage_section = document.querySelector('[name="data[params][homepage_section]"]');
+            const dropdown_button = document.querySelector('.js-dropdown');
+            const { top: homepage_section_top } = homepage_section.getBoundingClientRect();
+            const { bottom: dropdown_button_bottom } = dropdown_button.getBoundingClientRect();
+
+            const is_homepage_section_below_safe_top = homepage_section_top < safe_top;
+            const is_dropdown_button_above_scroll = (window.innerHeight + dropdown_button_bottom) > window.scrollY;
+            if (is_homepage_section_below_safe_top || is_dropdown_button_above_scroll) {
+                const top = window.scrollY + homepage_section_top - safe_top;
+                window.scrollTo({ behavior: 'smooth', top });
+            }
+            is_adding_or_removing_block = false;
+        };
+
         $blocks_container.find('.js-sort-handle')
             .toggleClass('is-disabled', !is_sort_enabled)
             .prop('disabled', !is_sort_enabled);
@@ -715,10 +735,10 @@
             const $fields = $inputs.closest('.field');
 
             if (block_count === 1) {
-                $fields.slideUp(350);
+                $fields.slideUp(350, scrollToSection);
                 $paragraphs.addClass('hidden');
             } else if (block_count === 0) {
-                $fields.slideDown(350);
+                $fields.slideDown(350, scrollToSection);
                 $paragraphs.removeClass('hidden');
             }
         });

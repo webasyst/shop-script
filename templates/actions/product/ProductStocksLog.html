@@ -1,14 +1,34 @@
 {include './include.stocks_log.html' inline}
 {if !$lazy}
     <script>
-        $.product_stocks_log.init({
-            total_count: {$total_count},
-            container: '#s-product-profile-tabs .s-tab-block[data-tab="stock-logs"]',
-            lazy_loading: {
-                auto: true,
-                count: {$count},
-                url: '?module=product&id={$product_id}&action=stocksLog&{get_url_params stock_id=$stock_id order=$order}'
-            }
-        });
+        if ($.product_stocks_log) {
+            init();
+        } else {
+            const sources = [
+                {
+                    id: "lazy_load",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/lazy.load.js"
+                },
+                {
+                    id: "stock_log",
+                    type: "js",
+                    uri: "{$wa_app_static_url}js/product/stocks_log.js"
+                }
+            ];
+            $.wa.loadSources(sources).done(init);
+        }
+
+        function init () {
+            $.product_stocks_log.init({
+                total_count: {$total_count},
+                container: '#s-product-profile-tabs .s-tab-block[data-tab="stock-logs"],#js-product-tab-container',
+                lazy_loading: {
+                    auto: true,
+                    count: {$count},
+                    url: '?module=product&id={$product_id}&action=stocksLog&{get_url_params stock_id=$stock_id order=$order}'
+                }
+            });
+        }
        </script>
 {/if}

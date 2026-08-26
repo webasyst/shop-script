@@ -1,3 +1,58 @@
+<ul class="bricks custom-p-0">
+    <li class="brick custom-m-0" style="width: calc(100% - 2.5rem); min-height: 60px;">
+        <a href="{$wa_app_url}products/{$id|escape}/" data-tab-id="">
+            <!-- <h5 class="text-gray custom-my-0" style="font-size: .8125rem;">[`Last 30 days sales`]</h5> -->
+            <h6 class="custom-my-4">
+                {wa_currency_html($total, $primary_currency)}
+                {* <span class="hint">{$sales_quantity}</span> *}
+            </h6>
+            {if $report_rights}
+            <svg id="js-sales-svg" width="154" height="42" style="overflow: visible;"></svg>
+            <script src="{$wa_app_static_url}js/charts/d3.min.js"></script>
+            <script src="{$wa_app_static_url}js/charts/d3chart-currency.js?{$wa->version()}"></script>
+            <script>
+                (function() {
+                    const sales_data = {$sales_data|json_encode};
+                    const svg = document.getElementById('js-sales-svg');
+                    const start_date = new Date(sales_data[0].period);
+                    const end_date = new Date(sales_data[sales_data.length - 1].period);
+                    (new CurrencyChartD3(svg, start_date, end_date)).renderChart(sales_data);
+                })();
+            </script>
+            {/if}
+            <div class="text-gray small">[`Last 30 days sales`]</div>
+        </a>
+    </li>
+</ul>
+{if 0}
+<section class="s-sidebar-section">
+    <div class="heading custom-ml-12">[`Reports`]</div>
+    <ul class="menu">
+        {if !empty($prices_available)}
+            <li>
+                <a href="{$wa_app_url}products/{$id|escape}/prices/" data-tab-id="prices">
+                    <span>[`Prices, quantity & availability`]</span>
+                </a>
+            </li>
+        {/if}
+        {*
+        <li class="disabled">
+            <a class="flexbox" href="javascript:void(0);">
+                <div class="wa-tooltip custom top wide">
+                    <div>[`Recent orders`]</div>
+                </div>
+            </a>
+        </li>
+        *}
+        <li>
+            <a href="{$wa_app_url}products/{$id|escape}/reviews/" data-tab-id="reviews">
+                <span>[`Reviews`]</span>
+            </a>
+        </li>
+    </ul>
+</section>
+{/if}
+
 {if !empty($can_edit)}
     <section class="s-sidebar-section">
         <div class="heading custom-ml-12">[`Editing`]</div>
@@ -55,32 +110,6 @@
     </section>
 {/if}
 
-<section class="s-sidebar-section">
-    <div class="heading custom-ml-12">[`Reports`]</div>
-    <ul class="menu">
-        {if !empty($prices_available)}
-            <li>
-                <a href="{$wa_app_url}products/{$id|escape}/prices/" data-tab-id="prices">
-                    <span>[`Prices, quantity & availability`]</span>
-                </a>
-            </li>
-        {/if}
-        {*
-        <li class="disabled">
-            <a class="flexbox" href="javascript:void(0);">
-                <div class="wa-tooltip custom top wide">
-                    <div>[`Recent orders`]</div>
-                </div>
-            </a>
-        </li>
-        *}
-        <li>
-            <a href="{$wa_app_url}products/{$id|escape}/reviews/" data-tab-id="reviews">
-                <span>[`Reviews`]</span>
-            </a>
-        </li>
-    </ul>
-</section>
 {*
 <section class="s-sidebar-section">
     <div class="heading custom-ml-12">[`Change log`]</div>
@@ -112,12 +141,21 @@
 
 <script>
     ( function($) {
-        var tooltips = {$_tooltips|default:[]|json_encode};
+        const tooltips = {$_tooltips|default:[]|json_encode};
+        const storage_key = 'shop/product/last_section';
 
         $.each(tooltips, function(i, tooltip) { $.wa.new.Tooltip(tooltip); });
 
         {if !empty($not_found)}
             $.wa_shop_products.showDeletedProductDialog();
         {/if}
+
+        $('a[data-tab-id]').on('click', function() {
+            if (this.dataset.tabId) {
+                localStorage.setItem(storage_key, this.dataset.tabId);
+            } else {
+                localStorage.removeItem(storage_key);
+            }
+        });
     })(jQuery);
 </script>

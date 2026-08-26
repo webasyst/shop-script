@@ -1,0 +1,72 @@
+<div id="s-report-sales">
+    <link rel="stylesheet" href="{$wa_app_static_url}css/charts.css?{$wa->version()}">
+    <script src="{$wa_app_static_url}js/charts/d3.min.js?v{$wa->version()}"></script>
+    <script src="{$wa_app_static_url}js/charts/d3chart-sales.js?{$wa->version()}"></script>
+    <div id="js-reports-timeframe-dropdown" class="dropdown" style="height: max-content;">
+        <button class="dropdown-toggle button light-gray small" type="button"></button>
+        <div class="dropdown-body right">
+            <ul class="menu">
+                <li><a data-timeframe="30" data-groupby="days" href="#">{_w('Last %d day', 'Last %d days', 30)}</a></li>
+                <li><a data-timeframe="90" data-groupby="days" href="#">{_w('Last %d day', 'Last %d days', 90)}</a></li>
+                <li><a data-timeframe="365" data-groupby="months" href="#">{_w('Last %d day', 'Last %d days', 365)}</a></li>
+                <li><a data-timeframe="all" data-groupby="months" href="#">[`All time`]</a></li>
+            </ul>
+        </div>
+    </div>
+    <div class="graph-wrapper" style="min-height: calc({$height_px}px + 0.75rem);">
+        <!-- CHART WRAPPERS -->
+        <div class="sales-wrapper"></div>
+        <div class="hint-wrapper" id="hint-wrapper"></div>
+        <div class="js-loading spinner custom-p-24" style="display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);"></div>
+    </div>
+
+    <script>
+        (function() {
+            const base_url = '{$wa_app_url}?module=customers&action=salesGraph&contact_id={$contact_id}';
+            const storage_key = 'shop/customers/sales_timeframe';
+            const cur_timeframe = localStorage.getItem(storage_key) || '30';
+            const $wrapper = $('#s-report-sales');
+            const $dropdown = $('#js-reports-timeframe-dropdown');
+            const $graph = $wrapper.find('.sales-wrapper');
+            const $loading = $wrapper.find('.js-loading');
+            const currency_html = {$def_cur_tmpl|json_encode};
+            const height_px = {$height_px|json_encode};
+
+            updateGraph(cur_timeframe);
+            initDropdown();
+
+            function initDropdown() {
+                {if !empty($dropdown_after_selector)}
+                $dropdown.insertAfter("{$dropdown_after_selector}");
+                {/if}
+                $dropdown.waDropdown({
+                    hover: false,
+                    items: 'ul > li > a',
+                    ready: (dropdown) => {
+                        const text = dropdown.$menu.find('[data-timeframe="' + cur_timeframe + '"]').text();
+                        dropdown.$button.text(text);
+                    },
+                    change: (_, target) => {
+                        updateGraph(target.dataset.timeframe);
+                    }
+                });
+            }
+
+            function updateGraph(timeframe) {
+                $graph.hide();
+                $loading.show();
+
+                const groupby = $dropdown.find('[data-timeframe="'+timeframe+'"]').data('groupby');
+                const url = base_url + '&timeframe=' + timeframe + '&groupby=' + groupby;
+
+                $.get(url, (r) => {
+                    if (r.status !== 'ok') return;
+                    $graph.show();
+                    $loading.hide();
+                    showSalesGraph(r.data.graph_data, currency_html, height_px);
+                    localStorage.setItem(storage_key, r.data.timeframe);
+                });
+            };
+        })();
+    </script>
+</div>

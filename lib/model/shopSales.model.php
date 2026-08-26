@@ -35,6 +35,7 @@ class shopSalesModel extends waModel
             'sales_channel' => 1,
             'abtest_variant_id' => 1,
             'abtest_id' => 1,
+            'contact_id' => 1,
         ));
         if (!$options) {
             return $type;
@@ -1223,6 +1224,8 @@ class shopSalesModel extends waModel
     {
         list($abtest_join, $abtest_where) = $this->getAbtestSql($options);
         list($storefront_join, $storefront_where) = $this->getStorefrontSql($options);
+        $contact_where = $this->getContactSql($options);
+
         $sql = "INSERT INTO shop_sales_tmp (order_id, name)
                 SELECT o.id, IFNULL(op.value, '')
                 FROM shop_order AS o
@@ -1233,7 +1236,8 @@ class shopSalesModel extends waModel
                     {$abtest_join}
                 WHERE {$date_sql}
                     {$storefront_where}
-                    {$abtest_where}";
+                    {$abtest_where}
+                    {$contact_where}";
         $this->exec($sql, $param_name);
     }
 
@@ -1326,6 +1330,14 @@ class shopSalesModel extends waModel
         return array($storefront_join, $storefront_where);
     }
 
+    public function getContactSql($options)
+    {
+        if (!empty($options['contact_id'])) {
+            return "AND contact_id = ".$this->escape($options['contact_id'])." ";
+        }
+        return "";
+    }
+
     public function getAvailableABtests($date_start, $date_end, $options=array())
     {
         list($storefront_join, $storefront_where) = $this->getStorefrontSql($options);
@@ -1383,4 +1395,3 @@ class shopSalesModel extends waModel
         return array_values(array_filter(array_keys($this->query($sql)->fetchAll('channel', true))));
     }
 }
-

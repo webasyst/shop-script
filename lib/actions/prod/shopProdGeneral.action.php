@@ -35,7 +35,7 @@ class shopProdGeneralAction extends waViewAction
             }
         }
 
-        list($frontend_urls, $total_storefronts_count, $url_template) = $this->getFrontendUrls($product, false);
+        list($frontend_urls, $total_storefronts_count, $url_template) = self::getFrontendUrls($product, false);
 
         $category_model = new shopCategoryModel();
         $categories = $category_model->getFullTree('id, name, parent_id', true);
@@ -154,9 +154,17 @@ class shopProdGeneralAction extends waViewAction
      */
     public static function getFrontendUrls($product, $urls_count_limit = 10)
     {
-        $frontend_urls = [];
-        $url_template = null;
-        $total_storefronts_count = 0;
+        static $frontend_urls = [];
+        static $url_template = null;
+        static $url_template_base = null;
+        static $total_storefronts_count = 0;
+
+        if ($frontend_urls || $url_template) {
+            return [$frontend_urls, $total_storefronts_count, [
+                'template' => $url_template,
+                'base' => $url_template_base,
+            ]];
+        }
 
         if ($product->id) {
 

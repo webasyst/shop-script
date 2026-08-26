@@ -117,7 +117,7 @@ class shopCustomersOrdersAction extends waViewAction
             return array();
         }
 
-        $orders = $this->getCollection()->getOrders('*,items,params', $offset, $this->limit);
+        $orders = $this->getCollection()->getOrders('*,items,params,order_icon', $offset, $this->limit);
         $this->workupOrders($orders);
 
         return $orders;

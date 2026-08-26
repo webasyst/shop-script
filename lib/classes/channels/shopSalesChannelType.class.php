@@ -231,6 +231,35 @@ abstract class shopSalesChannelType
             return $view->fetch('file:templates/actions/channels/shop_homepage_blocks.include.html');
         }
 
+        if ($field_config['control_type'] === 'shop_free_shipping_informer') {
+            $view = wa('shop')->getView();
+            $view->assign([
+                'field_name' => "data[params][{$field_name}]",
+                'field_value' => $field_value,
+                'shipping_methods' => ifset($field_config, 'shipping_methods', []),
+            ]);
+            return $view->fetch('file:templates/actions/channels/free_shipping_informer.include.html');
+        }
+
+        if ($field_config['control_type'] === 'shop_free_shipping_informer_amount') {
+            $view = wa('shop')->getView();
+            $view->assign([
+                'field_name' => "data[params][{$field_name}]",
+                'field_value' => $field_value,
+            ]);
+            return $view->fetch('file:templates/actions/channels/free_shipping_informer_amount.include.html');
+        }
+
+        if ($field_config['control_type'] === 'shop_free_shipping_informer_per_method') {
+            $view = wa('shop')->getView();
+            $view->assign([
+                'field_name' => "data[params][{$field_name}]",
+                'field_value' => $field_value,
+                'shipping_methods' => ifset($field_config, 'shipping_methods', []),
+            ]);
+            return $view->fetch('file:templates/actions/channels/free_shipping_informer_per_method.include.html');
+        }
+
         $field_config['value'] = $field_value;
         return waHtmlControl::getControl($field_config['control_type'], $field_name, $field_config);
     }

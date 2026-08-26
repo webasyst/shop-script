@@ -243,7 +243,7 @@
 
                 {* FILTERS *}
                 <div class="s-column">
-                    <div class="s-filters-list flexbox middle space-16 wrap-mobile">
+                    <div class="s-filters-list flexbox middle space-16 wrap-mobile small">
                         {* PHOTO *}
                         <div class="s-filter-section">
                             <span class="s-label">[`Photos`]: </span>
@@ -318,9 +318,10 @@
         <!-- plugin hook: 'backend_prod_content.bottom' -->
         {* @event backend_prod_content.%plugin_id%.bottom *}
         {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
-
+        {if 0}
         {* FOOTER *}
         {include file="./includes/footer.html" hide_save=true hide_delete=empty($formatted_product["can_edit"]) inline}
+        {/if}
     </div>
 
     <script>

@@ -24,7 +24,9 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
         $banner_promos = ifset($banner_promos_map, $storefront, []);
         $coupons = $this->getHomepageCouponOptions();
 
-        $fields = [
+        $has_blocks_class = 'hide-if-blocks'.(empty($values['homepage_blocks']) || $values['homepage_blocks'] === '[]' ? '' : ' hide');
+
+       return [
             'storefront'       => array(
                 'value'        => '',
                 'title'        => _w('Storefront'),
@@ -196,6 +198,31 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 ),
                 'control_type' => waHtmlControl::CHECKBOX,
             ),
+            'free_shipping_informer_section' => array(
+                'value'        => _w('Free shipping widget'),
+                'title'        => '',
+                'class'        => 'bold',
+                'control_type' => waHtmlControl::TITLE,
+                'custom_control_wrapper' => '<!-- %s --><div>%s %s</div>',
+                'custom_description_wrapper' => '<p class="small">%s</p>',
+            ),
+            'free_shipping_informer_enabled' => array(
+                'value'        => '',
+                'title'        => _w('Show widget'),
+                'description'  => _w('Encourages customers to increase their order value. Minimum amounts for free shipping are configured within the shipping plugins. Some plugins may not support displaying this information in the informer.'),
+                'control_type' => waHtmlControl::CHECKBOX,
+            ),
+            'free_shipping_informer_amount_settings' => array(
+                'value' => $this->getFreeShippingInformerFieldValue($values),
+                'title' => _w('Сумма для бесплатной доставки'),
+                'control_type' => 'shop_free_shipping_informer_amount',
+            ),
+            'free_shipping_informer_per_method_settings' => array(
+                'value' => $this->getFreeShippingInformerFieldValue($values),
+                'title' => _w('Set up a minimum amount for a shipping method'),
+                'control_type' => 'shop_free_shipping_informer_per_method',
+                'shipping_methods' => $this->getFreeShippingMethodsByStorefront($storefront),
+            ),
 
             'homepage_section' => array(
                 'value'        => _w('Homepage'),
@@ -215,6 +242,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                     _w('Promos')
                 ),
                 'control_type' => waHtmlControl::CHECKBOX,
+                'class' => $has_blocks_class
             ),
             'homepage_product_list' => array(
                 'value'        => '',
@@ -225,6 +253,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                     _w('Sets')
                 ),
                 'control_type' => waHtmlControl::SELECT,
+                'class' => $has_blocks_class,
                 'options'      => array_map(function($s) {
                     return ['value' => $s['id'], 'title' => $s['name']];
                 }, (new shopSetModel())->getAll()),
@@ -234,7 +263,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 'title'        => _w('Homepage footer text'),
                 'description'  => _w('Any useful footer text for the app’s homepage. Basic HTML markup is allowed.'),
                 'control_type' => waHtmlControl::TEXTAREA,
-                'class'        => 'width-100',
+                'class'        => 'width-100 '.$has_blocks_class,
             ),
             'homepage_blocks' => array(
                 'control_type'      => 'shop_homepage_blocks', // see templates/actions/channels/shop_homepage_blocks.include.html
@@ -299,10 +328,6 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             ),
 
         ];
-
-        $fields = $this->hideFieldsIfBlocks($fields, $values);
-
-        return $fields;
     }
 
     public function sanitizeAndValidateParams(?int $id, array &$params, $params_mode): array
@@ -325,12 +350,43 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             }
         }
 
-        if (array_key_exists('homepage_blocks', $params)) {
-            $storefront = ifset($params, 'storefront', null);
-            if ($storefront === null && $id > 0) {
-                $storefront = (string) (new shopSalesChannelParamsModel())->getOne($id, 'storefront');
-            }
+        $storefront = ifset($params, 'storefront', null);
+        if ($storefront === null && $id > 0) {
+            $storefront = (string) (new shopSalesChannelParamsModel())->getOne($id, 'storefront');
+        }
 
+        if ($params_mode === 'set' || array_key_exists('free_shipping_informer_enabled', $params)) {
+            $params['free_shipping_informer_enabled'] = empty($params['free_shipping_informer_enabled']) ? '0' : '1';
+        }
+        if ($params_mode === 'set' || array_key_exists('free_shipping_informer_per_method_enabled', $params)) {
+            $params['free_shipping_informer_per_method_enabled'] = empty($params['free_shipping_informer_per_method_enabled']) ? '0' : '1';
+        }
+
+        if (array_key_exists('free_shipping_informer_amount', $params)) {
+            $params['free_shipping_informer_amount'] = $this->normalizeFreeShippingAmount($params['free_shipping_informer_amount']);
+            if ($params['free_shipping_informer_amount'] !== '' && !$this->isValidFreeShippingAmount($params['free_shipping_informer_amount'])) {
+                $errors['free_shipping_informer_amount'] = [
+                    'error_description' => _w('Invalid amount value.'),
+                    'field' => 'data[params][free_shipping_informer_amount]',
+                ];
+            }
+        }
+
+        if (array_key_exists('free_shipping_informer_per_method', $params)) {
+            $per_method_errors = [];
+            $params['free_shipping_informer_per_method'] = json_encode(
+                $this->normalizeFreeShippingPerMethod(
+                    $params['free_shipping_informer_per_method'],
+                    (string) $storefront,
+                    $per_method_errors
+                )
+            );
+            foreach ($per_method_errors as $error_key => $error) {
+                $errors[$error_key] = $error;
+            }
+        }
+
+        if (array_key_exists('homepage_blocks', $params)) {
             $params['homepage_blocks'] = json_encode(
                 $this->normalizeHomepageBlocks($params['homepage_blocks'], (string) $storefront)
             );
@@ -353,6 +409,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
     public function getPublicStorefrontParams(array $channel): array
     {
         $params = ifset($channel, 'params', []);
+        $storefront = (string) ifset($params, 'storefront', '');
 
         $result = array_intersect_key($params, [
             'accent_color'           => 1,
@@ -372,14 +429,22 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'checkout_terms_link'    => 1,
             'locale'                 => 1,
             'powered_by'             => 1,
+            'free_shipping_informer_enabled' => 1,
+            'free_shipping_informer_amount' => 1,
+            'free_shipping_informer_per_method_enabled' => 1,
         ]) + [
             'is_custom_bot' => !empty($params['bot_token']),
             'homepage_blocks' => json_decode(ifempty($params, 'homepage_blocks', '[]')),
+            'free_shipping_informer_per_method' => json_decode(ifempty($params, 'free_shipping_informer_per_method', '{}')),
         ];
+
+        if (!$result['free_shipping_informer_per_method']) {
+            $result['free_shipping_informer_per_method'] = new stdClass();
+        }
 
         $result['homepage_blocks'] = $this->enrichStorefrontDependentHomepageBlocks(
             $result['homepage_blocks'],
-            (string) ifset($params, 'storefront', '')
+            $storefront
         );
         $result['homepage_blocks'] = $this->hydratePublicHomepageBlocks($result['homepage_blocks']);
 
@@ -431,6 +496,134 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                 }
             }
         }
+    }
+
+    public function getFreeShippingInformerFieldValue(array $params): array
+    {
+        $per_method = json_decode(ifempty($params, 'free_shipping_informer_per_method', '{}'), true);
+        if (!is_array($per_method)) {
+            $per_method = [];
+        }
+
+        return [
+            'enabled' => !empty($params['free_shipping_informer_enabled']),
+            'amount' => (string) ifset($params, 'free_shipping_informer_amount', ''),
+            'per_method_enabled' => !empty($params['free_shipping_informer_per_method_enabled']),
+            'per_method' => $per_method,
+        ];
+    }
+
+    public function getFreeShippingInformerViewData(string $storefront, array $per_method = []): array
+    {
+        return [
+            'shipping_methods' => $this->getFreeShippingMethodsByStorefront($storefront),
+            'per_method' => $this->normalizeFreeShippingPerMethod(
+                $per_method,
+                $storefront
+            ),
+        ];
+    }
+
+    public function renderFreeShippingInformerMethods(string $storefront, array $per_method = []): string
+    {
+        $view = wa('shop')->getView();
+        $view->assign($this->getFreeShippingInformerViewData($storefront, $per_method));
+        return $view->fetch('file:templates/actions/channels/free_shipping_informer_methods.include.html');
+    }
+
+    public function getFreeShippingMethodsByStorefront(string $storefront): array
+    {
+        $storefront_info = $this->getVerboseStorefrontInfo($storefront);
+        if (!$storefront_info) {
+            return [];
+        }
+
+        $shipping_ids = ifset($storefront_info, 'route', 'shipping_id', null);
+        if ($shipping_ids && !is_array($shipping_ids)) {
+            $shipping_ids = [$shipping_ids];
+        }
+
+        $plugin_model = new shopPluginModel();
+        $options = [];
+        if ($shipping_ids) {
+            $options['id'] = $shipping_ids;
+        }
+        $methods = $plugin_model->listPlugins(shopPluginModel::TYPE_SHIPPING, $options);
+
+        $allowed_ids = [];
+        foreach ((array) $methods as $method) {
+            if (!empty($method['available']) && !empty($method['id'])) {
+                $allowed_ids[(string) $method['id']] = [
+                    'id' => (string) $method['id'],
+                    'name' => (string) ifset($method, 'name', $method['plugin']),
+                ];
+            }
+        }
+
+        return array_values($allowed_ids);
+    }
+
+    protected function getVerboseStorefrontInfo(string $storefront): ?array
+    {
+        foreach (shopStorefrontList::getAllStorefronts(true) as $storefront_info) {
+            if (ifset($storefront_info, 'url', '') === $storefront) {
+                return $storefront_info;
+            }
+        }
+
+        return null;
+    }
+
+    protected function normalizeFreeShippingPerMethod($per_method, string $storefront, array &$errors = []): array
+    {
+        if (is_string($per_method)) {
+            $per_method = json_decode($per_method, true);
+        }
+        if (!is_array($per_method)) {
+            return [];
+        }
+
+        $allowed_ids = array_flip(array_column($this->getFreeShippingMethodsByStorefront($storefront), 'id'));
+        $result = [];
+        foreach ($per_method as $shipping_id => $settings) {
+            $shipping_id = (string) $shipping_id;
+            if (!isset($allowed_ids[$shipping_id]) || !is_array($settings)) {
+                continue;
+            }
+
+            $amount = $this->normalizeFreeShippingAmount(ifset($settings, 'amount', ''));
+            if ($amount === '') {
+                continue;
+            }
+            if (!$this->isValidFreeShippingAmount($amount)) {
+                $errors['free_shipping_informer_per_method_'.$shipping_id] = [
+                    'error_description' => _w('Invalid amount value.'),
+                    'field' => 'data[params][free_shipping_informer_per_method]['.$shipping_id.'][amount]',
+                ];
+                continue;
+            }
+
+            $result[$shipping_id] = [
+                'amount' => $amount,
+            ];
+        }
+
+        return $result;
+    }
+
+    protected function normalizeFreeShippingAmount($amount): string
+    {
+        $amount = preg_replace('/\s+/', '', trim((string) $amount));
+        if ($amount === '') {
+            return '';
+        }
+
+        return $amount;
+    }
+
+    protected function isValidFreeShippingAmount(string $amount): bool
+    {
+        return ctype_digit($amount);
     }
 
     protected function getBannerPromosMap(array $storefronts): array
@@ -1012,29 +1205,5 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             'recycle',
             'shipping-fast',
         ];
-    }
-
-    /**
-     * Hide some fields if at least one block
-     *
-     * @param array $fields
-     * @return array
-     */
-    protected function hideFieldsIfBlocks(array $fields, $values = [])
-    {
-        $has_blocks = !empty($values['homepage_blocks']) && $values['homepage_blocks'] !== '[]';
-        $hidden_field_ids = ['homepage_promos','homepage_product_list','homepage_text_footer'];
-        foreach ($fields as $id => &$field) {
-            if (in_array($id, $hidden_field_ids)) {
-                if (!isset($field['class'])) {
-                    $field['class'] = '';
-                }
-                $field['class'] .= ' hide-if-blocks';
-                $field['class'] .= $has_blocks ? ' hide' : '';
-            }
-        }
-        unset($field);
-
-        return $fields;
     }
 }

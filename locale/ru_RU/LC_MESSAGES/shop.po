@@ -15102,3 +15102,54 @@ msgstr "Не удалось сохранить изображение."
 
 msgid "(not supported by your server)"
 msgstr "(не поддерживается на вашем сервере)"
+
+msgid "Your store is ready"
+msgstr "Магазин создан"
+
+msgid "Create your first product to start selling."
+msgstr "Добавьте хотя бы один товар, чтобы начать продавать."
+
+msgid "View demo"
+msgstr "Посмотреть демо"
+
+msgid "Set up sales channel &rarr;"
+msgstr "Подключить канал продаж &rarr;"
+
+msgid "Mini-app and storefront within Telegram"
+msgstr "Мини-приложение и магазин внутри Telegram"
+
+msgid "Storefront on any HTML page or site"
+msgstr "Витрина магазина на любой HTML-странице"
+
+msgid "https://www.webasyst.com/wa-data/public/site/ss-widget-demo-en.html"
+msgstr "https://www.webasyst.ru/wa-data/public/site/ss-widget-demo-ru.html"
+
+msgid "https://t.me/ShopScriptDemo_bot"
+msgstr "https://t.me/ShopScriptDemoRU_bot"
+
+msgid "Free shipping amount"
+msgstr "Сумма для бесплатной доставки"
+
+msgid "Individually per shipping method"
+msgstr "Отдельно по способам доставки"
+
+msgid "No shipping methods available for selected storefront."
+msgstr "Для выбранной витрины нет доступных способов доставки."
+
+msgid "Shipping methods available on the selected storefront"
+msgstr "Способы доставки, доступные на выбранной витрине"
+
+msgid "Updating..."
+msgstr "Обновление..."
+
+msgid "Free shipping widget"
+msgstr "Виджет бесплатной доставки"
+
+msgid "Show widget"
+msgstr "Показывать виджет"
+
+msgid "Encourages customers to increase their order value. Minimum amounts for free shipping are configured within the shipping plugins. Some plugins may not support displaying this information in the informer."
+msgstr "Стимулирует покупателей к повышению чека заказа. Минимальные суммы для бесплатной доставки указываются в плагинах доставки. Некоторые плагины могут не поддерживать показ информации в индикаторе."
+
+msgid "Set up a minimum amount for a shipping method"
+msgstr "Настроить минимальную сумму для способа доставки"

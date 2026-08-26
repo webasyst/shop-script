@@ -4,15 +4,19 @@
         <div class="s-kanban-item-title custom-mr-8">
             <span class="userpic userpic48{% if (o.order.state_id == 'new') { %} highlighted {% } %} bold" title="">
                 <img src="{%=o.order.order_icon ? o.order.order_icon : o.order.contact.photo_50x50 %}" alt="">
+                {% if (order.sales_channel) { %}
+                    {% if (order.sales_channel.menu_icon) { %}
+                        <span class="s-order-userstatus userstatus" title="{%=order.sales_channel.name%}">{%#order.sales_channel.menu_icon%}</span>
+                    {% } else if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                        <span class="s-order-userstatus userstatus"><i class="fas fa-cash-register text-light-gray"></i></span>
+                    {% } %}
+                {% } %}
             </span>
         </div>
         <div class="s-kanban-item-body wide">
             <div class="s-kanban-item-top-wrapper custom-mb-4">
                 <div class="s-kanban-item-top">
                     <span class="js-state s-kanban-item-state badge uppercase small cursor-pointer text-ellipsis" data-wa-tooltip-content="{%=o.state_name%}" data-wa-tooltip-placement="left" style="background-color: {%=o.state_color%}">{%=o.state_name%}</span>
-                    {% if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
-                    <i class="fas fa-cash-register text-light-gray"></i>
-                    {% } %}
                 </div>
                 <div class="nowrap semibold align-right">
                     {%if (o.order.paid_date_str) { %}

@@ -1,5 +1,5 @@
 // Chart
-var showSalesGraph = function( data, cash_type ) {
+var showSalesGraph = function(data, cash_type, height = null) {
 if (data.length) {
 
     var storage = {
@@ -80,8 +80,9 @@ if (data.length) {
             return width;
         },
         getHeight: function() {
+            if (height !== null) return height;
             var width = this.getWidth();
-            return (width > 989) ? "350" : (width * 9)/(16 * 1.7);
+            return (width > 989) ? 350 : (width * 9)/(16 * 1.7);
         },
         getInnerWidth: function() {
             return this.getWidth() - this.padding.left - this.padding.right;
@@ -403,6 +404,8 @@ if (data.length) {
             });
     })();
 
+    var supportsHover = window.matchMedia('(hover: hover)').matches;
+
     var onHover = function(data, $target, event) {
         var $wrapper = storage.hint_wrapper,
             point_class = $target.data("point-class"),
@@ -453,10 +456,17 @@ if (data.length) {
         html += "<div class=\"line sales\">" + $_('Sales')  + ": " + sales + "</div>";
         html += "<div class=\"line " + profit_class + "\">" + $_('Profit') + ": " + profit + "</div>";
 
-        $wrapper
-            .html(html)
-            .addClass("is-shown")
-            .css(position);
+        var show = () => {
+            $wrapper
+                .html(html)
+                .addClass("is-shown")
+                .css(position);
+        };
+        if (supportsHover) {
+            show();
+        } else {
+            setTimeout(show);
+        }
     };
 
     var onHoverOut = function( $target ) {
@@ -498,7 +508,7 @@ if (data.length) {
         }
     };
 
-    storage.wrapper.on("mousemove ", "svg", function(event) {
+    storage.wrapper.off("mousemove").on("mousemove", "svg", function(event) {
         var current_x = event.clientX - $(this).offset().left - storage.padding.left,
             length = data.length,
             step_width,
@@ -524,7 +534,7 @@ if (data.length) {
         }
     });
 
-    $(".graph-wrapper").on("mouseout", function() {
+    $(".graph-wrapper").off("mouseout").on("mouseout", function() {
         onHoverOut(storage.hovered_point);
     });
 

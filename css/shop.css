@@ -93,6 +93,7 @@ ul.tags a { display: inline-block; }
 
 ul.menu-v.dropdown > li.is-opened > ul { display: block }
 .dropdown > .dropdown-body > .dropdown-item.disabled { pointer-events: none; opacity: .5; }
+.s-line-clamp-3 { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
 
 /* ORDERS
 --------- */
@@ -213,8 +214,10 @@ td.s-empty-order-note { border-top: 1px solid #ddd; border-bottom: 1px solid #dd
 ul.s-orders.list > .item.highlighted { background: #fff8dc; }
 [data-theme="dark"] ul.s-orders.list > .item.highlighted { background: rgba(155,145,25,0.15); }
 ul.s-orders.list > .item.selected { background: var(--accent-color) !important; color: var(--white); }
-ul.s-orders.list > .item.selected * { color: var(--white); }
+ul.s-orders.list > .item.selected *:not(path) { color: var(--white); }
 ul.s-orders.list > .item { -webkit-tap-highlight-color: transparent; }
+.s-order-userstatus.userstatus { background: var(--background-color-blank); border-radius: .5rem; width: 1.125rem; height: 1.125rem; }
+.s-order-userstatus.userstatus svg { font-size: 1rem; }
 .s-order-table .highlighted { padding: 0.1rem 0.3rem; background: #fff8dc; }
 [data-theme="dark"] .s-order-table .highlighted { background: rgba(155,145,25,0.15); }
 
@@ -223,6 +226,8 @@ ul.s-orders.list > .item { -webkit-tap-highlight-color: transparent; }
 .s-split-order-wrapper.fixed-to-bottom { position: fixed; bottom: 0; }
 
 .s-split-order-wrapper .s-order-title-wrapper .s-state-with-time { display: inline-grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 0.25rem; }
+.s-order-channel-icon { position: relative; top: .375rem; }
+.s-order-channel-icon > svg[width="16"] path { transform: scale(1.5); }
 
 .s-order-aux li .fa-envelope.on-hover-only { display: none; }
 .s-order-aux li:hover .fa-envelope.on-hover-only { display: inline-block; }
@@ -732,7 +737,7 @@ body.is-scroll-locked { overflow: hidden; }
 
 #reportscontent { --padding-container-width: 64px; }
 
-.graph-wrapper { min-height: 250px; position: relative;}
+.graph-wrapper { min-height: 250px; position: relative; }
 
 ul.menu-h.s-reports li.selected a { background: #fff; }
 
@@ -882,6 +887,7 @@ table#s-customers-report-table.mode-profit .toggled.profit { display: table-cell
 
 /* Checkout settings */
 .s-settings-checkout-sidebar { overflow: hidden; }
+.s-settings-checkout-sidebar .s-domain-item span:last-child { padding-bottom: 0.0625rem; }
 .s-settings-checkout-content .s-block-container { padding: 20px 0 20px; }
 .s-settings-checkout-content .s-checkout-2-label { background-color: #9cff9e; }
 .s-settings-checkout-content .s-sort-table tr.ui-sortable-helper { display: table; }
@@ -1424,6 +1430,7 @@ and (orientation : portrait) {
         width: calc(100vw - 3rem);
     }
 
+    .graph-wrapper { min-height: auto; }
     #reportscontent, #s-stocks-container { --padding-container-width: 32px !important;  }
     #reportscontent .graph-wrapper { min-height: 150px; }
     .s-report-sales h1 .hint { display: block; font-size: 75%; }

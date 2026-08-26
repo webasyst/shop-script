@@ -1,0 +1,134 @@
+{$informer = $field_value|default:[]}
+
+{$enabled = !empty($informer.enabled)}
+{$per_method_enabled = !empty($informer.per_method_enabled)}
+{$per_method = $informer.per_method|default:[]}
+{if !is_array($per_method)}
+    {$per_method = []}
+{/if}
+
+<div class="name">
+    <label for="js-free-shipping-per-method-enabled">
+        [`Individually per shipping method`]
+    </label>
+</div>
+<div class="value">
+    <input type="checkbox" id="js-free-shipping-per-method-enabled" class="js-free-shipping-per-method-enabled" name="data[params][free_shipping_informer_per_method_enabled]" value="1"{if $per_method_enabled} checked{/if}>
+
+    <div class="js-free-shipping-per-method-wrapper custom-mt-12{if !$per_method_enabled} hidden{/if}">
+        <div class="js-free-shipping-methods">
+            {include file="./free_shipping_informer_methods.include.html" inline}
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            "use strict";
+
+            const $form = $('#js-sales-channel-form');
+            if (!$form.length || $form.data('free-shipping-informer-init')) {
+                return;
+            }
+            $form.data('free-shipping-informer-init', true);
+
+            const $enabled = $form.find('[name="data[params][free_shipping_informer_enabled]"]');
+            const $amountField = $form.find('[name="data[params][free_shipping_informer_amount]"]').closest('.field');
+            const $perMethodField = $form.find('[name="data[params][free_shipping_informer_per_method_enabled]"]').closest('.field');
+            const updateUrl = {$wa_app_url|cat:'?module=channels&action=freeShippingInformerMethods'|json_encode};
+            const cacheKey = 'free-shipping-per-method-cache';
+            const storefrontKey = 'free-shipping-per-method-storefront';
+
+            function sanitizeDigits(value) {
+                return String(value || '').replace(/\D+/g, '');
+            }
+
+            function toggleMainBlock() {
+                const enabled = $enabled.is(':checked');
+                $amountField.toggleClass('hidden', !enabled);
+                $perMethodField.toggleClass('hidden', !enabled);
+            }
+
+            function togglePerMethodBlock() {
+                const enabled = $form.find('.js-free-shipping-per-method-enabled').is(':checked');
+                $perMethodField.find('.js-free-shipping-per-method-wrapper').toggleClass('hidden', !enabled);
+            }
+
+            function getPerMethodData() {
+                const result = {};
+                $form.find('.js-free-shipping-method-row').each(function () {
+                    const $row = $(this);
+                    const shippingId = String($row.data('shipping-id') || '');
+                    if (!shippingId) {
+                        return;
+                    }
+                    result[shippingId] = {
+                        amount: sanitizeDigits($row.find('[name$="[amount]"]').val() || '')
+                    };
+                });
+                return result;
+            }
+
+            const perMethodCache = $form.data(cacheKey) || {};
+            let currentStorefront = String($form.data(storefrontKey) || $form.find('[name="data[params][storefront]"]').val() || '');
+            if (currentStorefront && !Object.prototype.hasOwnProperty.call(perMethodCache, currentStorefront)) {
+                perMethodCache[currentStorefront] = getPerMethodData();
+                $form.data(cacheKey, perMethodCache);
+            }
+            $form.data(storefrontKey, currentStorefront);
+
+            let xhr = null;
+            function refreshMethods() {
+                const storefront = $form.find('[name="data[params][storefront]"]').val() || '';
+                const $methods = $perMethodField.find('.js-free-shipping-methods');
+                if (currentStorefront) {
+                    perMethodCache[currentStorefront] = getPerMethodData();
+                    $form.data(cacheKey, perMethodCache);
+                }
+                if (!storefront || !$methods.length) {
+                    currentStorefront = String(storefront || '');
+                    $form.data(storefrontKey, currentStorefront);
+                    $methods.html('<p class="hint">[`No shipping methods available for selected storefront.`]</p>');
+                    return;
+                }
+
+                if (xhr) {
+                    xhr.abort();
+                }
+
+                $perMethodField.find('.js-free-shipping-per-method-enabled').prop('disabled', true);
+                $methods.css('opacity', '0.5');
+                xhr = $.post(updateUrl, {
+                    storefront: storefront,
+                    per_method: perMethodCache[storefront] || {}
+                }).done(function (response) {
+                    if (response && response.status === 'ok' && response.data && response.data.html !== undefined) {
+                        $methods.html(response.data.html);
+                        currentStorefront = storefront;
+                        $form.data(storefrontKey, currentStorefront);
+                        if (!Object.prototype.hasOwnProperty.call(perMethodCache, currentStorefront)) {
+                            perMethodCache[currentStorefront] = getPerMethodData();
+                            $form.data(cacheKey, perMethodCache);
+                        }
+                    }
+                }).always(function () {
+                    xhr = null;
+                    $perMethodField.find('.js-free-shipping-per-method-enabled').prop('disabled', false);
+                    $methods.css('opacity', '');
+                });
+            }
+
+            $form.on('change', '[name="data[params][free_shipping_informer_enabled]"]', toggleMainBlock);
+            $form.on('change', '.js-free-shipping-per-method-enabled', togglePerMethodBlock);
+            $form.on('input', '.js-free-shipping-digits', function () {
+                const sanitized = sanitizeDigits($(this).val());
+                if ($(this).val() !== sanitized) {
+                    $(this).val(sanitized);
+                }
+            });
+            $form.on('change', '[name="data[params][storefront]"]', refreshMethods);
+
+            toggleMainBlock();
+            togglePerMethodBlock();
+        })();
+    </script>
+ </div>

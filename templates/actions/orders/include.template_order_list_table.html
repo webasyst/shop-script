@@ -17,17 +17,18 @@
             <td>
                 <div class="s-order-status" title="{%#state_name%}">
                     <strong class="badge uppercase text-ellipsis" style="background-color: {%#state_color%}">{%#state_name%}</strong>
-                    {% if (order.sales_channel && order.sales_channel.menu_icon) { %}
-                    <span class="gray text-ellipsis">
-                        {%#order.sales_channel.menu_icon%} {%#order.sales_channel.name%}
-                    </span>
-                    {% } else if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
-                    <i class="fas fa-cash-register large text-light-gray"></i>
-                    {% } %}
                 </div>
             </td>
             <td class="nowrap">
-                <div><a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str|escape}/{/if}{literal}"><span class="semibold">{%#order.id_str%}</span></a>
+                <div>
+                    <a href="?action=orders#/order/{%#order.id%}/{/literal}{if $params_str}{$params_str|escape}/{/if}{literal}"><span class="semibold">{%#order.id_str%}</span></a>
+                    {% if (order.sales_channel && order.sales_channel.menu_icon) { %}
+                        <span class="gray text-ellipsis custom-pl-2">
+                            {%#order.sales_channel.menu_icon%} {%#order.sales_channel.name%}
+                        </span>
+                    {% } else if ((order.params?.sales_channel||'').substr(0, 4) === 'pos:') { %}
+                        <i class="fas fa-cash-register large text-light-gray custom-pl-2"></i>
+                    {% } %}
                 </div>
             </td>
             <td>

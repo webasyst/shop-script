@@ -1,92 +1,11 @@
 {$class_id = 's-customer-orders-wrapper'}
 {$wrapper_id = uniqid($class_id)}
 
-<div id="{$wrapper_id}" data-page="{$page}" class="table-scrollable-x">
+<div id="{$wrapper_id}" data-page="{$page}" class="s-grid">
     {if !count($orders)}
         <p class="small gray">{sprintf('[`%s did not purchase anything yet.`]', $contact.name|escape)}</p>
     {else}
-        <table class="zebra bigdata s-customer-orders single-lined" id="s-order-list">
-            {foreach $orders as $o}
-                <tr>
-                    <td class="nowrap">
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           data-order-id="{$o.id}"
-                           data-state-id="{$o.state_id}"
-                           class="s-order-link"
-                        >
-                            <span class="badge smaller nowrap uppercase" style="background-color: {$o.state_color|escape};">{$o.state_name}</span>
-                            {if !empty($o.is_point_of_sale)}
-                            <i class="fas fa-cash-register text-light-gray fa-sm custom-ml-4"></i>
-                            {/if}
-                        </a>
-                    </td>
-                    <td class="nowrap">
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           data-order-id="{$o.id}"
-                           data-state-id="{$o.state_id}"
-                           class="s-order-link"
-                        >
-                            <span class="custom-ml-8 semibold">{$wa->shop->orderId($o.id)}</span>
-                        </a>
-                    </td>
-                    <td class="bold nowrap align-right">
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           data-order-id="{$o.id}"
-                           data-state-id="{$o.state_id}"
-                           class="s-order-link"
-                        >{$o.total_formatted}</a>
-                        {if $o.paid_date}
-                            <span class="text-green custom-ml-4 cursor-pointer" title="[`Paid`]">
-                                <i class="fas fa-check-circle"></i>
-                            </span>
-                        {/if}
-                    </td>
-                    <td>
-                        <div>
-                            <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                               data-order-id="{$o.id}"
-                               data-state-id="{$o.state_id}"
-                               class="s-order-link"
-                               title="{$o.shipping_name}"
-                            >
-                                {if $o.shipping_name}
-                                    {$o.shipping_name}
-                                {else}
-                                    <span class="gray">[`Shipping option not specified`]</span>
-                                {/if}
-                            </a>
-                            <i class="shortener"></i>
-                        </div>
-                    </td>
-                    <td>
-                        <div>
-                            <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                               data-order-id="{$o.id}"
-                               data-state-id="{$o.state_id}"
-                               class="s-order-link"
-                               title="{$o.payment_name}"
-                            >
-                                {if $o.payment_name}
-                                    {$o.payment_name}
-                                {else}
-                                    <span class="gray">[`Payment option not specified`]</span>
-                                {/if}
-                            </a>
-                            <i class="shortener"></i>
-                        </div>
-                    </td>
-                    <td class="nowrap align-right">
-                      <div class="small gray">
-                        <a href="?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"
-                           data-order-id="{$o.id}"
-                           data-state-id="{$o.state_id}"
-                           class="s-order-link"
-                        >{$o.create_datetime|wa_date:'humandate'}</a>
-                      </div>
-                    </td>
-                </tr>
-            {/foreach}
-        </table>
+        {include file="templates/includes/orders_table.html" orders=$orders inline}
 
         <div class="s-customer-orders-pagination-wrapper">
             {wa_pagination

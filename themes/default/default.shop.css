@@ -102,6 +102,8 @@ span.loading { position: relative; top: 4px; left: 10px; }
     color: var(--text-color);
 }
 
+.welcome { background-image: url('img/shop.svg'); }
+
 /* Product list
 --------------- */
 .page-content.with-sidebar ul.thumbs li { width: 300px; }

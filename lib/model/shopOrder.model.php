@@ -968,4 +968,51 @@ SQL;
             }
         }
     }
+
+    public function getSalesByChannel($sales_channel, $start_date)
+    {
+        $order_subtotal = '(o.total+o.discount-o.tax-o.shipping)';
+        if (wa()->getSetting('reports_date_type', 'paid', 'shop') == 'create') {
+            $select_sql = "DATE(o.create_datetime)";
+            $where_sql = "o.create_datetime >= :start_date AND o.paid_date IS NOT NULL";
+            $group_by_sql = "o.create_datetime";
+        } else {
+            $select_sql = "o.paid_date";
+            $where_sql = "o.paid_date >= :start_date";
+            $group_by_sql = "o.paid_date";
+        }
+
+        $sql = "SELECT
+            {$select_sql} AS date,
+            SUM(oi.quantity) AS quantity,
+            SUM(oi.price*o.rate*oi.quantity) AS subtotal_sales,
+            SUM(IF({$order_subtotal} <= 0, 0, oi.price*o.rate*oi.quantity*o.discount / {$order_subtotal})) AS discount,
+            SUM(IF(oi.purchase_price > 0, oi.purchase_price*o.rate, IFNULL(ps.purchase_price*pcur.rate, 0))*oi.quantity) AS purchase
+        FROM {$this->getTableName()} AS o
+            JOIN shop_order_params AS op
+                ON op.order_id=o.id
+            LEFT JOIN shop_order_items AS oi
+                ON oi.order_id=o.id
+            LEFT JOIN shop_product AS p
+                ON oi.product_id=p.id
+            LEFT JOIN shop_product_skus AS ps
+                ON oi.sku_id=ps.id
+            LEFT JOIN shop_currency AS pcur
+                ON pcur.code=p.currency
+            WHERE {$where_sql} AND op.name = 'sales_channel' AND op.value = :sales_channel AND oi.type = 'product'
+            GROUP BY {$group_by_sql}";
+
+        $result = $this->query($sql, array(
+            'sales_channel' => $sales_channel,
+            'start_date' => $start_date
+        ))->fetchAll('date');
+
+        foreach ($result as &$row) {
+            $row['sales'] = $row['subtotal_sales'] - $row['discount'];
+            $row['profit'] = $row['sales'] - $row['purchase'];
+        }
+        unset($row);
+
+        return $result;
+    }
 }

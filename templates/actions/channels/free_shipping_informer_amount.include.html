@@ -1,0 +1,12 @@
+{$informer = $field_value|default:[]}
+{$enabled = !empty($informer.enabled)}
+{$amount = $informer.amount|default:''}
+
+<div class="name">
+    <label for="js-free-shipping-amount">
+        [`Free shipping amount`]
+    </label>
+</div>
+<div class="value">
+    <input type="text" id="js-free-shipping-amount" class="js-free-shipping-amount js-free-shipping-digits" inputmode="numeric" pattern="[0-9]*" name="data[params][free_shipping_informer_amount]" value="{$amount|escape}">
+</div>

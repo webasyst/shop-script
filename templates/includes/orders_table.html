@@ -1,0 +1,97 @@
+{if empty($lazy)}
+<div class="table-scrollable-x">
+    <style>
+        .s-customer-orders.zebra td { vertical-align: top; line-height: 1.3em; }
+        .s-customer-orders td a { color: var(--text-color); }
+        .s-customer-orders td a:hover { color: var(--text-color-link-hover); }
+    </style>
+{/if}
+    <table class="zebra bigdata s-customer-orders single-lined custom-mb-0" style="min-width: 40rem;">
+        {foreach $orders as $o}
+            {$href = "{$wa_app_url}?action=orders#/orders/state_id={$o.state_id}&id={$o.id}/"}
+            <tr>
+                <td class="nowrap">
+                    <a href="{$href}"
+                    data-order-id="{$o.id}"
+                    data-state-id="{$o.state_id}"
+                    class="s-order-link"
+                    >
+                        <span class="badge smaller nowrap uppercase" style="background-color: {$o.state_color|escape};">{$o.state_name}</span>
+                        {if !empty($o.is_point_of_sale)}
+                        <i class="fas fa-cash-register text-light-gray fa-sm custom-ml-4"></i>
+                        {/if}
+                    </a>
+                </td>
+                <td class="nowrap custom-px-4">
+                    <a href="{$href}"
+                    data-order-id="{$o.id}"
+                    data-state-id="{$o.state_id}"
+                    class="s-order-link"
+                    >
+                        {if !empty($o.sales_channel.menu_icon)}
+                            <span title="{$o.sales_channel.name|escape}">{$o.sales_channel.menu_icon}</span>
+                        {/if}
+                        <span class="custom-ml-2 semibold">{$wa->shop->orderId($o.id)}</span>
+                    </a>
+                </td>
+                <td class="bold nowrap align-right">
+                    <a href="{$href}"
+                    data-order-id="{$o.id}"
+                    data-state-id="{$o.state_id}"
+                    class="s-order-link"
+                    >{$o.total_formatted}</a>
+                    {if $o.paid_date}
+                        <span class="text-green custom-ml-4 cursor-pointer" title="[`Paid`]">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                    {/if}
+                </td>
+                <td>
+                    <div>
+                        <a href="{$href}"
+                        data-order-id="{$o.id}"
+                        data-state-id="{$o.state_id}"
+                        class="s-order-link"
+                        title="{$o.shipping_name}"
+                        >
+                            {if $o.shipping_name}
+                                {$o.shipping_name}
+                            {else}
+                                <span class="gray">[`Shipping option not specified`]</span>
+                            {/if}
+                        </a>
+                        <i class="shortener"></i>
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <a href="{$href}"
+                        data-order-id="{$o.id}"
+                        data-state-id="{$o.state_id}"
+                        class="s-order-link"
+                        title="{$o.payment_name}"
+                        >
+                            {if $o.payment_name}
+                                {$o.payment_name}
+                            {else}
+                                <span class="gray">[`Payment option not specified`]</span>
+                            {/if}
+                        </a>
+                        <i class="shortener"></i>
+                    </div>
+                </td>
+                <td class="nowrap align-right">
+                    <div class="small gray">
+                        <a href="{$href}"
+                        data-order-id="{$o.id}"
+                        data-state-id="{$o.state_id}"
+                        class="s-order-link"
+                        >{$o.create_datetime|wa_date:'humandate'}</a>
+                    </div>
+                </td>
+            </tr>
+        {/foreach}
+    </table>
+{if empty($lazy)}
+</div>
+{/if}

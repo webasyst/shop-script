@@ -42,9 +42,9 @@ class shopWidgetSalesChannel extends shopTelegramSalesChannel
     protected function getWidgetEmbedCode(array $channel, $embed_mode): string
     {
         $script_attributes = [
-            'src' => 'https://dev.app.shop-script.ru/embed/embed.js',
+            'src' => 'https://app.shop-script.ru/embed/embed.js',
             'data-account-id' => ifset($channel, 'wa_channel_id', ''),
-            //'data-path' => '', // !!! /product/80
+            //'data-path' => '', // /product/80
         ];
 
         if ($embed_mode === 'modal') {

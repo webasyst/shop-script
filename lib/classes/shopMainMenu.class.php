@@ -417,7 +417,8 @@ class shopMainMenu
         $channels = (new shopSalesChannelModel())->getAll();
         $wa_app_url = wa('shop')->getAppUrl(null, true);
 
-        $unused_channels = $channel_types;
+        $unused_channels = shopSalesChannelType::getEnabledTypes();
+        $unused_channels = array_combine(array_column($unused_channels, 'id'), $unused_channels);
         foreach ($channels as $channel) {
             if (!$unused_channels) break;
             unset($unused_channels[$channel['type']]);

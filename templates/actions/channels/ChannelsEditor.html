@@ -1,4 +1,11 @@
+{$quick_start = empty($channel.id) && !empty($channel.demo_link) && !empty($channel.fullname)}
 <div class="content not-blank">
+    {if $quick_start}
+        <style>
+            #js-channels-content form { display: none; }
+            #js-channels-content h1 svg[width="16"] { transform: scale(1.75); }
+        </style>
+    {/if}
     <div class="article">
 
     {if !shopLicensing::isPremium() && ifset($channel.type_count) > 0}
@@ -13,18 +20,57 @@
                     <h1 class="s-title">
                         {if !empty($channel.id)}
                             {$channel.name|escape}
+                        {elseif $quick_start}
+                            <span class="custom-mr-4">{$channel.menu_icon}</span> {_w($channel.fullname)|escape}
                         {else}
                             [`New sales channel`]
                         {/if}
-                        <span class="hint">{$channel.type|escape}</span>
+                        {if !$quick_start}
+                            <span class="hint">{$channel.type|escape}</span>
+                        {/if}
                     </h1>
                 </header>
             {/if}
 
-            {* var_dump($channel.orders) TODO: replace with a quick at a glance chart and a link to the channel filtered order list *}
+            {if $show_sales}
+                <div class="box rounded blank custom-mt-16">
+                    <link rel="stylesheet" href="{$wa_app_static_url}css/charts.css">
+                    <script src="{$wa_app_static_url}js/charts/d3.min.js"></script>
+                    <script src="{$wa_app_static_url}js/charts/d3chart-sales.js?{$wa->version()}"></script>
+
+                    <div class="graph-wrapper">
+                        <!-- CHART WRAPPERS -->
+                        <div class="sales-wrapper"></div>
+                        <div class="hint-wrapper" id="hint-wrapper"></div>
+                    </div>
+
+                    <script>
+                        (function() {
+                            const sales_data = {$sales_data|json_encode};
+                            const currency = {wa_currency_html(0, $currency)|replace:'0':'%s'|json_encode};
+                            showSalesGraph(sales_data, currency);
+                        })();
+                    </script>
+                </div>
+            {/if}
+
+            {if $quick_start}
+                <p class="small">
+                    [`View demo`]:
+                    <a href="{_w($channel.demo_link|escape)}" target="_blank" class="bold">
+                        {_w($channel.demo_link|escape)}
+                        <i class="fas fa-external-link-alt text-blue fa-xs custom-mr-4"></i>
+                    </a>
+                </p>
+            {/if}
 
             {$channel_form}
 
+            {if $quick_start}
+                <button onclick="$('#js-channels-content form [type=submit]').click();" class="button green" type="button">
+                    [`Set up sales channel &rarr;`]
+                </button>
+            {/if}
         </div>
     {/if}
     </div>

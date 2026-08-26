@@ -5,7 +5,7 @@
 <div id="{$_id}" class="sidebar flexbox overflow-visible s-sidebar-section width-16rem {$_class}">
     <div class="sidebar-body">
     {if !empty($_new_checkouts)}
-        <ul class="menu ellipsis custom-mt-4 js-storefronts-list" data-version="2">
+        <ul class="menu custom-mt-4 js-storefronts-list" data-version="2">
             {* Routes with new checkout *}
             {foreach $_new_checkouts as $_route}
                 {$_domain = waIdna::dec($_route.domain)}
@@ -13,7 +13,7 @@
                 <li class="js-item s-domain-item rounded" data-domain-id="{waIdna::dec($_domain)}" data-route-id="{$_route.id}" title="{$_url}">
                     <a href="{$wa_app_url}?action=settings#/checkout2&domain={$_domain|urlencode}&route={$_route.id|urlencode}/">
                         <span class="icon"><i class="fas fa-circle text-green fa-sm"></i></span>
-                        <span>{$_url}</span>
+                        <span class="s-line-clamp-3">{$_url}</span>
                     </a>
                 </li>
             {/foreach}
@@ -34,15 +34,15 @@
         </h5>
     </div>
 
-    <ul class="menu ellipsis custom-mt-0 js-storefronts-list" data-version="1">
+    <ul class="menu custom-mt-0 js-storefronts-list" data-version="1">
         {* Routes with old checkout *}
         {foreach $_old_checkouts as $_route}
             {$_domain = waIdna::dec($_route.domain)}
             {$_url = "`$_domain`/`$_route.url|escape`"}
             <li class="s-domain-item rounded">
                 <a href="?action=settings#/checkout&r=1" title="{$_url}">
-                    <i class="fas fa-circle text-blue"></i>{$_url}
-                    <i class="shortener"></i>
+                    <i class="fas fa-circle text-blue"></i>
+                    <span class="s-line-clamp-3">{$_url}</span>
                 </a>
             </li>
         {/foreach}

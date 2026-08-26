@@ -100,7 +100,7 @@
                 <div class="s-column-title flexbox middle space-4 {if $formatted_product["normal_mode"]}cursor-pointer{/if}"
                      {if $formatted_product["normal_mode"]}v-on:click.prevent="pricesToggle"{/if}>
                     {if $formatted_product["normal_mode"]}
-                        <span class="s-icon">
+                        <span class="s-icon text-light-gray">
                             <span class="icon size-20" v-if="prices_model.is_extended" v-bind:key="'down'"><i class="fas fa-chevron-down"></i></span>
                             <span class="icon size-20" v-else v-bind:key="'right'"><i class="fas fa-chevron-right"></i></span>
                         </span>
@@ -108,7 +108,7 @@
                     <div><h4 class="s-title">[`Prices & availability`]</h4></div>
                 </div>
                 <div class="s-column-filters" v-if="prices_model.is_extended">
-                    <div class="s-filters-list">
+                    <div class="s-filters-list small">
                         <template v-for="(active_filter_id, filter_name) in prices_model.filters">
                             <div class="s-filter-section">
                                 <span class="s-label">{ { filters[filter_name].label } } </span>
@@ -306,7 +306,7 @@
                             {/if}
                         </div>
                         <div class="s-column-filters nowrap">
-                            <div class="s-filters-list">
+                            <div class="s-filters-list small">
                                 <template v-for="(active_filter_id, filter_name) in promo.filters">
                                     <div class="s-filter-section wide">
                                         <span class="s-label">{ { filters[filter_name].label } } </span>
@@ -476,15 +476,12 @@
 
             {* STATUS *}
             <div class="s-content-section s-status-section">
-                <div class="s-section-header">
-                    <h4 class="s-title">[`Availability`]</h4>
-                </div>
                 <div class="s-section-body">
-                    <div class="s-status-message wa-message small gray">
+                    <div class="s-status-message wa-message">
                         {if $product.status === "1"}
                             <div class="s-title flexbox space-8 middle custom-py-4">
                                 <div class="message-icon"><i class="fas fa-check text-green"></i></div>
-                                <div class="message-text wide">[`Published, for sale`]</div>
+                                <div class="message-text wide"><span class="black">[`Published, for sale`]</span></div>
                             </div>
                             <div class="hint">[`The product is visible in listings in the storefront but its availability for ordering depends on its individual SKUs’ & variants’ properties.`]</div>
 
@@ -527,7 +524,7 @@
                     "hide_toggle" => _w("Hide storefronts")
                 ]}
 
-                <div class="s-content-section s-storefronts-section-no-style">
+                <div class="s-content-section s-storefronts-section-no-style small">
                     {if !empty($_show_toggle)}
                         <div class="s-section-header">
                             <div class="s-description">
@@ -584,7 +581,7 @@
                             <div><h4 class="s-title">[`Promos`]</h4></div>
                         </div>
                         <div class="s-column-filters" v-if="promos_model.promos.length && promos_model.is_extended">
-                            <div class="s-filters-list">
+                            <div class="s-filters-list small">
                                 <template v-for="(active_filter_id, filter_name) in promos_model.filters">
                                     <div class="s-filter-section">
                                         <span class="s-label">{ { filters[filter_name].label } }&nbsp;</span>
@@ -610,7 +607,7 @@
                         </template>
                     </template>
                     <template v-else>
-                        <div class="s-message-empty">[`This product is not included in any promos.`]</div>
+                        <div class="s-message-empty small">[`This product is not included in any promos.`]</div>
                     </template>
                 </div>
             </div>
@@ -619,9 +616,10 @@
         <!-- plugin hook: 'backend_prod_content.bottom' -->
         {* @event backend_prod_content.%plugin_id%.bottom *}
         {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.bottom)}{/foreach}{/if}
-
+        {if 0}
         {* FOOTER *}
         {include file="./includes/footer.html" hide_save=true hide_delete=empty($formatted_product["can_edit"]) inline}
+        {/if}
     </div>
 
     {* INIT JS *}

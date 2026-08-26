@@ -49,7 +49,7 @@
                 <td  class="min-width"><span class="icon text-gray">{$row['icon']}</span></td>
                 {product_row row=$row}
                 <td title="{strip_tags($row['description'])}" class="s-stock-productname-column nowrap">
-                    {$row['description']}
+                    {$row['description']|replace:"href=\"?":"href=\"{$wa_app_url}?"}
                 </td>
                 {foreach $stocks as $stock}
                     <td class="s-stock-column nowrap" title="[`In stock change and the remaining balance after`] ({$stock.name|escape})">

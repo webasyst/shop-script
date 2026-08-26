@@ -6,6 +6,7 @@
 
         // last list view user has visited: {title: "...", hash: "..."}
         lastView: null,
+        mobileSidebar: null,
 
         init: function (options) {
             $(document).off("wa_loaded.sidebar");
@@ -86,6 +87,7 @@
                     } else {
                         query = 'email|name*=' + q;
                     }
+                    if (this.mobileSidebar) this.mobileSidebar.hideSidebar();
                     location.hash = '#/search/' + query;
                 };
 
@@ -951,7 +953,7 @@
         },
 
         initMobileSidebar() {
-            $.shop.initMobileSidebar({
+            this.mobileSidebar = $.shop.initMobileSidebar({
                 $sidebar: $("#s-sidebar"),
                 $content: $("#s-customers .article"),
                 $additionalLinks: $('#s-sidebar .count a'),
