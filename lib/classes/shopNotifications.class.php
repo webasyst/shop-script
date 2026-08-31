@@ -541,7 +541,7 @@ SQL;
         );
     }
 
-    public static function arrayMergeRecursive($merge_to, $merge_from)
+    private static function arrayMergeRecursive($merge_to, $merge_from)
     {
         foreach ($merge_from as $key => $value) {
             if (!array_key_exists($key, $merge_to)) {
