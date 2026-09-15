@@ -1,0 +1,1115 @@
+{assign var=wb_mode value=$wb_settings.mode|default:'auto'}
+{assign var=wb_log_mode value=$wb_settings.log_mode|default:'errors'}
+{assign var=wb_feature_mode value=$wb_settings.feature_mode|default:'auto'}
+{assign var=wb_force_text_features value=$wb_settings.feature_force_text|default:false}
+{assign var=wb_image_mode value=$wb_settings.image_mode|default:'immediate'}
+{assign var=wb_snapshot_id value=0}
+{assign var=wb_snapshot_status value=''}
+{assign var=wb_snapshot_ready value=false}
+{assign var=wb_products_count value=0}
+{assign var=wb_categories_count value=0}
+{assign var=wb_features_count value=0}
+{assign var=wb_warehouses_count value=0}
+{if !empty($wb_snapshot)}
+    {assign var=wb_snapshot_id value=$wb_snapshot.id|default:0}
+    {assign var=wb_snapshot_status value=$wb_snapshot.status|default:''}
+    {if $wb_snapshot_status == 'ready'}
+        {assign var=wb_snapshot_ready value=true}
+    {/if}
+    {if isset($wb_snapshot.counts.product_groups)}
+        {assign var=wb_products_count value=$wb_snapshot.counts.product_groups}
+    {elseif isset($wb_snapshot.counts.products)}
+        {assign var=wb_products_count value=$wb_snapshot.counts.products}
+    {elseif isset($wb_snapshot.counts.cards)}
+        {assign var=wb_products_count value=$wb_snapshot.counts.cards}
+    {elseif isset($wb_snapshot.meta.products)}
+        {assign var=wb_products_count value=$wb_snapshot.meta.products}
+    {/if}
+    {if isset($wb_snapshot.counts.import_categories)}
+        {assign var=wb_categories_count value=$wb_snapshot.counts.import_categories}
+    {elseif isset($wb_snapshot.counts.categories)}
+        {assign var=wb_categories_count value=$wb_snapshot.counts.categories}
+    {elseif isset($wb_snapshot.counts.subjects)}
+        {assign var=wb_categories_count value=$wb_snapshot.counts.subjects}
+    {elseif isset($wb_snapshot.meta.categories)}
+        {assign var=wb_categories_count value=$wb_snapshot.meta.categories}
+    {/if}
+    {if isset($wb_snapshot.counts.features)}
+        {assign var=wb_features_count value=$wb_snapshot.counts.features}
+    {elseif isset($wb_snapshot.counts.attributes)}
+        {assign var=wb_features_count value=$wb_snapshot.counts.attributes}
+    {elseif isset($wb_snapshot.meta.features)}
+        {assign var=wb_features_count value=$wb_snapshot.meta.features}
+    {/if}
+    {if isset($wb_snapshot.counts.warehouses)}
+        {assign var=wb_warehouses_count value=$wb_snapshot.counts.warehouses}
+    {elseif isset($wb_snapshot.meta.warehouses)}
+        {assign var=wb_warehouses_count value=$wb_snapshot.meta.warehouses}
+    {/if}
+{/if}
+
+{literal}
+<style>
+    :root {
+        --wb-summary-bg:#f5f7ff;
+    }
+    html[data-theme="dark"] {
+        --wb-summary-bg:#2c2f45;
+    }
+    .s-wb-layout {max-width:940px;position:relative;}
+    .s-wb-card + .s-wb-card {margin-top:28px;}
+    .s-wb-card__header {display:flex;align-items:center;gap:14px;margin-bottom:18px;}
+    .s-wb-card__header--plain {display:block;}
+    .s-wb-card__header h3,.s-wb-card__header h4 {margin:0 0 4px;color:var(--text-color-strong);}
+    .s-wb-card__header p {margin:0;}
+    .s-wb-card__icon {display:block;width:56px;height:56px;flex:0 0 56px;border-radius:14px;}
+    .s-wb-token-input {width:min(620px,100%);font-family:monospace;}
+    .s-wb-actions,.s-wb-connection-actions,.s-wb-inline-controls {display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+    .s-wb-connection-actions__main {display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;flex-wrap:wrap;}
+    .s-wb-connection-actions__debug {display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;flex:0 0 auto;margin-left:auto;}
+    .s-wb-summary {display:flex;gap:14px;flex-wrap:wrap;margin:16px 0;}
+    .s-wb-summary__item {min-width:130px;flex:1;padding:14px;border-radius:8px;background:var(--wb-summary-bg);text-align:center;}
+    .s-wb-summary__count {font-size:23px;font-weight:600;color:var(--text-color-strong);}
+    .s-wb-permission-warning {margin:16px 0;}
+    .s-wb-permission-warning p {margin:8px 0 0;}
+    .s-wb-permission-warning ul {margin:8px 0 0;padding-left:24px;}
+    .s-wb-mode {display:flex;align-items:center;gap:12px;}
+    .s-wb-mode label {cursor:pointer;}
+    .s-wb-feature-controls {display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+    .s-wb-feature-switch {display:flex;align-items:center;gap:12px;}
+    .s-wb-feature-switch label {cursor:pointer;font-size:14px;color:var(--text-color-weak);}
+    .s-wb-options-grid {display:grid;grid-template-columns:minmax(0,1fr);gap:4px;}
+    .s-wb-radio-list {display:flex;flex-direction:column;gap:8px;}
+    .s-wb-radio-list label {display:flex;align-items:flex-start;gap:8px;cursor:pointer;}
+    .s-wb-radio-list .wa-radio {margin-top:3px;flex:0 0 auto;}
+    .s-wb-image-option .wa-tooltip {display:inline-flex;align-items:center;cursor:help;}
+    .js-wb-access-tooltip {cursor:help;}
+    .js-wb-access-tooltip strong {text-transform:lowercase;}
+    .s-wb-mapping-section {margin-top:16px;border:1px solid var(--border-color-soft,#ddd);border-radius:8px;overflow:hidden;}
+    .s-wb-mapping-section > summary {display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;padding:14px 16px;font-weight:600;color:var(--text-color-strong);list-style:none;user-select:none;}
+    .s-wb-mapping-section > summary::-webkit-details-marker {display:none;}
+    .s-wb-mapping-section__title {display:inline-flex;align-items:center;gap:8px;min-width:0;}
+    .s-wb-mapping-section__title .icon {display:inline-flex;align-items:center;justify-content:center;width:18px;flex:0 0 18px;color:var(--text-color-strong);}
+    .s-wb-mapping-section__arrow {display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;margin-left:auto;flex:0 0 18px;transform-origin:center;color:var(--text-color-weak);}
+    .s-wb-mapping-section__arrow.is-spinning {animation:s-wb-section-arrow-spin .3s linear;}
+    .s-wb-mapping-section__arrow.is-spinning-counterclockwise {animation:s-wb-section-arrow-spin-counterclockwise .3s linear;}
+    .s-wb-mapping-section__body {padding:0 14px 14px;}
+    .s-wb-mapping-table {width:100%;}
+    .s-wb-mapping-table th {padding:8px 10px;text-align:left;vertical-align:middle;}
+    .s-wb-mapping-table td {padding:11px 10px;text-align:left;vertical-align:middle;}
+    .s-wb-mapping-table select {max-width:360px;}
+    .s-wb-table-heading {display:inline-flex;align-items:center;gap:7px;}
+    .s-wb-table-heading .icon {display:inline-flex;align-items:center;justify-content:center;width:16px;flex:0 0 16px;color:var(--text-color-weak);}
+    .s-wb-table-heading__logo {display:block;width:20px;height:20px;flex:0 0 20px;border-radius:5px;object-fit:contain;}
+    .s-wb-map-control {display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+    .s-wb-mapping-table td .s-wb-map-control {height:auto;min-height:2.125em;overflow:visible;word-break:normal;}
+    .s-wb-mapping-table td .s-wb-map-control > .wa-select {width:auto;height:auto;overflow:visible;word-break:normal;}
+    .s-wb-map-control select {min-width:220px;}
+    .s-wb-status {display:inline-block;min-height:18px;}
+    .s-wb-footer-actions {display:flex;flex-direction:column;align-items:flex-start;gap:8px;margin:0;}
+    .s-wb-footer-actions .s-wb-status {display:block;}
+    .s-wb-layout.is-loading::after {content:'';position:absolute;inset:0;z-index:10;background:rgba(255,255,255,.65);}
+    #js-wb-progress-dialog .dialog-body {max-width:620px;min-width:460px;}
+    #js-wb-progress-dialog .dialog-content {min-height:210px;}
+    .s-wb-import-flow {display:flex;align-items:center;justify-content:center;gap:22px;min-height:104px;margin:18px 0 18px;position:relative;}
+    .s-wb-import-flow__icon {display:flex;align-items:center;justify-content:center;width:104px;height:104px;position:relative;flex:0 0 104px;isolation:isolate;}
+    .s-wb-import-flow__logo,
+    .s-wb-import-flow__glow {display:block;width:88px;height:88px;object-fit:contain;position:absolute;inset:8px;transform-origin:center;}
+    .s-wb-import-flow__logo {z-index:2;will-change:transform,opacity,filter;}
+    .s-wb-import-flow__glow {z-index:1;opacity:.42;filter:blur(9px) saturate(1.75);pointer-events:none;will-change:transform,opacity,filter;animation:s-wb-import-glow-orbit 4.8s linear infinite;}
+    .s-wb-import-flow__icon--wb .s-wb-import-flow__logo,
+    .s-wb-import-flow__icon--wb .s-wb-import-flow__glow {border-radius:23px;}
+    .s-wb-import-flow__icon--shop .s-wb-import-flow__glow {animation-delay:-2.4s;}
+    .s-wb-import-flow__icon--wb .s-wb-import-flow__logo {animation:s-wb-import-icon-wb 4.2s ease-in-out infinite;}
+    .s-wb-import-flow__icon--shop .s-wb-import-flow__logo {animation:s-wb-import-icon-shop 4.2s ease-in-out infinite;}
+    .s-wb-import-flow__icon,
+    .s-wb-import-flow__arrows {cursor:pointer;}
+    .s-wb-import-flow.is-complete .s-wb-import-flow__icon,
+    .s-wb-import-flow.is-complete .s-wb-import-flow__arrows {cursor:default;}
+    .s-wb-import-flow__completion-arrows,
+    .s-wb-import-flow__completion-stars {display:none;position:absolute;left:50%;top:50%;width:240px;height:164px;transform:translate(-50%,-50%);pointer-events:none;overflow:visible;}
+    .s-wb-import-flow__completion-arrows {z-index:4;}
+    .s-wb-import-flow__completion-stars {z-index:5;}
+    .s-wb-import-flow__completion-arrow {position:absolute;left:0;top:50%;display:block;width:var(--particle-size,11px);height:var(--particle-size,11px);color:var(--particle-color,var(--text-color-weak));opacity:0;will-change:transform,opacity;}
+    .s-wb-import-flow__completion-arrow svg {display:block;width:100% !important;height:100% !important;transform:rotate(-90deg);}
+    .s-wb-import-flow__completion-arrow svg path {fill:currentColor;}
+    .s-wb-import-flow__completion-star {position:absolute;left:50%;top:50%;display:block;width:var(--star-size,10px);height:var(--star-size,10px);opacity:0;background:linear-gradient(135deg,#fff6ad 0%,#ffdf45 36%,#ffb800 72%,#fff07a 100%);clip-path:polygon(50% 0,61% 35%,98% 35%,68% 57%,79% 94%,50% 72%,21% 94%,32% 57%,2% 35%,39% 35%);filter:drop-shadow(0 0 4px rgba(255,204,0,.9));will-change:transform,opacity;}
+    .s-wb-import-flow.is-completion-scene {min-height:224px;margin-top:4px;margin-bottom:12px;padding:24px 0 8px;box-sizing:border-box;overflow:hidden;transition:min-height 1.25s cubic-bezier(.22,.61,.36,1),margin 1.25s cubic-bezier(.22,.61,.36,1),padding 1.25s cubic-bezier(.22,.61,.36,1);isolation:isolate;}
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__completion-arrows,
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__completion-stars {top:calc(50% + 8px);}
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__icon,
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__arrows {cursor:default;}
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__icon {z-index:3;transition:transform 1.08s cubic-bezier(.22,.61,.36,1),opacity .8s ease;will-change:transform,opacity;}
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__logo,
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__glow,
+    .s-wb-import-flow.is-completion-scene .s-wb-import-flow__chev svg {animation:none !important;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__completion-arrows,
+    .s-wb-import-flow.is-completion-stars .s-wb-import-flow__completion-stars {display:block;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__icon--wb .s-wb-import-flow__logo {animation:s-wb-completion-heartbeat-wb .68s cubic-bezier(.22,.61,.36,1) infinite !important;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__icon--shop .s-wb-import-flow__logo {animation:s-wb-completion-heartbeat-shop .68s cubic-bezier(.22,.61,.36,1) -.17s infinite !important;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__icon--wb .s-wb-import-flow__glow {animation:s-wb-completion-wb-glow 4.4s ease-in-out 1 forwards !important;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__icon--shop .s-wb-import-flow__glow {animation:s-wb-completion-shop-glow .68s ease-in-out -.17s infinite !important;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__arrows {animation:s-wb-completion-main-arrows .72s cubic-bezier(.18,.72,.24,1) 1 forwards;}
+    .s-wb-import-flow.is-completion-transfer .s-wb-import-flow__completion-arrow {animation:s-wb-completion-arrow-flight var(--particle-duration,.8s) cubic-bezier(.18,.72,.24,1) var(--particle-delay,0s) 1 both;}
+    .s-wb-import-flow.is-completion-absorb .s-wb-import-flow__icon--wb {transform:translateX(var(--wb-completion-shift-x,0)) scale(.12);opacity:0;}
+    .s-wb-import-flow.is-completion-absorb .s-wb-import-flow__icon--shop {transform:scale(1.14);}
+    .s-wb-import-flow.is-completion-absorb .s-wb-import-flow__icon--wb .s-wb-import-flow__glow {animation:s-wb-completion-wb-glow-absorb 1.08s ease-in-out 1 forwards !important;}
+    .s-wb-import-flow.is-completion-absorb .s-wb-import-flow__icon--shop .s-wb-import-flow__glow {animation:s-wb-completion-shop-glow-absorb 1.08s ease-in-out 1 forwards !important;}
+    .s-wb-import-flow.is-completion-absorb .s-wb-import-flow__arrows,
+    .s-wb-import-flow.is-completion-absorb .s-wb-import-flow__completion-arrows {opacity:0;transition:opacity .25s ease;}
+    .s-wb-import-flow.is-completion-center .s-wb-import-flow__icon--wb {visibility:hidden;}
+    .s-wb-import-flow.is-completion-center .s-wb-import-flow__icon--shop {transform:translateX(var(--shop-completion-shift-x,0)) scale(1.08);}
+    .s-wb-import-flow.is-completion-stars .s-wb-import-flow__icon--shop .s-wb-import-flow__logo {animation:s-wb-completion-shop-celebrate 1.65s ease-in-out 2 !important;}
+    .s-wb-import-flow.is-completion-stars .s-wb-import-flow__completion-star {animation:s-wb-completion-star-flight var(--star-duration,1.8s) cubic-bezier(.18,.72,.24,1) var(--star-delay,0s) 1 both;}
+    .s-wb-import-flow__arrows {display:flex;align-items:center;justify-content:center;gap:7px;width:64px;height:72px;color:var(--text-color-weak);position:relative;transform-origin:center;transition:transform .65s cubic-bezier(.22,.61,.36,1);will-change:transform;}
+    .s-wb-import-flow__chev {display:inline-flex;align-items:center;justify-content:center;line-height:1;transform-origin:center;transition:transform .72s cubic-bezier(.22,.61,.36,1),opacity .35s ease;will-change:transform,opacity;}
+    /* A separate layer lets the impact coexist with layout transforms and SVG spins. */
+    .s-wb-import-flow__chev-motion {display:inline-flex;transform-origin:center;}
+    .s-wb-import-flow__chev svg {display:block !important;width:16px !important;height:16px !important;transform:rotate(-90deg);transform-origin:center;will-change:transform;animation-duration:4.2s;animation-timing-function:linear;animation-iteration-count:infinite;}
+    .s-wb-import-flow__chev svg path {fill:currentColor;}
+    .s-wb-import-flow__chev--1 svg {animation-name:s-wb-import-chev-spin-1;}
+    .s-wb-import-flow__chev--2 svg {animation-name:s-wb-import-chev-spin-2;}
+    .s-wb-import-flow__chev--3 svg {animation-name:s-wb-import-chev-spin-3;}
+    .s-wb-import-flow.is-animation-reset .s-wb-import-flow__logo,
+    .s-wb-import-flow.is-animation-reset .s-wb-import-flow__glow,
+    .s-wb-import-flow.is-animation-reset .s-wb-import-flow__chev svg {animation:none !important;}
+    .s-wb-import-flow.is-complete .s-wb-import-flow__logo,
+    .s-wb-import-flow.is-complete .s-wb-import-flow__glow,
+    .s-wb-import-flow.is-complete .s-wb-import-flow__chev svg {animation-play-state:paused;}
+
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__chev svg {animation:none;transform:rotate(-90deg);transition:transform .58s cubic-bezier(.22,.61,.36,1);}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__arrows.is-triforce .s-wb-import-flow__chev svg {transform:rotate(-90deg);}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__arrows.is-arrow-spread .s-wb-import-flow__chev svg {transform:rotate(-90deg);}
+    .s-wb-import-flow__arrows.is-triforce-forming .s-wb-import-flow__chev svg {animation:s-wb-import-triforce-chevron-form .62s cubic-bezier(.22,.61,.36,1) 1 both;}
+    .s-wb-import-flow__arrows.is-triforce-forming .s-wb-import-flow__chev--2 svg {animation-delay:.08s;}
+    .s-wb-import-flow__arrows.is-triforce-forming .s-wb-import-flow__chev--3 svg {animation-delay:.16s;}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__logo {animation:none;}
+    .s-wb-import-flow.is-rare-scene.is-wb-kick .s-wb-import-flow__icon--wb .s-wb-import-flow__logo {animation:s-wb-import-rare-wb-kick .48s cubic-bezier(.22,.61,.36,1) 1;}
+    .s-wb-import-flow.is-rare-scene.is-shop-kick .s-wb-import-flow__icon--shop .s-wb-import-flow__logo {animation:s-wb-import-rare-shop-kick .48s cubic-bezier(.22,.61,.36,1) 1;}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__glow {animation:s-wb-import-rare-glow 13.78s ease-in-out 1;}
+    .s-wb-import-flow__arrows.is-triforce {transform:rotate(0deg);}
+    /* Point the compact triangle right without rotating its container.
+       Preserve the stretched proportions and compensate for the SVG's off-center glyph. */
+    .s-wb-import-flow__arrows.is-triforce .s-wb-import-flow__chev--1 {transform:translate(16.388293px,-7.028369px) scale(1.38,1.2);}
+    .s-wb-import-flow__arrows.is-triforce .s-wb-import-flow__chev--2 {transform:translate(-6.611707px,7.030783px) scale(1.38,1.2);}
+    .s-wb-import-flow__arrows.is-triforce .s-wb-import-flow__chev--3 {transform:translate(-21.527695px,.001207px) scale(1.38,1.2);}
+    .s-wb-import-flow__arrows.is-triforce.is-triforce-impact .s-wb-import-flow__chev--1 .s-wb-import-flow__chev-motion {animation:s-wb-import-triforce-impact-1 .62s ease-out 1 both;}
+    .s-wb-import-flow__arrows.is-triforce.is-triforce-impact .s-wb-import-flow__chev--2 .s-wb-import-flow__chev-motion {animation:s-wb-import-triforce-impact-2 .62s ease-out .025s 1 both;}
+    .s-wb-import-flow__arrows.is-triforce.is-triforce-impact .s-wb-import-flow__chev--3 .s-wb-import-flow__chev-motion {animation:s-wb-import-triforce-impact-3 .62s ease-out .05s 1 both;}
+    .s-wb-import-flow__arrows.is-arrow-spread {transform:rotate(0deg);}
+    .s-wb-import-flow__arrows.is-arrow-step-1 {animation:s-wb-import-arrow-step-1 .62s linear forwards;}
+    .s-wb-import-flow__arrows.is-arrow-step-2 {animation:s-wb-import-arrow-step-2 .62s linear forwards;}
+    .s-wb-import-flow__arrows.is-arrow-step-3 {animation:s-wb-import-arrow-step-3 .62s linear forwards;}
+    .s-wb-import-flow__arrows.is-arrow-step-1.is-chevron-spin,
+    .s-wb-import-flow__arrows.is-arrow-step-1.is-arrow-shake-only {animation-name:s-wb-import-arrow-step-1-short;}
+    .s-wb-import-flow__arrows.is-arrow-step-2.is-chevron-spin,
+    .s-wb-import-flow__arrows.is-arrow-step-2.is-arrow-shake-only {animation-name:s-wb-import-arrow-step-2-short;}
+    .s-wb-import-flow__arrows.is-arrow-step-3.is-chevron-spin,
+    .s-wb-import-flow__arrows.is-arrow-step-3.is-arrow-shake-only {animation-name:s-wb-import-arrow-step-3-short;}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-leveling {animation-name:s-wb-import-arrow-level;}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__arrows.is-arrow-spread.is-chevron-spin .s-wb-import-flow__chev svg {animation:s-wb-import-arrow-chevron-spin .5s linear 1 both;}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__arrows.is-arrow-spread.is-chevron-spin .s-wb-import-flow__chev--2 svg {animation-delay:.06s;}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__arrows.is-arrow-spread.is-chevron-spin .s-wb-import-flow__chev--3 svg {animation-delay:.12s;}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-impact .s-wb-import-flow__chev--1 .s-wb-import-flow__chev-motion {animation:s-wb-import-arrow-impact-1 .52s ease-out 1 both;}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-impact .s-wb-import-flow__chev--2 .s-wb-import-flow__chev-motion {animation:s-wb-import-arrow-impact-2 .52s ease-out .025s 1 both;}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-impact .s-wb-import-flow__chev--3 .s-wb-import-flow__chev-motion {animation:s-wb-import-arrow-impact-3 .52s ease-out .05s 1 both;}
+    /* Equilateral, side 32px. Offset by the rounded caret's visual centroid (3.066px). */
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-1 .s-wb-import-flow__chev--1 {transform:translate(10.696889px,16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-1 .s-wb-import-flow__chev--2 {transform:translate(-12.303111px,-16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-1 .s-wb-import-flow__chev--3,
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-2 .s-wb-import-flow__chev--3 {transform:translate(-7.590298px,0) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-2 .s-wb-import-flow__chev--1 {transform:translate(10.696889px,-16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-2 .s-wb-import-flow__chev--2 {transform:translate(-12.303111px,16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-3a .s-wb-import-flow__chev--1,
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-3b .s-wb-import-flow__chev--1 {transform:translate(38.409702px,0) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-3a .s-wb-import-flow__chev--2 {transform:translate(-12.303111px,16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-3a .s-wb-import-flow__chev--3 {transform:translate(-35.303111px,-16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-3b .s-wb-import-flow__chev--2 {transform:translate(-12.303111px,-16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-arrow-spread.is-arrow-layout-3b .s-wb-import-flow__chev--3 {transform:translate(-35.303111px,16px) scale(1.08);}
+    .s-wb-import-flow__arrows.is-returning {animation:s-wb-import-rare-return 1.45s cubic-bezier(.16,.72,.28,1) forwards;}
+    .s-wb-import-flow__arrows.is-returning .s-wb-import-flow__chev {transform:none !important;transition:transform 1.38s cubic-bezier(.16,.72,.28,1),opacity .62s ease;}
+    .s-wb-import-flow.is-rare-scene .s-wb-import-flow__arrows.is-returning .s-wb-import-flow__chev svg {animation:none !important;transform:rotate(-90deg);transition:transform 1.3s cubic-bezier(.16,.72,.28,1);}
+    .s-wb-progress-wrap {position:relative;margin:12px 0;}
+    .s-wb-progress-wrap .progressbar,.s-wb-progress-wrap .progressbar-line-wrapper,.s-wb-progress-wrap .progressbar-outer {width:100%;}
+    .s-wb-progress-wrap .progressbar-outer {height:24px;border-radius:12px;overflow:hidden;background:rgba(0,0,0,.1);}
+    .s-wb-progress-wrap .progressbar-inner {height:100%;border-radius:12px;background:#7f30e3 !important;position:relative;overflow:hidden;transition:width 1250ms cubic-bezier(.25,.46,.45,.94) !important;transform-origin:left center;animation:s-wb-import-progress-edge 22s ease-in-out infinite;will-change:width,clip-path;}
+    .s-wb-progress-wrap .progressbar-inner::before {content:'';position:absolute;inset:-18% 0;width:420%;background:linear-gradient(97deg,#7f30e3 0%,#f90479 14%,#ff5e00 27%,#f90479 40%,#7f30e3 52%,#68efb0 66%,#25d8bd 78%,#18bcae 89%,#6cf2c0 100%);animation:s-wb-import-progress-flow 22s ease-in-out infinite;transform:translateX(0);filter:saturate(1.18) contrast(1.04);}
+    .s-wb-progress-wrap .progressbar-inner::after {content:'';position:absolute;z-index:2;inset:-2px 14px;border-radius:8px;background:radial-gradient(ellipse 46% 7px at 22% 2px,rgba(255,255,255,.88),transparent 72%),radial-gradient(ellipse 44% 7px at 76% calc(100% - 2px),rgba(104,239,176,.82),transparent 74%),linear-gradient(to bottom,rgba(255,255,255,.34) 0,transparent 23%,transparent 77%,rgba(37,216,189,.4) 100%);filter:blur(2.1px) saturate(1.18);mix-blend-mode:screen;animation:s-wb-import-progress-edge-glow 22s ease-in-out infinite;pointer-events:none;}
+    .s-wb-progress-text {margin-top:8px;text-align:center;font-weight:600;}
+    .s-wb-progress-message {margin-top:8px;text-align:center;}
+    .s-wb-progress-details {margin-top:8px;text-align:center;color:var(--text-color-weak);font-size:13px;}
+    .s-wb-dialog-note {margin-top:12px;text-align:center;}
+    .s-wb-dialog-error {margin-top:10px;color:var(--danger-color,#c33);}
+    .s-wb-progress-errors {margin-top:10px;white-space:pre-line;color:var(--danger-color,#c33);font-size:13px;}
+    .s-wb-unpriced-summary {margin:12px 0 0;font-size:14px;line-height:1.5;}
+    #js-wb-clean-dialog .dialog-body {width:min(1000px,calc(100vw - 48px));max-width:1000px;min-width:760px;}
+    #js-wb-clean-dialog .dialog-content {max-height:calc(100vh - 220px);overflow:auto;}
+    #js-wb-create-category-dialog .dialog-body,
+    #js-wb-create-stock-dialog .dialog-body {width:min(560px,calc(100vw - 48px));max-width:560px;min-width:420px;}
+    .s-wb-create-dialog-form .field .name {width:145px;}
+    .s-wb-create-dialog-form input[type="text"],
+    .s-wb-create-dialog-form select {width:min(330px,100%);}
+    .s-wb-clean-table {width:100%;color:var(--text-color);}
+    .s-wb-clean-table th,.s-wb-clean-table td {padding:8px 10px;text-align:left;vertical-align:top;}
+    .s-wb-clean-table th:first-child,.s-wb-clean-table td:first-child {width:24px;text-align:center;}
+    .s-wb-clean-table tbody tr:nth-child(odd) {background:var(--layer-surface-hover);}
+    html[data-theme="dark"] .s-wb-layout.is-loading::after {background:rgba(0,0,0,.45);}
+    @keyframes s-wb-section-arrow-spin {
+        from {transform:rotate(0deg);}
+        to {transform:rotate(360deg);}
+    }
+    @keyframes s-wb-section-arrow-spin-counterclockwise {
+        from {transform:rotate(0deg);}
+        to {transform:rotate(-360deg);}
+    }
+    @keyframes s-wb-import-icon-wb {
+        0%,13%,100% {transform:translateX(0) rotate(0deg) scale(1);opacity:1;}
+        3% {transform:translateX(-3px) rotate(-2deg) scale(1.045);}
+        6% {transform:translateX(3px) rotate(2deg) scale(1.065);}
+        9% {transform:translateX(-1px) rotate(-1deg) scale(1.025);}
+    }
+    @keyframes s-wb-import-icon-shop {
+        0%,31%,46%,100% {transform:translateX(0) rotate(0deg) scale(1);opacity:1;filter:brightness(1);}
+        35% {transform:translateX(2px) rotate(1.5deg) scale(1.07);opacity:.82;filter:brightness(1.18);}
+        39% {transform:translateX(-2px) rotate(-1.5deg) scale(.98);opacity:1;}
+        43% {transform:translateX(1px) rotate(.7deg) scale(1.035);filter:brightness(1.1);}
+    }
+    @keyframes s-wb-import-chev-spin-1 {
+        0%,8% {transform:rotate(-90deg);}
+        15.1429%,100% {transform:rotate(270deg);}
+    }
+    @keyframes s-wb-import-chev-spin-2 {
+        0%,15.5% {transform:rotate(-90deg);}
+        22.6429%,100% {transform:rotate(270deg);}
+    }
+    @keyframes s-wb-import-chev-spin-3 {
+        0%,23% {transform:rotate(-90deg);}
+        30.1429%,100% {transform:rotate(270deg);}
+    }
+    @keyframes s-wb-import-glow-orbit {
+        0% {transform:translate(0,-2px) scale(1.035);opacity:.34;}
+        25% {transform:translate(2px,0) scale(1.075);opacity:.48;}
+        50% {transform:translate(0,2px) scale(1.035);opacity:.38;}
+        75% {transform:translate(-2px,0) scale(1.075);opacity:.52;}
+        100% {transform:translate(0,-2px) scale(1.035);opacity:.34;}
+    }
+    @keyframes s-wb-import-triforce-impact-1 {
+        0%,100% {transform:translate(0,0) rotate(0deg);}
+        24% {transform:translate(-1.5px,-3.5px) rotate(-6deg);}
+        52% {transform:translate(.5px,.9px) rotate(2deg);}
+        76% {transform:translate(-.2px,-.35px) rotate(-.8deg);}
+    }
+    @keyframes s-wb-import-triforce-impact-2 {
+        0%,100% {transform:translate(0,0) rotate(0deg);}
+        22% {transform:translate(-1px,3.5px) rotate(6deg);}
+        50% {transform:translate(.35px,-.9px) rotate(-2deg);}
+        75% {transform:translate(-.15px,.35px) rotate(.8deg);}
+    }
+    @keyframes s-wb-import-triforce-impact-3 {
+        0%,100% {transform:translate(0,0) rotate(0deg);}
+        26% {transform:translate(3.8px,0) rotate(0deg);}
+        54% {transform:translate(-1px,0) rotate(0deg);}
+        78% {transform:translate(.4px,0) rotate(0deg);}
+    }
+    @keyframes s-wb-import-triforce-chevron-form {
+        0% {transform:rotate(-90deg) scale(.9);opacity:.8;}
+        58% {transform:rotate(-90deg) scale(1.04);opacity:1;}
+        78% {transform:rotate(-90deg) scale(.99);}
+        100% {transform:rotate(-90deg) scale(1);opacity:1;}
+    }
+    @keyframes s-wb-import-arrow-impact-1 {
+        0%,100% {transform:translate(0,0) rotate(0deg);}
+        18% {transform:translate(3.2px,-2px) rotate(-12deg);}
+        39% {transform:translate(-2px,1.2px) rotate(8deg);}
+        62% {transform:translate(1px,-.6px) rotate(-4deg);}
+        82% {transform:translate(-.4px,.2px) rotate(2deg);}
+    }
+    @keyframes s-wb-import-arrow-impact-2 {
+        0%,100% {transform:translate(0,0) rotate(0deg);}
+        16% {transform:translate(2.6px,2.4px) rotate(10deg);}
+        37% {transform:translate(-1.6px,-1.4px) rotate(-8deg);}
+        60% {transform:translate(.8px,.8px) rotate(4deg);}
+        81% {transform:translate(-.4px,-.2px) rotate(-1.6deg);}
+    }
+    @keyframes s-wb-import-arrow-impact-3 {
+        0%,100% {transform:translate(0,0) rotate(0deg);}
+        20% {transform:translate(3.8px,.6px) rotate(-8deg);}
+        41% {transform:translate(-2.2px,-1px) rotate(6deg);}
+        64% {transform:translate(1px,.6px) rotate(-3deg);}
+        83% {transform:translate(-.4px,-.2px) rotate(1.2deg);}
+    }
+    @keyframes s-wb-import-arrow-step-1 {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,0deg)) scale(1);}
+        88% {transform:rotate(-372deg) scale(1.07);}
+        100% {transform:rotate(-372deg) scale(1);}
+    }
+    @keyframes s-wb-import-arrow-step-2 {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,-372deg)) scale(1);}
+        88% {transform:rotate(12deg) scale(1.07);}
+        100% {transform:rotate(12deg) scale(1);}
+    }
+    @keyframes s-wb-import-arrow-step-3 {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,12deg)) scale(1);}
+        88% {transform:rotate(-360deg) scale(1.07);}
+        100% {transform:rotate(-360deg) scale(1.04);}
+    }
+    @keyframes s-wb-import-arrow-step-1-short {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,0deg)) scale(1);}
+        88% {transform:rotate(-12deg) scale(1.07);}
+        100% {transform:rotate(-12deg) scale(1);}
+    }
+    @keyframes s-wb-import-arrow-step-2-short {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,-12deg)) scale(1);}
+        88% {transform:rotate(12deg) scale(1.07);}
+        100% {transform:rotate(12deg) scale(1);}
+    }
+    @keyframes s-wb-import-arrow-step-3-short {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,12deg)) scale(1);}
+        88% {transform:rotate(0deg) scale(1.07);}
+        100% {transform:rotate(0deg) scale(1.04);}
+    }
+    @keyframes s-wb-import-arrow-level {
+        0% {transform:rotate(var(--s-wb-arrow-start-angle,0deg)) scale(1);}
+        88% {transform:rotate(0deg) scale(1.07);}
+        100% {transform:rotate(0deg) scale(var(--s-wb-arrow-end-scale,1));}
+    }
+    @keyframes s-wb-import-arrow-chevron-spin {
+        0% {transform:rotate(-90deg);}
+        100% {transform:rotate(270deg);}
+    }
+    @keyframes s-wb-import-rare-return {
+        from {transform:rotate(0deg) scale(1.04);}
+        to {transform:rotate(0deg) scale(1);}
+    }
+    @keyframes s-wb-import-rare-wb-kick {
+        0%,100% {transform:translateX(0) rotate(0deg) scale(1);opacity:1;filter:brightness(1);}
+        32% {transform:translateX(4px) rotate(1.4deg) scale(1.045);filter:brightness(1.1);}
+        62% {transform:translateX(-1px) rotate(-.5deg) scale(.995);}
+        82% {transform:translateX(.5px) rotate(.2deg) scale(1.012);}
+    }
+    @keyframes s-wb-import-rare-shop-kick {
+        0%,100% {transform:translateX(0) rotate(0deg) scale(1);opacity:1;filter:brightness(1);}
+        32% {transform:translateX(-4px) rotate(-1.4deg) scale(1.045);opacity:.9;filter:brightness(1.12);}
+        62% {transform:translateX(1px) rotate(.5deg) scale(.995);opacity:1;}
+        82% {transform:translateX(-.5px) rotate(-.2deg) scale(1.012);}
+    }
+    @keyframes s-wb-import-rare-glow {
+        0%,100% {transform:translate(0,-2px) scale(1.04);opacity:.38;filter:blur(9px) saturate(1.75);}
+        18% {transform:translate(3px,0) scale(1.13);opacity:.62;filter:blur(11px) saturate(2);}
+        42% {transform:translate(0,3px) scale(1.08);opacity:.48;filter:blur(8px) saturate(2.15);}
+        68% {transform:translate(-3px,0) scale(1.15);opacity:.67;filter:blur(12px) saturate(1.9);}
+    }
+    @keyframes s-wb-import-progress-flow {
+        0%,100% {transform:translateX(0);}
+        50% {transform:translateX(-76%);}
+    }
+    @keyframes s-wb-import-progress-edge {
+        0%,100% {clip-path:polygon(0 0,28% 0,36% .35px,44% 1px,52% .35px,60% 0,100% 0,100% 100%,84% 100%,77% calc(100% - .35px),70% calc(100% - 1px),63% calc(100% - .35px),56% 100%,0 100%);}
+        34% {clip-path:polygon(0 0,36% 0,44% .35px,52% 1px,60% .35px,68% 0,100% 0,100% 100%,72% 100%,65% calc(100% - .35px),58% calc(100% - 1px),51% calc(100% - .35px),44% 100%,0 100%);}
+        68% {clip-path:polygon(0 0,22% 0,30% .35px,38% 1px,46% .35px,54% 0,100% 0,100% 100%,90% 100%,83% calc(100% - .35px),76% calc(100% - 1px),69% calc(100% - .35px),62% 100%,0 100%);}
+    }
+    @keyframes s-wb-import-progress-edge-glow {
+        0%,100% {transform:translateX(-2%);opacity:.58;}
+        45% {transform:translateX(3%);opacity:.88;}
+        72% {transform:translateX(0);opacity:.7;}
+    }
+    @keyframes s-wb-completion-heartbeat-wb {
+        0%,100% {transform:scale(1);filter:brightness(1);}
+        14% {transform:scale(1.105);filter:brightness(1.14);}
+        27% {transform:scale(.985);}
+        42% {transform:scale(1.065);filter:brightness(1.08);}
+        56% {transform:scale(1);}
+    }
+    @keyframes s-wb-completion-heartbeat-shop {
+        0%,100% {transform:scale(1);filter:brightness(1);}
+        13% {transform:scale(1.075);filter:brightness(1.13);}
+        28% {transform:scale(.99);}
+        44% {transform:scale(1.045);filter:brightness(1.07);}
+        58% {transform:scale(1);}
+    }
+    @keyframes s-wb-completion-wb-glow {
+        0% {transform:scale(1.04);opacity:.42;filter:blur(9px) saturate(1.75) brightness(1);}
+        18% {transform:scale(1.18);opacity:.54;filter:blur(10px) saturate(1.9) brightness(1.12);}
+        22% {transform:scale(1.29);opacity:.62;filter:blur(12px) saturate(2.05) brightness(1.22);}
+        39% {transform:scale(1.34);opacity:.66;filter:blur(12px) saturate(2.1) brightness(1.28);}
+        43% {transform:scale(1.47);opacity:.76;filter:blur(14px) saturate(2.25) brightness(1.42);}
+        62% {transform:scale(1.5);opacity:.79;filter:blur(14px) saturate(2.3) brightness(1.48);}
+        66% {transform:scale(1.56);opacity:.85;filter:blur(15px) saturate(2.4) brightness(1.58);}
+        83% {transform:scale(1.58);opacity:.87;filter:blur(15px) saturate(2.45) brightness(1.64);}
+        87%,100% {transform:scale(1.66);opacity:.91;filter:blur(15px) saturate(2.5) brightness(1.72);}
+    }
+    @keyframes s-wb-completion-shop-glow {
+        0%,100% {transform:scale(1.02);opacity:.42;filter:blur(9px) saturate(1.75) brightness(1);}
+        18% {transform:scale(1.14);opacity:.58;filter:blur(11px) saturate(1.95) brightness(1.2);}
+        45% {transform:scale(1.06);opacity:.48;filter:blur(9px) saturate(1.8) brightness(1.08);}
+    }
+    @keyframes s-wb-completion-main-arrows {
+        0% {transform:translateX(0) scale(1);opacity:1;}
+        30% {opacity:1;}
+        100% {transform:translateX(76px) scale(.82);opacity:0;}
+    }
+    @keyframes s-wb-completion-arrow-flight {
+        0% {transform:translate3d(var(--particle-x,12px),var(--particle-y,-30px),0) scale(.36) rotate(var(--particle-tilt,0deg));opacity:0;}
+        13% {opacity:.78;}
+        68% {opacity:.96;}
+        100% {transform:translate3d(calc(var(--particle-x,12px) + var(--particle-travel,170px)),calc(var(--particle-y,-30px) + var(--particle-drop,18px)),0) scale(.92) rotate(var(--particle-tilt,0deg));opacity:0;}
+    }
+    @keyframes s-wb-completion-wb-glow-absorb {
+        0% {transform:scale(1.66);opacity:.91;filter:blur(15px) saturate(2.5) brightness(1.72);}
+        100% {transform:scale(.5);opacity:0;filter:blur(8px) saturate(2) brightness(1.3);}
+    }
+    @keyframes s-wb-completion-shop-glow-absorb {
+        0% {transform:scale(1.04);opacity:.48;filter:blur(9px) saturate(1.8);}
+        55% {transform:scale(1.34);opacity:.82;filter:blur(14px) saturate(2.3) brightness(1.42);}
+        100% {transform:scale(1.18);opacity:.62;filter:blur(11px) saturate(2) brightness(1.2);}
+    }
+    @keyframes s-wb-completion-shop-celebrate {
+        0%,100% {transform:scale(1);filter:brightness(1);}
+        22% {transform:scale(1.09);filter:brightness(1.2);}
+        42% {transform:scale(.99);}
+        62% {transform:scale(1.055);filter:brightness(1.1);}
+    }
+    @keyframes s-wb-completion-star-flight {
+        0% {transform:translate(-50%,-50%) scale(.08) rotate(0deg);opacity:0;}
+        15% {opacity:1;}
+        72% {opacity:.92;}
+        100% {transform:translate(calc(-50% + var(--star-x,60px)),calc(-50% + var(--star-y,-54px))) scale(var(--star-scale,1)) rotate(var(--star-rotate,180deg));opacity:0;}
+    }
+    @media (max-width:760px) {
+        .s-wb-card__header {align-items:flex-start;}
+        #js-wb-progress-dialog .dialog-body {min-width:0;width:calc(100vw - 36px);}
+        #js-wb-clean-dialog .dialog-body {min-width:0;width:calc(100vw - 36px);}
+        #js-wb-create-category-dialog .dialog-body,
+        #js-wb-create-stock-dialog .dialog-body {min-width:0;width:calc(100vw - 36px);}
+        .s-wb-create-dialog-form .field .name {width:auto;}
+        .s-wb-import-flow {gap:10px;}
+        .s-wb-import-flow__icon {width:88px;height:88px;flex-basis:88px;}
+        .s-wb-import-flow__logo,.s-wb-import-flow__glow {width:72px;height:72px;}
+        .s-wb-mapping-table th,.s-wb-mapping-table td {white-space:normal;}
+    }
+    @media (prefers-reduced-motion:reduce) {
+        .s-wb-import-flow *,
+        .s-wb-import-flow *::before,
+        .s-wb-import-flow *::after {animation:none !important;transition:none !important;}
+        .s-wb-import-flow__chev svg {transform:rotate(-90deg) !important;}
+    }
+</style>
+{/literal}
+
+<div class="s-wb-layout" id="js-wb-root"
+     data-save-url="?plugin=migrate&amp;action=wbSaveCredentials"
+     data-test-url="?plugin=migrate&amp;action=wbTestCredentials"
+     {if !empty($wb_debug)}data-clean-url="?plugin=migrate&amp;action=wbCleanup"{/if}
+     data-load-url="?plugin=migrate&amp;action=wbLoad"
+     data-options-url="?plugin=migrate&amp;action=wbOptions"
+     data-type-map-url="?plugin=migrate&amp;action=wbTypeMap"
+     data-category-map-url="?plugin=migrate&amp;action=wbCategoryMap"
+     data-stock-map-url="?plugin=migrate&amp;action=wbStockMap"
+     data-create-category-url="?plugin=migrate&amp;action=wbCreateCategory"
+     data-create-stock-url="?plugin=migrate&amp;action=wbCreateStock"
+     data-import-start-url="?plugin=migrate&amp;action=wbImportStart"
+     data-import-advance-url="?plugin=migrate&amp;action=wbImportAdvance"
+     data-import-cancel-url="?plugin=migrate&amp;action=wbImportCancel"
+     data-import-status-url="?plugin=migrate&amp;action=wbImportStatus"
+     data-products-url="{$wa_app_url|escape}?action=products"
+     data-has-token="{if !empty($wb_settings.has_token)}1{else}0{/if}"
+     data-collection-revision="{$wb_settings.collection_revision|default:0|escape}"
+     data-snapshot-id="{$wb_snapshot_id|escape}"
+     data-snapshot-status="{$wb_snapshot_status|escape}"
+     data-snapshot-products="{$wb_products_count|escape}"
+     data-images-import-available="{if !empty($wb_image_import_product_count)}1{else}0{/if}"
+     data-locale="{$wa->locale()|escape}"
+     data-wb-icon-url="{$wa_app_static_url}plugins/migrate/img/wb-icon-color.svg"
+     data-shop-icon-url="{$wa_app_static_url}img/shop96.png"
+     data-active-run-id="{if !empty($wb_active_run.run_id)}{$wb_active_run.run_id|escape}{elseif !empty($wb_active_run.id)}{$wb_active_run.id|escape}{else}0{/if}"
+     data-active-run-kind="{if !empty($wb_active_run.kind)}{$wb_active_run.kind|escape}{else}products{/if}">
+
+    <div class="s-wb-card">
+        <div class="s-wb-card__header">
+            <img class="s-wb-card__icon"
+                 src="{$wa_app_static_url}plugins/migrate/img/wb-icon-color.svg"
+                 alt="[`Wildberries`]">
+            <div>
+                <h4>[`Wildberries connection`]</h4>
+                <p class="hint">[`Connect a Wildberries seller account to import products into Shop-Script.`]</p>
+            </div>
+        </div>
+
+        <div class="fields form">
+            <div class="field">
+                <div class="name for-input">
+                    <label for="js-wb-api-token">[`Wildberries API token`]</label>
+                </div>
+                <div class="value">
+                    <input id="js-wb-api-token"
+                           class="long s-wb-token-input"
+                           type="password"
+                           name="wb_api_token"
+                           value="{$wb_settings.api_token|default:''|escape}"
+                           autocomplete="off"
+                           spellcheck="false"
+                           placeholder="[`Paste the API token`]">
+                    <p class="hint">
+                        [`Create a <strong>Personal</strong> token for <strong>Manual integration</strong> with <strong>Read-only</strong> access and the following categories`]
+                        «<span class="wa-tooltip js-wb-access-tooltip" tabindex="0" data-wa-tooltip-content="[`Required. Product names, descriptions, photos, categories, features, variants, and barcodes.`]"><strong>[`Content`]</strong></span>,
+                        <span class="wa-tooltip js-wb-access-tooltip" tabindex="0" data-wa-tooltip-content="[`Optional. Product prices and discounts.`]"><strong>[`Prices and discounts`]</strong></span>,
+                        <span class="wa-tooltip js-wb-access-tooltip" tabindex="0" data-wa-tooltip-content="[`Optional. Seller warehouses and their stock quantities.`]"><strong>[`Marketplace`]</strong></span>,
+                        <span class="wa-tooltip js-wb-access-tooltip" tabindex="0" data-wa-tooltip-content="[`Optional. Stock quantities at Wildberries warehouses (FBW).`]"><strong>[`Analytics`]</strong></span>,
+                        <span class="wa-tooltip js-wb-access-tooltip" tabindex="0" data-wa-tooltip-content="[`Optional. Review import will be added in future updates. We recommend enabling access now to avoid having to reissue the token later.`]"><strong>[`Questions and reviews`]</strong></span>»
+                        [`in your Wildberries seller account under <strong>Profile</strong> &rarr; <a href="https://seller.wildberries.ru/api-integrations" target="_blank" rel="noopener noreferrer"><strong>API integrations</strong></a>.`]
+                    </p>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Logging`]</div>
+                <div class="value">
+                    <div class="wa-select">
+                        <select name="wb_log_mode" class="js-wb-option js-wb-log-option">
+                            <option value="errors"{if $wb_log_mode == 'errors'} selected{/if}>[`Errors only`]</option>
+                            <option value="full"{if $wb_log_mode == 'full'} selected{/if}>[`Full`]</option>
+                        </select>
+                    </div>
+                    <span class="hint s-wb-status js-wb-log-options-status" role="status" aria-live="polite"></span>
+                </div>
+            </div>
+
+            <div class="field">
+                <div class="name">[`Connection`]</div>
+                <div class="value s-wb-connection-actions">
+                    <div class="s-wb-connection-actions__main">
+                        <button type="button" class="button green js-wb-save">[`Save`]</button>
+                        <button type="button" class="button light-gray js-wb-test">[`Test connection`]</button>
+                        <span class="hint s-wb-status js-wb-connection-status" role="status" aria-live="polite"></span>
+                    </div>
+                    {if !empty($wb_debug)}
+                        <div class="s-wb-connection-actions__debug">
+                            <button type="button" class="button red js-wb-clean-open">[`Debug: purge tables`]</button>
+                        </div>
+                    {/if}
+                </div>
+            </div>
+        </div>
+
+        <div class="alert warning s-wb-permission-warning js-wb-connection-permission-warning hidden" role="alert">
+            <strong class="js-wb-permission-title">[`Wildberries API access is incomplete`]</strong>
+            <p class="js-wb-permission-intro hidden"></p>
+            <ul class="js-wb-permission-categories hidden"></ul>
+            <p class="js-wb-permission-outro hidden"></p>
+            <div class="js-wb-permission-notes hidden"></div>
+        </div>
+    </div>
+
+    <div class="s-wb-card js-wb-snapshot-card">
+        <div class="s-wb-card__header s-wb-card__header--plain">
+            <h3>[`Wildberries snapshot`]</h3>
+            <p class="hint">[`Load a fixed catalog snapshot before choosing import settings. Products will be imported from this snapshot.`]</p>
+        </div>
+
+        {if $wb_snapshot_ready}
+            <div class="s-wb-summary">
+                <div class="s-wb-summary__item">
+                    <div class="s-wb-summary__count">{$wb_products_count|escape}</div>
+                    <div>[`Products`]</div>
+                </div>
+                <div class="s-wb-summary__item">
+                    <div class="s-wb-summary__count">{$wb_categories_count|escape}</div>
+                    <div>[`Categories`]</div>
+                </div>
+                <div class="s-wb-summary__item">
+                    <div class="s-wb-summary__count">{$wb_features_count|escape}</div>
+                    <div>[`Features`]</div>
+                </div>
+                <div class="s-wb-summary__item">
+                    <div class="s-wb-summary__count">{$wb_warehouses_count|escape}</div>
+                    <div>[`Warehouses`]</div>
+                </div>
+            </div>
+            {if !empty($wb_snapshot.warnings)}
+                <div class="alert warning">
+                    <strong>[`Snapshot warnings`]</strong>
+                    <ul>
+                        {foreach $wb_snapshot.warnings as $warning}
+                            <li>{$warning|escape}</li>
+                        {/foreach}
+                    </ul>
+                </div>
+            {/if}
+        {elseif $wb_snapshot_status == 'building'}
+            <p class="hint">[`The snapshot is not complete. Resume loading to continue from the saved stage.`]</p>
+        {elseif $wb_snapshot_status == 'failed'}
+            <p class="errormsg">[`The previous snapshot could not be completed. Start a new snapshot.`]</p>
+        {/if}
+
+        <div class="s-wb-actions">
+            <button type="button"
+                    class="button blue js-wb-load-snapshot"
+                    {if empty($wb_settings.has_token)}disabled{/if}>
+                {if $wb_snapshot_status == 'building'}[`Resume snapshot`]{elseif $wb_snapshot_ready}[`Refresh snapshot`]{else}[`Get snapshot`]{/if}
+            </button>
+            <span class="hint s-wb-status js-wb-snapshot-status" role="status" aria-live="polite"></span>
+        </div>
+    </div>
+
+    {if $wb_snapshot_ready}
+        <div class="s-wb-card js-wb-after-snapshot">
+            <div class="s-wb-card__header s-wb-card__header--plain">
+                <h3>[`Import mode`]</h3>
+            </div>
+            <div class="fields form">
+                <div class="field">
+                    <div class="name">[`Mode`]</div>
+                    <div class="value">
+                        <div class="s-wb-mode">
+                            <span class="switch js-wb-mode-switch" id="js-wb-mode-switch">
+                                <input class="js-wb-mode-checkbox"
+                                       type="checkbox"
+                                       id="js-wb-mode-checkbox"
+                                       {if $wb_mode == 'auto'}checked{/if}>
+                            </span>
+                            <label for="js-wb-mode-checkbox"
+                                   class="js-wb-mode-label"
+                                   data-auto-label="[`Automatic import`]"
+                                   data-manual-label="[`Manual import`]">
+                                {if $wb_mode == 'auto'}[`Automatic import`]{else}[`Manual import`]{/if}
+                            </label>
+                        </div>
+                        <p class="hint">[`Automatic mode creates and matches required Shop-Script entities. Manual mode opens detailed mapping tables.`]</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="s-wb-card js-wb-import-options">
+            <div class="s-wb-card__header s-wb-card__header--plain">
+                <h3>[`Import settings`]</h3>
+            </div>
+            <div class="fields form s-wb-options-grid">
+                <div class="field">
+                    <div class="name">[`Product images`]</div>
+                    <div class="value">
+                        <div class="s-wb-radio-list">
+                            <label class="s-wb-image-option">
+                                <span class="wa-radio">
+                                    <input class="js-wb-option" type="radio" name="wb_image_mode" value="immediate"{if $wb_image_mode == 'immediate'} checked{/if}>
+                                    <span></span>
+                                </span>
+                                <span class="wa-tooltip js-wb-image-option-tooltip" data-wa-tooltip-content="[`Wildberries images will be downloaded in the largest available size. If an image is unavailable or cannot be processed, a smaller version will be used.`]" data-wa-tooltip-placement="top">[`Download images immediately`]</span>
+                            </label>
+                            <label class="s-wb-image-option">
+                                <span class="wa-radio">
+                                    <input class="js-wb-option" type="radio" name="wb_image_mode" value="later"{if $wb_image_mode == 'later'} checked{/if}>
+                                    <span></span>
+                                </span>
+                                <span class="wa-tooltip js-wb-image-option-tooltip" data-wa-tooltip-content="[`Products will be imported much faster, and images will be loaded later in a separate run.`]" data-wa-tooltip-placement="top">[`Import images later in a separate pass`]</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <div class="name"></div>
+                    <div class="value">
+                        <span class="hint s-wb-status js-wb-options-status" role="status" aria-live="polite"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="s-wb-card js-wb-manual-section"{if $wb_mode == 'auto'} style="display:none;"{/if}>
+            <div class="s-wb-card__header s-wb-card__header--plain">
+                <h3>[`Manual mapping`]</h3>
+                <p class="hint">[`Open only the mapping sections you need to change. Unchanged rows are handled automatically.`]</p>
+            </div>
+
+            <details class="s-wb-mapping-section">
+                <summary>
+                    <span class="s-wb-mapping-section__title"><span class="icon"><i class="fas fa-cubes"></i></span><span>[`Product types`]</span></span>
+                    <span class="s-wb-mapping-section__arrow" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                </summary>
+                <div class="s-wb-mapping-section__body table-scrollable">
+                    {if !empty($wb_mapping.types)}
+                        <table class="single-lined s-wb-mapping-table">
+                            <thead>
+                                <tr>
+                                    <th><span class="s-wb-table-heading"><img class="s-wb-table-heading__logo" src="{$wa_app_static_url}plugins/migrate/img/wb-icon-color.svg" alt="" aria-hidden="true"><span>[`Wildberries category / subject`]</span></span></th>
+                                    <th><span class="s-wb-table-heading"><span class="icon" aria-hidden="true"><i class="fas fa-box"></i></span><span>[`Products`]</span></span></th>
+                                    <th><span class="s-wb-table-heading"><img class="s-wb-table-heading__logo" src="{$wa_app_static_url}img/shop96.png" alt="" aria-hidden="true"><span>[`Shop-Script product type`]</span></span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $wb_mapping.types as $row}
+                                    <tr>
+                                        <td>
+                                            {if !empty($row.path)}
+                                                {$row.path|escape}
+                                            {else}
+                                                {$row.parent_name|default:''|escape} / {$row.name|default:$row.subject_name|default:''|escape}
+                                            {/if}
+                                        </td>
+                                        <td>{$row.count|default:0|escape}</td>
+                                        <td>
+                                            <div class="s-wb-map-control">
+                                                <div class="wa-select">
+                                                    <select class="js-wb-type-map"
+                                                            data-parent-id="{$row.parent_id|default:0|escape}"
+                                                            data-subject-id="{$row.subject_id|default:$row.wb_id|default:0|escape}">
+                                                        <option value=""{if empty($row.mapping.action) || $row.mapping.action == 'auto' || $row.mapping.action == 'create'} selected{/if}>[`Automatic`]</option>
+                                                        <option value="skip"{if !empty($row.mapping.action) && $row.mapping.action == 'skip'} selected{/if}>[`Skip products of this type`]</option>
+                                                        {if !empty($row.mapping.shop_type_id)}
+                                                            <option value="{$row.mapping.shop_type_id|escape}" selected>{$row.mapping.shop_type_name|default:'Shop-Script'|escape}</option>
+                                                        {/if}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+                            </tbody>
+                        </table>
+                    {else}
+                        <p class="hint">[`No product types were found in the snapshot.`]</p>
+                    {/if}
+                </div>
+            </details>
+
+            <details class="s-wb-mapping-section">
+                <summary>
+                    <span class="s-wb-mapping-section__title"><span class="icon"><i class="fas fa-folder"></i></span><span>[`Categories and subcategories`]</span></span>
+                    <span class="s-wb-mapping-section__arrow" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                </summary>
+                <div class="s-wb-mapping-section__body table-scrollable">
+                    {if !empty($wb_mapping.categories)}
+                        <table class="single-lined s-wb-mapping-table">
+                            <thead>
+                                <tr>
+                                    <th><span class="s-wb-table-heading"><img class="s-wb-table-heading__logo" src="{$wa_app_static_url}plugins/migrate/img/wb-icon-color.svg" alt="" aria-hidden="true"><span>[`Wildberries category`]</span></span></th>
+                                    <th><span class="s-wb-table-heading"><img class="s-wb-table-heading__logo" src="{$wa_app_static_url}img/shop96.png" alt="" aria-hidden="true"><span>[`Shop-Script category`]</span></span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $wb_mapping.categories as $row}
+                                    <tr data-create-name="{$row.name|default:$row.subject_name|default:$row.parent_name|default:''|escape}">
+                                        <td class="js-wb-source-name">
+                                            {if !empty($row.path)}{$row.path|escape}{else}{$row.name|default:$row.subject_name|default:$row.parent_name|default:''|escape}{/if}
+                                        </td>
+                                        <td>
+                                            <div class="s-wb-map-control">
+                                                <div class="wa-select">
+                                                    <select class="js-wb-category-map"
+                                                            data-entity-type="{$row.entity_type|default:'subject'|escape}"
+                                                            data-wb-id="{$row.wb_id|default:$row.subject_id|default:$row.parent_id|default:0|escape}"
+                                                            data-parent-id="{$row.parent_id|default:0|escape}">
+                                                        <option value=""{if empty($row.mapping.action) || $row.mapping.action == 'auto'} selected{/if}>[`Automatic`]</option>
+                                                        <option value="create"{if !empty($row.mapping.action) && $row.mapping.action == 'create'} selected{/if}>[`Create during import`]</option>
+                                                        <option value="skip"{if !empty($row.mapping.action) && $row.mapping.action == 'skip'} selected{/if}>[`Skip this category`]</option>
+                                                        {if !empty($row.mapping.shop_category_id)}
+                                                            <option value="{$row.mapping.shop_category_id|escape}" selected>{$row.mapping.shop_category_name|default:'Shop-Script'|escape}</option>
+                                                        {/if}
+                                                    </select>
+                                                </div>
+                                                {if !empty($wb_can_create_category)}
+                                                    <button type="button" class="button light-gray small js-wb-create-category">[`Create new`]</button>
+                                                {/if}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+                            </tbody>
+                        </table>
+                    {else}
+                        <p class="hint">[`No categories were found in the snapshot.`]</p>
+                    {/if}
+                </div>
+            </details>
+
+            <details class="s-wb-mapping-section">
+                <summary>
+                    <span class="s-wb-mapping-section__title"><span class="icon"><i class="fas fa-home"></i></span><span>[`Warehouses and stocks`]</span></span>
+                    <span class="s-wb-mapping-section__arrow" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                </summary>
+                <div class="s-wb-mapping-section__body table-scrollable">
+                    {if !empty($wb_mapping.warehouses)}
+                        <table class="single-lined s-wb-mapping-table">
+                            <thead>
+                                <tr>
+                                    <th><span class="s-wb-table-heading"><img class="s-wb-table-heading__logo" src="{$wa_app_static_url}plugins/migrate/img/wb-icon-color.svg" alt="" aria-hidden="true"><span>[`Wildberries warehouse`]</span></span></th>
+                                    <th><span class="s-wb-table-heading"><img class="s-wb-table-heading__logo" src="{$wa_app_static_url}img/shop96.png" alt="" aria-hidden="true"><span>[`Shop-Script stock`]</span></span></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $wb_mapping.warehouses as $row}
+                                    <tr>
+                                        <td>
+                                            <span class="js-wb-source-name">{$row.name|default:$row.warehouse_name|default:''|escape}</span>
+                                            {if $row.source|default:'' == 'wb'}<div class="hint">[`WB warehouse (FBW)`]</div>{/if}
+                                        </td>
+                                        <td>
+                                            <div class="s-wb-map-control">
+                                                <div class="wa-select">
+                                                    <select class="js-wb-stock-map"
+                                                            data-warehouse-key="{$row.warehouse_key|default:$row.warehouse_id|default:''|escape}">
+                                                        <option value=""{if empty($row.mapping.action) || $row.mapping.action == 'auto' || $row.mapping.action == 'create'} selected{/if}>[`Automatic`]</option>
+                                                        <option value="skip"{if !empty($row.mapping.action) && $row.mapping.action == 'skip'} selected{/if}>[`Skip this warehouse`]</option>
+                                                        {if !empty($row.mapping.shop_stock_id)}
+                                                            <option value="{$row.mapping.shop_stock_id|escape}" selected>{$row.mapping.shop_stock_name|default:'Shop-Script'|escape}</option>
+                                                        {/if}
+                                                    </select>
+                                                </div>
+                                                {if !empty($wb_can_create_stock)}
+                                                    <button type="button" class="button light-gray small js-wb-create-stock">[`Create new`]</button>
+                                                {/if}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {/foreach}
+                            </tbody>
+                        </table>
+                    {else}
+                        <p class="hint">[`No warehouses were found in the snapshot.`]</p>
+                    {/if}
+                </div>
+            </details>
+
+            <details class="s-wb-mapping-section">
+                <summary>
+                    <span class="s-wb-mapping-section__title"><span class="icon"><i class="fas fa-sitemap"></i></span><span>[`Product features`]</span></span>
+                    <span class="s-wb-mapping-section__arrow" aria-hidden="true"><i class="fas fa-chevron-down"></i></span>
+                </summary>
+                <div class="s-wb-mapping-section__body">
+                    <div class="fields form">
+                        <div class="field">
+                            <div class="name">[`Features`]</div>
+                            <div class="value">
+                                {assign var=wb_feature_switch_id value=uniqid('wb-feature-')}
+                                <div class="s-wb-feature-controls">
+                                    <div class="wa-select">
+                                        <select name="wb_feature_mode" class="js-wb-option js-wb-feature-mode">
+                                            <option value="auto"{if $wb_feature_mode == 'auto'} selected{/if}>[`Import automatically`]</option>
+                                            <option value="skip"{if $wb_feature_mode == 'skip'} selected{/if}>[`Do not import features`]</option>
+                                        </select>
+                                    </div>
+                                    <div class="switch-with-text s-wb-feature-switch js-wb-feature-switch-wrap"{if $wb_feature_mode != 'auto'} style="display:none;"{/if}>
+                                        <span class="switch js-wb-feature-switch" id="{$wb_feature_switch_id}">
+                                            <input type="checkbox"
+                                                   id="{$wb_feature_switch_id}_checkbox"
+                                                   class="js-wb-feature-checkbox"
+                                                   {if empty($wb_force_text_features)}checked{/if}>
+                                        </span>
+                                        <label for="{$wb_feature_switch_id}_checkbox"
+                                               class="js-wb-feature-switch-label"
+                                               data-active-text="[`Smart feature import`]"
+                                               data-inactive-text="[`Text-only features`]"
+                                               data-active-tooltip="[`The plugin tries to detect attribute types and create proper feature types automatically. Experimental mode, if some features have not full value or wrong types, use Text-only mode.`]"
+                                               data-inactive-tooltip="[`All attributes will be saved as text features without detection.`]">
+                                            <span class="wa-tooltip js-wb-feature-switch-tooltip"
+                                                  data-wa-tooltip-content="{if empty($wb_force_text_features)}[`The plugin tries to detect attribute types and create proper feature types automatically. Experimental mode, if some features have not full value or wrong types, use Text-only mode.`]{else}[`All attributes will be saved as text features without detection.`]{/if}"
+                                                  data-wa-tooltip-placement="top">
+                                                <span class="js-wb-feature-switch-label-text">
+                                                    {if empty($wb_force_text_features)}[`Smart feature import`]{else}[`Text-only features`]{/if}
+                                                </span>
+                                            </span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </details>
+
+            <p class="hint s-wb-status js-wb-mapping-status" role="status" aria-live="polite"></p>
+        </div>
+
+        {* Large Shop-Script target lists are rendered once and copied only
+           into the mapping select currently being edited. *}
+        <div class="hidden" aria-hidden="true">
+            <select class="js-wb-map-options-source" data-kind="type" tabindex="-1">
+                {foreach $wb_lists.types as $type}<option value="{$type.id|escape}">{$type.name|escape}</option>{/foreach}
+            </select>
+            <select class="js-wb-map-options-source" data-kind="category" tabindex="-1">
+                {foreach $wb_lists.categories as $category_id => $category_name}<option value="{$category_id|escape}">{$category_name|escape}</option>{/foreach}
+            </select>
+            <select class="js-wb-map-options-source" data-kind="stock" tabindex="-1">
+                {foreach $wb_lists.stocks as $stock}<option value="{$stock.id|escape}">{$stock.name|escape}</option>{/foreach}
+            </select>
+        </div>
+
+        <div class="s-wb-footer-actions js-wb-import-actions">
+            <div class="s-wb-actions">
+                <button type="button" class="button green js-wb-start-import">[`Import products`]</button>
+                <span class="wa-tooltip js-wb-images-import-tooltip"
+                      data-disabled-tooltip="[`Import products before importing images separately.`]"
+                      data-wa-tooltip-content="{if empty($wb_image_import_product_count)}[`Import products before importing images separately.`]{/if}"
+                      data-wa-tooltip-placement="top">
+                    <button type="button"
+                            class="button blue js-wb-start-images"
+                            {if empty($wb_image_import_product_count)}disabled{/if}>[`Import images separately`]</button>
+                </span>
+                <button type="button" class="button light-gray js-wb-show-progress" style="display:none;">[`Show import progress`]</button>
+            </div>
+            <span class="hint s-wb-status js-wb-import-status" role="status" aria-live="polite"></span>
+        </div>
+    {/if}
+
+    <script type="text/template" class="js-wb-create-category-dialog-template">
+        <div class="dialog" id="js-wb-create-category-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-body">
+                <a href="#" class="dialog-close js-wb-create-dialog-cancel" aria-label="[`Close`]"><i class="fas fa-times"></i></a>
+                <form class="js-wb-create-dialog-form">
+                    <header class="dialog-header"><h2>[`Create a Shop-Script category`]</h2></header>
+                    <div class="dialog-content">
+                        <div class="fields form s-wb-create-dialog-form">
+                            <div class="field">
+                                <div class="name for-input"><label for="js-wb-new-category-name">[`Name`]</label></div>
+                                <div class="value"><input id="js-wb-new-category-name" class="long js-wb-create-name" type="text" maxlength="255" required></div>
+                            </div>
+                            <div class="field">
+                                <div class="name for-input"><label for="js-wb-new-category-parent">[`Parent category`]</label></div>
+                                <div class="value">
+                                    <div class="wa-select">
+                                        <select id="js-wb-new-category-parent" class="js-wb-create-parent">
+                                            <option value="0">[`Root level`]</option>
+                                        </select>
+                                    </div>
+                                    <p class="hint js-wb-create-parent-hint">[`Choose a parent to create a subcategory, or leave the root level selected.`]</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="s-wb-dialog-error js-wb-create-dialog-error" role="alert"></div>
+                    </div>
+                    <footer class="dialog-footer">
+                        <button class="button green js-wb-create-dialog-submit" type="submit">[`Create`]</button>
+                        <button class="button light-gray js-wb-create-dialog-cancel" type="button">[`Cancel`]</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+    </script>
+
+    <script type="text/template" class="js-wb-create-stock-dialog-template">
+        <div class="dialog" id="js-wb-create-stock-dialog">
+            <div class="dialog-background"></div>
+            <div class="dialog-body">
+                <a href="#" class="dialog-close js-wb-create-dialog-cancel" aria-label="[`Close`]"><i class="fas fa-times"></i></a>
+                <form class="js-wb-create-dialog-form">
+                    <header class="dialog-header"><h2>[`Create a Shop-Script stock`]</h2></header>
+                    <div class="dialog-content">
+                        <div class="fields form s-wb-create-dialog-form">
+                            <div class="field">
+                                <div class="name for-input"><label for="js-wb-new-stock-name">[`Name`]</label></div>
+                                <div class="value"><input id="js-wb-new-stock-name" class="long js-wb-create-name" type="text" maxlength="255" required></div>
+                            </div>
+                        </div>
+                        <p class="hint">[`Existing products will receive zero balances for the new stock.`]</p>
+                        <div class="s-wb-dialog-error js-wb-create-dialog-error" role="alert"></div>
+                    </div>
+                    <footer class="dialog-footer">
+                        <button class="button green js-wb-create-dialog-submit" type="submit">[`Create`]</button>
+                        <button class="button light-gray js-wb-create-dialog-cancel" type="button">[`Cancel`]</button>
+                    </footer>
+                </form>
+            </div>
+        </div>
+    </script>
+
+    {if !empty($wb_debug)}
+        <script type="text/template" class="js-wb-clean-dialog-template">
+            <div class="dialog" id="js-wb-clean-dialog">
+                <div class="dialog-background"></div>
+                <div class="dialog-body">
+                    <a href="#" class="dialog-close js-wb-clean-cancel" aria-label="[`Close`]"><i class="fas fa-times"></i></a>
+                    <header class="dialog-header">
+                        <h2>[`Cleanup Wildberries migration tables`]</h2>
+                    </header>
+                    <div class="dialog-content">
+                        <p>[`Select the tables you want to truncate. This operation cannot be undone.`]</p>
+                        <table class="s-wb-clean-table">
+                            <thead>
+                                <tr>
+                                    <th>
+                                        <input type="checkbox"
+                                               class="js-wb-clean-check-all"
+                                               aria-label="[`Select all tables`]">
+                                    </th>
+                                    <th>[`Table`]</th>
+                                    <th>[`Description`]</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {foreach $wb_tables as $table => $info}
+                                    <tr>
+                                        <td>
+                                            <input type="checkbox"
+                                                   class="js-wb-clean-table"
+                                                   name="tables[]"
+                                                   value="{$table|escape}"
+                                                   aria-label="{$table|escape}">
+                                        </td>
+                                        <td><code>{$table|escape}</code></td>
+                                        <td><strong>{$info.title|escape}</strong><br>{$info.description|escape}</td>
+                                    </tr>
+                                {/foreach}
+                            </tbody>
+                        </table>
+                    </div>
+                    <footer class="dialog-footer">
+                        <button class="button red js-wb-clean-submit" type="button">[`Clear`]</button>
+                        <button class="button light-gray js-wb-clean-cancel" type="button">[`Cancel`]</button>
+                    </footer>
+                </div>
+            </div>
+        </script>
+    {/if}
+</div>
+
+<script type="text/javascript">
+$.wa.locale = $.extend($.wa.locale || {}, {
+    'View products': {json_encode('[`View products`]')},
+    'Settings saved.': {json_encode('[`Settings saved.`]')},
+    'Preparing import...': {json_encode('[`Preparing import...`]')},
+    'Import is running.': {json_encode('[`Import is running.`]')},
+    'Wildberries image import': {json_encode('[`Wildberries image import`]')},
+    'Wildberries product import': {json_encode('[`Wildberries product import`]')},
+    'Closing this window does not stop the import.': {json_encode('[`Closing this window does not stop the import.`]')},
+    'Cancel import': {json_encode('[`Cancel import`]')},
+    'Cancellation requested': {json_encode('[`Cancellation requested`]')},
+    'Connection lost. Retrying...': {json_encode('[`Connection lost. Retrying...`]')},
+    'Wildberries product images have been imported.': {json_encode('[`Wildberries product images have been imported.`]')},
+    'Wildberries products have been imported into Shop-Script.': {json_encode('[`Wildberries products have been imported into Shop-Script.`]')},
+    'Wildberries import was cancelled after completing the current product.': {json_encode('[`Wildberries import was cancelled after completing the current product.`]')},
+    'Wildberries import failed.': {json_encode('[`Wildberries import failed.`]')},
+    'Cancellation requested. The current product will be completed first.': {json_encode('[`Cancellation requested. The current product will be completed first.`]')},
+    'Created': {json_encode('[`Created`]')},
+    'Updated': {json_encode('[`Updated`]')},
+    'Skipped': {json_encode('[`Skipped`]')},
+    'Failed': {json_encode('[`Failed`]')},
+    'Images imported': {json_encode('[`Images imported`]')},
+    'Image errors': {json_encode('[`Image errors`]')},
+    'Cancel the import after the current product is completed?': {json_encode('[`Cancel the import after the current product is completed?`]')},
+    'Cancel Wildberries import?': {json_encode('[`Cancel Wildberries import?`]')},
+    'The importer will finish the product currently being processed and then stop.': {json_encode('[`The importer will finish the product currently being processed and then stop.`]')},
+    'Products completed before cancellation will remain in Shop-Script.': {json_encode('[`Products completed before cancellation will remain in Shop-Script.`]')},
+    'Yes, cancel import': {json_encode('[`Yes, cancel import`]')},
+    'Continue import': {json_encode('[`Continue import`]')},
+    'Requesting cancellation...': {json_encode('[`Requesting cancellation...`]')},
+    'Stopping Wildberries data collection...': {json_encode('[`Stopping Wildberries data collection...`]')},
+    'Could not stop Wildberries data collection. Try saving again.': {json_encode('[`Could not stop Wildberries data collection. Try saving again.`]')},
+    'Wildberries data collection was stopped. Start it again.': {json_encode('[`Wildberries data collection was stopped. Start it again.`]')},
+    'Checking Wildberries API access...': {json_encode('[`Checking Wildberries API access...`]')},
+    'Save the API token before starting import.': {json_encode('[`Save the API token before starting import.`]')},
+    'Save the API token before loading a snapshot.': {json_encode('[`Save the API token before loading a snapshot.`]')},
+    'Loading Wildberries snapshot...': {json_encode('[`Loading Wildberries snapshot...`]')},
+    'Wildberries snapshot is ready.': {json_encode('[`Wildberries snapshot is ready.`]')},
+    'Snapshot progress is invalid. Start loading again.': {json_encode('[`Snapshot progress is invalid. Start loading again.`]')},
+    'Load a completed Wildberries snapshot first.': {json_encode('[`Load a completed Wildberries snapshot first.`]')},
+    'The action URL is missing.': {json_encode('[`The action URL is missing.`]')}
+});
+{include file="../../../js/wb/migrate-wb.js"}
+(function ($) {
+    if ($ && $.migrateWb) {
+        $.migrateWb.init($('#js-wb-root'));
+    }
+})(jQuery);
+</script>

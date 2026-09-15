@@ -682,7 +682,13 @@
                 progress = 0;
             }
             var rounded = Math.round(progress * 10) / 10;
-            return rounded % 1 === 0 ? String(Math.round(rounded)) : String(rounded);
+            var result = rounded % 1 === 0 ? String(Math.round(rounded)) : String(rounded);
+            return this.isRussianLocale() ? result.replace('.', ',') : result;
+        },
+
+        isRussianLocale: function () {
+            var locale = String(this.$root && this.$root.data('locale') || '').toLowerCase();
+            return locale === 'ru' || locale.indexOf('ru_') === 0 || locale.indexOf('ru-') === 0;
         },
 
         setPrimaryState: function (state) {

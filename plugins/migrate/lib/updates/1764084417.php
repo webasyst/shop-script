@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Creates Ozon migration tables defined in lib/config/db.php.
+ * Creates migration tables defined in lib/config/db.php.
  */
 
 $schema_path = dirname(__DIR__).'/config/db.php';

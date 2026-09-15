@@ -6,8 +6,8 @@ class shopMigratePluginOzonHelper
     {
         return array(
             'shop_migrate_ozon_snapshots' => array(
-                'title'       => _wp('Снапшоты'),
-                'description' => _wp('История снимков и служебные данные.'),
+                'title'       => _wp('Данные для импорта'),
+                'description' => _wp('История сбора данных и служебные данные.'),
             ),
             'shop_migrate_ozon_products' => array(
                 'title'       => _wp('Товары'),
@@ -27,7 +27,7 @@ class shopMigratePluginOzonHelper
             ),
             'shop_migrate_ozon_warehouses' => array(
                 'title'       => _wp('Склады'),
-                'description' => _wp('Склады, найденные в снапшоте.'),
+                'description' => _wp('Склады, найденные в данных для импорта.'),
             ),
             'shop_migrate_ozon_stocks' => array(
                 'title'       => _wp('Остатки'),

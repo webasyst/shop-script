@@ -7,23 +7,25 @@
             <div class="field">
                 <div class="name for-input"><label for="plugin-migrate-transport">[`Platform`]</label></div>
                 <div class="value no-shift">
-                    <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
-                        {$group = false}
-                        {foreach $transports as $id => $t}
-                            {if !empty($t.group) && $group != $t.group}
-                                {if !$t@first && $group}
+                    <div class="wa-select">
+                        <select name="transport" id="plugin-migrate-transport" class="s-plugin-migrate-transport">
+                            {$group = false}
+                            {foreach $transports as $id => $t}
+                                {if !empty($t.group) && $group != $t.group}
+                                    {if !$t@first && $group}
+                                    </optgroup>
+                                    {/if}
+                                    {$group = $t.group}
+                                    <optgroup label="{$group|escape}">
+                                {/if}
+
+                                <option value="{$id}" title="{$t.description|strip_tags|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
+                                {if $t@last}
                                 </optgroup>
                                 {/if}
-                                {$group = $t.group}
-                                <optgroup label="{$group|escape}">
-                            {/if}
-
-                            <option value="{$id}" title="{$t.description|strip_tags|escape}"{if $id==$platform} selected{/if}>{$t.title|escape}</option>
-                            {if $t@last}
-                            </optgroup>
-                            {/if}
-                        {/foreach}
-                    </select>
+                            {/foreach}
+                        </select>
+                    </div>
                     <br>
                     {foreach $transports as $id => $t}
                     <span id="plugin-migrate-transport-{$id}" class="hint plugin-migrate-transport-description" style="display:none;">{$t.description}</span>

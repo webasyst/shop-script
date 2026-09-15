@@ -21,6 +21,15 @@ class shopMigratePlugin extends shopPlugin
                     'ru_RU',
                 )
             ),
+            'wb'             => array(
+                'value'       => 'wb',
+                'title'       => 'Wildberries',
+                'description' => _wp('Import products via Wildberries seller API'),
+                'group'       => _wp('Marketplaces'),
+                'locale'      => array(
+                    'ru_RU',
+                )
+            ),
             'tilda'    => array(
                 'value'       => 'tilda',
                 'title'       => 'Tilda',
@@ -124,6 +133,33 @@ class shopMigratePlugin extends shopPlugin
     {
         $platform = ifset($data['platform']);
         return $platform ? sprintf('?action=importexport#/migrate/%s/', $platform) : null;
+    }
+
+    public function productsCollectionHandler($params)
+    {
+        $collection = $params['collection'];
+        $hash = $collection->getHash();
+        if (ifset($hash[0], '') !== shopMigratePluginWbUnpricedProductsModel::COLLECTION_HASH) {
+            return null;
+        }
+        // This report is backend-only; never turn it into a storefront collection.
+        if (wa()->getEnv() !== 'backend' || !wa()->getUser()->getRights('shop', 'importexport')
+            || !preg_match('/^[1-9][0-9]*$/D', (string) ifset($hash[1], ''))) {
+            $collection->addWhere('0');
+            return true;
+        }
+        $run_id = (int) $hash[1];
+        $run = (new shopMigratePluginWbRunsModel())->getById($run_id);
+        if (!$run || $run['kind'] !== shopMigratePluginWbImporter::KIND_PRODUCTS
+            || !in_array($run['status'], array('completed', 'cancelled', 'failed'), true)) {
+            $collection->addWhere('0');
+            return true;
+        }
+        (new shopMigratePluginWbUnpricedProductsModel())->applyToCollection($collection, $run_id);
+        if (!empty($params['auto_title'])) {
+            $collection->addTitle(sprintf(_wp('Products without prices — Wildberries import #%d'), $run_id));
+        }
+        return true;
     }
 
     public function backendWelcomeHandler()

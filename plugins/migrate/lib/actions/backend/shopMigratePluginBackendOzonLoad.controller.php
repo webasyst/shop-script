@@ -83,11 +83,11 @@ class shopMigratePluginBackendOzonLoadController extends waJsonController
         $preview = implode('; ', $preview_items);
         $rest = max(0, $pairs_count - count($preview_items));
         if ($rest > 0) {
-            $preview .= sprintf('; and %d more', $rest);
+            $preview .= sprintf('; ' . _wp('and %d more categories'), $rest);
         }
 
         return sprintf(
-            'Ozon API returned category/type errors while loading attributes. %d category/type pairs (%d products) will be imported without characteristics. Affected categories: %s',
+            _wp('Ozon API returned errors while loading category attributes. %d categories (%d products) will be imported without characteristics. Affected categories: %s'),
             $pairs_count,
             $total_products,
             $preview

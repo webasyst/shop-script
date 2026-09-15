@@ -19,6 +19,24 @@ msgstr ""
 msgid "Source"
 msgstr "Источник"
 
+msgid "%d product has not been published on the storefront: prices are not specified."
+msgid_plural "%d products have not been published on the storefront: prices are not specified."
+msgstr[0] "%d товар не опубликован на витрине: для него не указаны цены."
+msgstr[1] "%d товара не опубликованы на витрине: для них не указаны цены."
+msgstr[2] "%d товаров не опубликованы на витрине: для них не указаны цены."
+
+msgid "View products"
+msgstr "Посмотреть товары"
+
+msgid "Products without prices — Wildberries import #%d"
+msgstr "Товары без цен — импорт Wildberries №%d"
+
+msgid "Products without prices"
+msgstr "Товары без цен"
+
+msgid "Products left unpublished without prices, grouped by Wildberries import run."
+msgstr "Товары, оставленные неопубликованными без цен, с привязкой к запуску импорта Wildberries."
+
 msgid "Platform"
 msgstr "Платформа"
 
@@ -406,9 +424,6 @@ msgstr "Обновление категорий товаров"
 msgid "Undefined default language"
 msgstr "Не задан базовый язык для импорта данных"
 
-msgid "Bitrix"
-msgstr "1С-Битрикс"
-
 msgid "Data to import"
 msgstr "Что импортировать"
 
@@ -520,38 +535,14 @@ msgstr "Подключение"
 msgid "Test connection"
 msgstr "Тест подключения"
 
-msgid "Testing connection..."
-msgstr "Проверяем соединение..."
-
 msgid "Connection successful"
 msgstr "Соединение успешно"
-
-msgid "Unknown error"
-msgstr "Неизвестная ошибка"
 
 msgid "Request failed"
 msgstr "Ошибка запроса"
 
-msgid "Client ID or API Key is empty"
-msgstr "Client ID или API Key не заполнены"
-
-msgid "Client ID is required"
-msgstr "Client ID обязателен"
-
-msgid "API Key is required"
-msgstr "API Key обязателен"
-
 msgid "Import products via Ozon seller API"
 msgstr "Импорт товаров через Ozon Seller API"
-
-msgid "Ozon import"
-msgstr "Импорт из Ozon"
-
-msgid "Categories synced: created %d, updated %d, skipped %d"
-msgstr "Категории синхронизированы: создано %d, обновлено %d, пропущено %d"
-
-msgid "Features synced: created %d, updated %d, skipped %d"
-msgstr "Характеристики синхронизированы: создано %d, обновлено %d, пропущено %d"
 
 msgid "Created"
 msgstr "Создано"
@@ -562,29 +553,8 @@ msgstr "Обновлено"
 msgid "Skipped"
 msgstr "Пропущено"
 
-msgid "Errors"
-msgstr "Ошибки"
-
-msgid "Do not map"
-msgstr "Не определять категорию"
-
-msgid "Do not import to this stock"
-msgstr "Пропустить этот склад"
-
-msgid "Import all Ozon stock to this stock"
-msgstr "Импортировать все складские остатки на этот склад"
-
-msgid "Do not import Ozon stock"
-msgstr "Не импортировать складские остатки"
-
 msgid "Shop-Script stock"
 msgstr "Склады Shop-Script"
-
-msgid "Ozon stock"
-msgstr "Склады Озон"
-
-msgid "Stock mapping"
-msgstr "Перенос складских остатков"
 
 msgid "Category mapping"
 msgstr "Перенос категорий товаров"
@@ -592,47 +562,29 @@ msgstr "Перенос категорий товаров"
 msgid "Ozon category"
 msgstr "Категории Ozon"
 
-msgid "Ozon warehouses"
-msgstr "Склады Озон"
-
 msgid "Shop-Script category"
 msgstr "Категории Shop-Script"
 
 msgid "Automatic"
 msgstr "Автоматически"
 
-msgid "Do not import this warehouse"
-msgstr "Не импортировать этот склад"
-
-msgid "Load data to map warehouses."
-msgstr "Загрузите данные, чтобы настроить склады."
-
-msgid "Select Shop-Script stocks for each Ozon warehouse. Automatic mode will find or create stocks by name."
-msgstr "Выберите склады Shop-Script для каждого склада Ozon. Автоматический режим найдет или создаст склады с совпадающими названиями."
-
 msgid "Import products from the Ozon seller API."
 msgstr "Импортируйте товары из своего профиля селлера через Ozon Seller API."
 
-msgid "Client ID Ozon"
-msgstr "Client ID Ozon"
-
 msgid "Ozon snapshot"
-msgstr "Снимок Ozon"
+msgstr "Данные Ozon для импорта"
 
 msgid "Snapshot collected at"
-msgstr "Снимок получен"
-
-msgid "Press “Load data” to fetch a fresh snapshot for preview and mapping."
-msgstr "Нажмите «Загрузить данные», чтобы получить свежий снапшот для предпросмотра и маппинга."
+msgstr "Данные собраны"
 
 msgid "Products detected"
-msgstr "Товаров найдено"
+msgstr "Товары"
 
 msgid "Categories detected"
-msgstr "Категорий найдено"
+msgstr "Категории"
 
 msgid "Warehouses detected"
-msgstr "Складов найдено"
+msgstr "Склады"
 
 msgid "Top 5 of your categories"
 msgstr "5 самых больших категорий"
@@ -640,14 +592,8 @@ msgstr "5 самых больших категорий"
 msgid "Detected warehouses"
 msgstr "Обнаруженные склады"
 
-msgid "No snapshot yet. Use the button below to prepare data."
-msgstr "Снапшот еще не подготовлен. Используйте кнопку ниже, чтобы собрать данные."
-
 msgid "Load data"
-msgstr "Загрузить данные"
-
-msgid "Switch to manual mode to adjust mappings before import."
-msgstr "Переключитесь в ручной режим, чтобы настроить маппинги перед импортом."
+msgstr "Собрать данные для импорта"
 
 msgid "Mode"
 msgstr "Режим"
@@ -657,9 +603,6 @@ msgstr "Импортировать автоматически"
 
 msgid "Manual mapping"
 msgstr "Ручное сопоставление категорий и типов товаров"
-
-msgid "Override automatic decisions for types, categories and warehouses."
-msgstr "Переопределите автоматические решения для типов, категорий и складов."
 
 msgid "Ozon connection"
 msgstr "Подключение к Ozon"
@@ -673,44 +616,14 @@ msgstr "Полное"
 msgid "Save"
 msgstr "Сохранить"
 
-msgid "Load data from Ozon"
-msgstr "Загрузка данных с Ozon"
-
-msgid "Snapshot"
-msgstr "Снапшот"
-
-msgid "updated"
-msgstr "обновлен"
-
 msgid "Products"
-msgstr "Товаров"
+msgstr "Товары"
 
 msgid "Categories"
-msgstr "Категории товаров"
+msgstr "Категории"
 
 msgid "Warehouses"
-msgstr "Складов"
-
-msgid "Snapshot is not ready yet."
-msgstr "Снапшот еще не создан."
-
-msgid "Load"
-msgstr "Загрузить"
-
-msgid "Import"
-msgstr "Импортировать"
-
-msgid "Transfer stocks"
-msgstr "Переносить остатки"
-
-msgid "Mapping mode"
-msgstr "Режим маппинга"
-
-msgid "Auto / Manual"
-msgstr "Авто / Ручной"
-
-msgid "Manual mode unlocks mapping tables below."
-msgstr "В ручном режиме доступны таблицы маппинга ниже."
+msgstr "Склады"
 
 msgid "Features"
 msgstr "Характеристики"
@@ -742,12 +655,6 @@ msgstr "Пропустить этот склад"
 msgid "Saved"
 msgstr "Сохранено"
 
-msgid "In progress..."
-msgstr "Выполняется..."
-
-msgid "Done"
-msgstr "Готово"
-
 msgid "Fill in Client ID and API Key."
 msgstr "Заполните Client ID и API Key."
 
@@ -758,10 +665,10 @@ msgid "Save Client ID and API Key first."
 msgstr "Сначала сохраните Client ID и API Key."
 
 msgid "No snapshot available for import."
-msgstr "Нет готового снапшота для импорта."
+msgstr "Нет готовых данных для импорта."
 
 msgid "Snapshot is missing."
-msgstr "Снапшот отсутствует."
+msgstr "Данные для импорта отсутствуют."
 
 msgid "Invalid parameters."
 msgstr "Некорректные параметры."
@@ -774,9 +681,6 @@ msgstr "Категория не найдена."
 
 msgid "Stock not found."
 msgstr "Склад не найден."
-
-msgid "Import everything automatically"
-msgstr "Импортировать все автоматически"
 
 msgid "Import mode"
 msgstr "Режим импорта"
@@ -811,13 +715,13 @@ msgstr "Умный импорт характеристик"
 msgid "Text-only features"
 msgstr "Текстовые характеристики"
 
-msgid "Smart feature import tooltip"
+msgid "The plugin tries to detect attribute types and create proper feature types automatically. Experimental mode, if some features have not full value or wrong types, use Text-only mode."
 msgstr "Пробуем создавать характеристики с правильными типами, форматами и единицами измерения. Это экспериментальный режим."
 
-msgid "Text-only feature tooltip"
+msgid "All attributes will be saved as text features without detection."
 msgstr "Все характеристики будут созданы с текстовым типом."
 
-msgid "Auto mode tooltip"
+msgid "This mode is recommended!"
 msgstr "Рекомендуем использовать этот режим!"
 
 msgid "Import completed successfully"
@@ -895,14 +799,17 @@ msgstr "Скрыть дополнительные"
 msgid "Hide"
 msgstr "Скрыть"
 
-msgid "Ozon returned errors for some category/type pairs"
-msgstr "Не удалось получить полные сведения о нескольких категориях и типах товаров"
-
-msgid "Pairs"
-msgstr "Категорий"
+msgid "Ozon returned errors for some categories"
+msgstr "Не удалось получить полные сведения о некоторых категориях"
 
 msgid "Products from these categories will be imported without characteristics."
 msgstr "Для товаров из следующих категорий характеристики перенесены не будут."
+
+msgid "and %d more categories"
+msgstr "и еще %d категорий"
+
+msgid "Ozon API returned errors while loading category attributes. %d categories (%d products) will be imported without characteristics. Affected categories: %s"
+msgstr "API Ozon вернул ошибки при загрузке характеристик категорий. %d категорий (%d товаров) будут импортированы без характеристик. Затронутые категории: %s"
 
 msgid "Collecting Ozon data before import"
 msgstr "Собираем данные Ozon перед импортом"
@@ -933,3 +840,1062 @@ msgstr "завершение"
 
 msgid "complete"
 msgstr "готово"
+
+msgid "Импорт завершен!"
+msgstr "Импорт завершен!"
+
+msgid "Importing products"
+msgstr "Импорт товаров"
+
+msgid "Products processed"
+msgstr "Обработано товаров"
+
+msgid "обработано"
+msgstr "обработано"
+
+msgid "создано"
+msgstr "создано"
+
+msgid "обновлено"
+msgstr "обновлено"
+
+msgid "пропущено"
+msgstr "пропущено"
+
+msgid "Incomplete products cleaned"
+msgstr "Незавершенные товары удалены"
+
+msgid "Import progress is invalid. Please restart import."
+msgstr "Данные о ходе импорта повреждены. Запустите импорт заново."
+
+msgid "And more categories..."
+msgstr "И другие категории..."
+
+msgid "Wildberries"
+msgstr "Wildberries"
+
+msgid "Wildberries connection"
+msgstr "Подключение к Wildberries"
+
+msgid "Connect a Wildberries seller account to import products into Shop-Script."
+msgstr "Подключите кабинет продавца Wildberries, чтобы импортировать товары в Shop-Script."
+
+msgid "Wildberries API token"
+msgstr "API-токен Wildberries"
+
+msgid "Paste the API token"
+msgstr "Вставьте API-токен"
+
+msgid "Create a <strong>Personal</strong> token for <strong>Manual integration</strong> with <strong>Read-only</strong> access and the following categories"
+msgstr "Создайте «<strong>персональный</strong>» токен для «<strong>интеграции вручную</strong>» с уровнем доступа «<strong>только чтение</strong>» и категориями"
+
+msgid "in your Wildberries seller account under <strong>Profile</strong> &rarr; <a href=\"https://seller.wildberries.ru/api-integrations\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>API integrations</strong></a>."
+msgstr "в кабинете продавца Wildberries в разделе «<strong>Профиль</strong>» &rarr; «<a href=\"https://seller.wildberries.ru/api-integrations\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>Интеграции по API</strong></a>»."
+
+msgid "Analytics"
+msgstr "Аналитика"
+
+msgid "Questions and reviews"
+msgstr "Вопросы и отзывы"
+
+msgid "Required. Product names, descriptions, photos, categories, features, variants, and barcodes."
+msgstr "Обязательно. Названия, описания и фотографии товаров, категории, характеристики, варианты и штрихкоды."
+
+msgid "Optional. Product prices and discounts."
+msgstr "Опционально. Цены товаров и скидки."
+
+msgid "Optional. Seller warehouses and their stock quantities."
+msgstr "Опционально. Склады продавца и остатки товаров на них."
+
+msgid "Optional. Stock quantities at Wildberries warehouses (FBW)."
+msgstr "Опционально. Остатки товаров на складах Wildberries (FBW)."
+
+msgid "Optional. Review import will be added in future updates. We recommend enabling access now to avoid having to reissue the token later."
+msgstr "Опционально. Импорт отзывов появится в будущих обновлениях. Рекомендуем включить доступ сейчас, чтобы позже не перевыпускать токен."
+
+msgid "Analytics (WB warehouse stocks)"
+msgstr "Аналитика (остатки на складах WB)"
+
+msgid "WB warehouse (FBW)"
+msgstr "Склад WB (FBW)"
+
+msgid "WB warehouse stocks (FBW)"
+msgstr "остатки на складах WB (FBW)"
+
+msgid "Waiting for the WB warehouse API request interval."
+msgstr "Ожидание интервала между запросами остатков на складах WB."
+
+msgid "Waiting %d seconds before the next WB warehouse request."
+msgstr "Ожидание перед следующим запросом остатков на складах WB: %d сек."
+
+msgid "Connection successful, but access to WB warehouse stocks could not be verified."
+msgstr "Подключение установлено, но проверить доступ к остаткам на складах WB не удалось."
+
+msgid "Access to WB warehouse stocks could not be verified. Data collection will try again; if these stocks are unavailable, other data will still be imported."
+msgstr "Не удалось проверить доступ к остаткам на складах WB. При сборе данных проверка повторится. Если эти остатки недоступны, остальные данные будут импортированы."
+
+msgid "WB warehouse stocks were not collected because Analytics access is unavailable. Other data will still be imported."
+msgstr "Остатки на складах WB не собраны: отсутствует доступ к категории «Аналитика». Остальные данные будут импортированы."
+
+msgid "WB warehouse stocks are unavailable for this token or account. Other data will still be imported."
+msgstr "Остатки на складах WB недоступны для этого токена или аккаунта. Остальные данные будут импортированы."
+
+msgid "WB warehouse stocks could not be collected. Partial WB warehouse data was discarded; other data will still be imported."
+msgstr "Не удалось собрать остатки на складах WB. Частично собранные данные этих складов не будут использованы. Остальные данные будут импортированы."
+
+msgid "WB warehouse API returned an invalid inventory response."
+msgstr "API складов WB вернул некорректные данные об остатках."
+
+msgid "WB warehouse API repeated the same inventory page."
+msgstr "API складов WB повторно вернул ту же страницу остатков."
+
+msgid "Wildberries snapshot"
+msgstr "Данные Wildberries для импорта"
+
+msgid "Load a fixed catalog snapshot before choosing import settings. Products will be imported from this snapshot."
+msgstr "Перед выбором настроек импорта соберите данные каталога Wildberries. Товары будут импортированы из этих данных."
+
+msgid "Snapshot warnings"
+msgstr "Предупреждения при сборе данных"
+
+msgid "The snapshot is not complete. Resume loading to continue from the saved stage."
+msgstr "Сбор данных не завершен. Продолжите загрузку с сохраненного этапа."
+
+msgid "The previous snapshot could not be completed. Start a new snapshot."
+msgstr "Не удалось завершить предыдущий сбор данных. Запустите сбор заново."
+
+msgid "Resume snapshot"
+msgstr "Продолжить сбор данных"
+
+msgid "Refresh snapshot"
+msgstr "Обновить данные для импорта"
+
+msgid "Get snapshot"
+msgstr "Собрать данные для импорта"
+
+msgid "Automatic import"
+msgstr "Автоматический импорт"
+
+msgid "Automatic mode creates and matches required Shop-Script entities. Manual mode opens detailed mapping tables."
+msgstr "В автоматическом режиме необходимые сущности Shop-Script создаются и сопоставляются автоматически. В ручном режиме доступны подробные таблицы сопоставления."
+
+msgid "Import settings"
+msgstr "Настройки импорта"
+
+msgid "Settings saved."
+msgstr "Настройки сохранены."
+
+msgid "Product images"
+msgstr "Изображения товаров"
+
+msgid "Download images immediately"
+msgstr "Загрузить изображения сразу"
+
+msgid "Wildberries images will be downloaded in the largest available size. If an image is unavailable or cannot be processed, a smaller version will be used."
+msgstr "Изображения будут загружены с Wildberries в максимальном доступном размере. Если изображение недоступно или его не удастся обработать, будет использована уменьшенная версия."
+
+msgid "Import images later in a separate pass"
+msgstr "Загрузить изображения отдельным прогоном"
+
+msgid "Products will be imported much faster, and images will be loaded later in a separate run."
+msgstr "Товары импортируются значительно быстрее, а изображения загрузятся позже отдельным прогоном."
+
+msgid "Open only the mapping sections you need to change. Unchanged rows are handled automatically."
+msgstr "Открывайте только те разделы сопоставления, которые нужно изменить. Неизмененные строки обрабатываются автоматически."
+
+msgid "Wildberries category / subject"
+msgstr "Категория / предмет Wildberries"
+
+msgid "Shop-Script product type"
+msgstr "Тип товаров Shop-Script"
+
+msgid "Skip products of this type"
+msgstr "Пропустить товары этого типа"
+
+msgid "No product types were found in the snapshot."
+msgstr "В собранных данных не найдены типы товаров."
+
+msgid "Categories and subcategories"
+msgstr "Категории и подкатегории"
+
+msgid "Wildberries category"
+msgstr "Категория Wildberries"
+
+msgid "Create during import"
+msgstr "Создать при импорте"
+
+msgid "Skip this category"
+msgstr "Пропустить эту категорию"
+
+msgid "Create new"
+msgstr "Создать новую"
+
+msgid "No categories were found in the snapshot."
+msgstr "В собранных данных не найдены категории."
+
+msgid "Warehouses and stocks"
+msgstr "Склады и остатки"
+
+msgid "Wildberries warehouse"
+msgstr "Склад Wildberries"
+
+msgid "Skip this warehouse"
+msgstr "Пропустить этот склад"
+
+msgid "No warehouses were found in the snapshot."
+msgstr "В собранных данных не найдены склады."
+
+msgid "Product features"
+msgstr "Характеристики товаров"
+
+msgid "Import products"
+msgstr "Импортировать товары"
+
+msgid "Import images separately"
+msgstr "Импортировать изображения отдельно"
+
+msgid "Import products before importing images separately."
+msgstr "Сначала импортируйте товары, затем запустите отдельный импорт изображений."
+
+msgid "Show import progress"
+msgstr "Показать ход импорта"
+
+msgid "Create a Shop-Script category"
+msgstr "Создать категорию Shop-Script"
+
+msgid "Name"
+msgstr "Название"
+
+msgid "Parent category"
+msgstr "Родительская категория"
+
+msgid "Root level"
+msgstr "Корневой уровень"
+
+msgid "Choose a parent to create a subcategory, or leave the root level selected."
+msgstr "Выберите родительскую категорию, чтобы создать подкатегорию, или оставьте выбранным корневой уровень."
+
+msgid "Create"
+msgstr "Создать"
+
+msgid "Cancel"
+msgstr "Отмена"
+
+msgid "Create a Shop-Script stock"
+msgstr "Создать склад Shop-Script"
+
+msgid "Existing products will receive zero balances for the new stock."
+msgstr "Для существующих товаров на новом складе будут установлены нулевые остатки."
+
+msgid "Cleanup Wildberries migration tables"
+msgstr "Очистка таблиц импорта Wildberries"
+
+msgid "Select the tables you want to truncate. This operation cannot be undone."
+msgstr "Выберите таблицы, которые нужно очистить. Это действие нельзя отменить."
+
+msgid "Select all tables"
+msgstr "Выбрать все таблицы"
+
+msgid "Clear"
+msgstr "Очистить"
+
+msgid "Access denied."
+msgstr "Доступ запрещен."
+
+msgid "Invalid Wildberries category mapping parameters."
+msgstr "Некорректные параметры сопоставления категорий Wildberries."
+
+msgid "Shop-Script category was not found."
+msgstr "Категория Shop-Script не найдена."
+
+msgid "Select a static Shop-Script category."
+msgstr "Выберите статическую категорию Shop-Script."
+
+msgid "The Wildberries snapshot has changed. Reload the page and try again."
+msgstr "Данные Wildberries для импорта изменились. Обновите страницу и попробуйте снова."
+
+msgid "Wildberries parent category was not found in the current snapshot."
+msgstr "Родительская категория Wildberries не найдена в текущих данных для импорта."
+
+msgid "Wildberries subject was not found in the current snapshot."
+msgstr "Предмет Wildberries не найден в текущих данных для импорта."
+
+msgid "Wildberries subject does not belong to the selected parent category."
+msgstr "Предмет Wildberries не относится к выбранной родительской категории."
+
+msgid "Invalid Wildberries category mapping action."
+msgstr "Некорректное действие сопоставления категорий Wildberries."
+
+msgid "Select a Shop-Script category."
+msgstr "Выберите категорию Shop-Script."
+
+msgid "Another Wildberries operation is in progress. Try again."
+msgstr "Выполняется другая операция Wildberries. Попробуйте снова."
+
+msgid "Finish or cancel the active Wildberries import before clearing tables."
+msgstr "Перед очисткой таблиц завершите или отмените выполняющийся импорт Wildberries."
+
+msgid "Wait for the Wildberries snapshot to finish before clearing tables."
+msgstr "Перед очисткой таблиц дождитесь завершения сбора данных Wildberries."
+
+msgid "Enter a category name."
+msgstr "Введите название категории."
+
+msgid "Invalid Wildberries category creation parameters."
+msgstr "Некорректные параметры создания категории Wildberries."
+
+msgid "Invalid Shop-Script parent category."
+msgstr "Некорректная родительская категория Shop-Script."
+
+msgid "This category is being created in another request. Try again in a moment."
+msgstr "Эта категория создается другим запросом. Повторите попытку через несколько секунд."
+
+msgid "The newly created Shop-Script category was not found."
+msgstr "Только что созданная категория Shop-Script не найдена."
+
+msgid "The Wildberries parent category is skipped. Change its mapping before creating a subcategory."
+msgstr "Родительская категория Wildberries пропускается. Измените ее сопоставление перед созданием подкатегории."
+
+msgid "Wildberries parent category name is missing from the current snapshot."
+msgstr "В текущих данных для импорта отсутствует название родительской категории Wildberries."
+
+msgid "Select a static Shop-Script parent category."
+msgstr "Выберите статическую родительскую категорию Shop-Script."
+
+msgid "Invalid Wildberries warehouse key."
+msgstr "Некорректный ключ склада Wildberries."
+
+msgid "Wildberries warehouse was not found in the current snapshot."
+msgstr "Склад Wildberries не найден в текущих данных для импорта."
+
+msgid "Enter a stock name."
+msgstr "Введите название склада."
+
+msgid "Another stock with this name is being created. Try again in a moment."
+msgstr "Другой склад с таким названием уже создается. Повторите попытку через несколько секунд."
+
+msgid "Unable to create the Shop-Script stock."
+msgstr "Не удалось создать склад Shop-Script."
+
+msgid "The newly created Shop-Script stock was not found."
+msgstr "Только что созданный склад Shop-Script не найден."
+
+msgid "Wildberries import run is missing."
+msgstr "Запуск импорта Wildberries отсутствует."
+
+msgid "Get a Wildberries snapshot before starting import."
+msgstr "Перед запуском импорта соберите данные Wildberries."
+
+msgid "Save a Wildberries API token first."
+msgstr "Сначала сохраните API-токен Wildberries."
+
+msgid "Enter a Wildberries API token."
+msgstr "Введите API-токен Wildberries."
+
+msgid "API token saved."
+msgstr "API-токен сохранен."
+
+msgid "Invalid Wildberries stock mapping parameters."
+msgstr "Некорректные параметры сопоставления складов Wildberries."
+
+msgid "Shop-Script stock was not found."
+msgstr "Склад Shop-Script не найден."
+
+msgid "Invalid Wildberries stock mapping action."
+msgstr "Некорректное действие сопоставления складов Wildberries."
+
+msgid "Select a Shop-Script stock."
+msgstr "Выберите склад Shop-Script."
+
+msgid "Enter a Wildberries API token first."
+msgstr "Сначала введите API-токен Wildberries."
+
+msgid "Wildberries API access confirmed."
+msgstr "Доступ к API Wildberries подтверждён."
+
+msgid "Wildberries API access is incomplete"
+msgstr "Доступ к API Wildberries предоставлен не полностью"
+
+msgid "Connection successful, but some Wildberries API categories are unavailable."
+msgstr "Подключение установлено, но некоторые категории API Wildberries недоступны."
+
+msgid "The Wildberries API token cannot be used to collect products."
+msgstr "Этот API-токен Wildberries нельзя использовать для сбора данных о товарах."
+
+msgid "The Wildberries API token does not provide access to the following API categories:"
+msgstr "Для API-токена Wildberries не включён доступ к следующим категориям:"
+
+msgid "Data from these categories will not be collected. Reissue the token with the missing permissions to import all available data."
+msgstr "Данные из этих категорий не будут собраны. Перевыпустите токен, включив недостающие категории, чтобы импортировать все доступные данные."
+
+msgid "Content access is required to collect product data. Reissue the token with the required permissions."
+msgstr "Для сбора данных о товарах необходим доступ к категории «Контент». Перевыпустите токен с необходимыми правами."
+
+msgid "Content"
+msgstr "Контент"
+
+msgid "Prices and discounts"
+msgstr "Цены и скидки"
+
+msgid "Marketplace"
+msgstr "Маркетплейс"
+
+msgid "Wildberries API access could not be checked: %s"
+msgstr "Не удалось проверить доступ к API Wildberries: %s"
+
+msgid "Checking Wildberries API access..."
+msgstr "Проверка доступа к API Wildberries…"
+
+msgid "The Wildberries API token has expired. Reissue the token and try again."
+msgstr "Срок действия API-токена Wildberries истёк. Перевыпустите токен и повторите попытку."
+
+msgid "Unable to read Wildberries API token permissions. Reissue the token and try again."
+msgstr "Не удалось определить права доступа API-токена Wildberries. Перевыпустите токен и повторите попытку."
+
+msgid "Unable to check Wildberries API token permissions."
+msgstr "Не удалось проверить права доступа API-токена Wildberries."
+
+msgid "The Wildberries API access check is incomplete. Confirmed results have been saved."
+msgstr "Проверка доступа к API Wildberries пока не завершена. Подтверждённые результаты сохранены."
+
+msgid "Wildberries API access check is incomplete"
+msgstr "Проверка доступа к API Wildberries пока не завершена"
+
+msgid "The request limit for %s has been reached. Retry this category in %d seconds."
+msgstr "Превышен лимит запросов для категории «%s». Повторите её проверку через %d сек."
+
+msgid "The %s access check is already in progress. Try again in %d seconds."
+msgstr "Проверка доступа к категории «%s» уже выполняется. Повторите проверку через %d сек."
+
+msgid "Access to %s could not be checked temporarily. Retry this category in %d seconds."
+msgstr "Не удалось проверить доступ к категории «%s» из-за временной ошибки. Повторите её проверку через %d сек."
+
+msgid "Stopping Wildberries data collection..."
+msgstr "Остановка сбора данных Wildberries…"
+
+msgid "Could not stop Wildberries data collection. Try saving again."
+msgstr "Не удалось остановить сбор данных Wildberries. Попробуйте сохранить настройки ещё раз."
+
+msgid "Save the API token before starting import."
+msgstr "Сохраните API-токен перед запуском импорта."
+
+msgid "Invalid Wildberries type mapping parameters."
+msgstr "Некорректные параметры сопоставления типов товаров Wildberries."
+
+msgid "Shop-Script product type was not found."
+msgstr "Тип товаров Shop-Script не найден."
+
+msgid "Invalid Wildberries type mapping action."
+msgstr "Некорректное действие сопоставления типов товаров Wildberries."
+
+msgid "Select a Shop-Script product type."
+msgstr "Выберите тип товаров Shop-Script."
+
+msgid "Import products via Wildberries seller API"
+msgstr "Импорт товаров через API продавца Wildberries"
+
+msgid "Данные для импорта"
+msgstr "Данные для импорта"
+
+msgid "История сбора данных и служебные данные."
+msgstr "История сбора данных и служебные данные."
+
+msgid "Товары"
+msgstr "Товары"
+
+msgid "Список товаров, полученных из Ozon."
+msgstr "Список товаров, полученных из Ozon."
+
+msgid "Категории"
+msgstr "Категории"
+
+msgid "Плоское дерево категорий Ozon."
+msgstr "Плоское дерево категорий Ozon."
+
+msgid "Атрибуты"
+msgstr "Атрибуты"
+
+msgid "Описания атрибутов категорий и типов."
+msgstr "Описания атрибутов категорий и типов."
+
+msgid "Значения атрибутов"
+msgstr "Значения атрибутов"
+
+msgid "Значения атрибутов товаров Ozon."
+msgstr "Значения атрибутов товаров Ozon."
+
+msgid "Склады"
+msgstr "Склады"
+
+msgid "Склады, найденные в данных для импорта."
+msgstr "Склады, найденные в данных для импорта."
+
+msgid "Остатки"
+msgstr "Остатки"
+
+msgid "Остатки по складам и предложениям."
+msgstr "Остатки по складам и предложениям."
+
+msgid "Сопоставление типов"
+msgstr "Сопоставление типов"
+
+msgid "Автоматические связи типов товаров."
+msgstr "Автоматические связи типов товаров."
+
+msgid "Сопоставление категорий"
+msgstr "Сопоставление категорий"
+
+msgid "Автоматические связи категорий."
+msgstr "Автоматические связи категорий."
+
+msgid "Сопоставление складов"
+msgstr "Сопоставление складов"
+
+msgid "Связи складов Ozon со складами Shop-Script."
+msgstr "Связи складов Ozon со складами Shop-Script."
+
+msgid "Сопоставление характеристик"
+msgstr "Сопоставление характеристик"
+
+msgid "Созданные характеристики и их связи."
+msgstr "Созданные характеристики и их связи."
+
+msgid "Сопоставление товаров"
+msgstr "Сопоставление товаров"
+
+msgid "Привязки offer_id к товарам Shop-Script."
+msgstr "Привязки offer_id к товарам Shop-Script."
+
+msgid "Wildberries subject ID is invalid."
+msgstr "Некорректный ID предмета Wildberries."
+
+msgid "Wildberries seller warehouse ID is invalid."
+msgstr "Некорректный ID склада продавца Wildberries."
+
+msgid "Wildberries API token is empty."
+msgstr "API-токен Wildberries не указан."
+
+msgid "Unable to prepare a Wildberries API request."
+msgstr "Не удалось подготовить запрос к API Wildberries."
+
+msgid "Unable to connect to Wildberries API."
+msgstr "Не удалось подключиться к API Wildberries."
+
+msgid "Wildberries API returned an invalid response."
+msgstr "API Wildberries вернул некорректный ответ."
+
+msgid "Wildberries rejected the API token. Check the token and try again."
+msgstr "Wildberries отклонил API-токен. Проверьте токен и попробуйте снова."
+
+msgid "The API token does not grant access to the requested Wildberries API method."
+msgstr "У API-токена недостаточно прав для выполнения этой операции."
+
+msgid "Wildberries API request limit has been exceeded. Try again later."
+msgstr "Превышен лимит запросов к API Wildberries. Попробуйте позже."
+
+msgid "Wildberries API returned HTTP status %d."
+msgstr "API Wildberries вернул HTTP-статус %d."
+
+msgid "Image %d could not be imported: %s"
+msgstr "Не удалось импортировать изображение %d: %s"
+
+msgid "The image will be retried in the next import batch."
+msgstr "Повторная попытка загрузить изображение будет выполнена в следующем пакете импорта."
+
+msgid "Shop-Script did not save the image."
+msgstr "Shop-Script не сохранил изображение."
+
+msgid "The Wildberries image download did not finish within the import batch time limit."
+msgstr "Загрузка изображения Wildberries не завершилась за время, отведенное на пакет импорта."
+
+msgid "No usable Wildberries image URL was found."
+msgstr "Не найден подходящий URL изображения Wildberries."
+
+msgid "Wildberries returned an unsafe image URL."
+msgstr "Wildberries вернул небезопасный URL изображения."
+
+msgid "Unable to create a temporary image directory."
+msgstr "Не удалось создать временную папку для изображений."
+
+msgid "Unable to allocate a temporary image file."
+msgstr "Не удалось создать временный файл изображения."
+
+msgid "Unable to download the Wildberries image."
+msgstr "Не удалось загрузить изображение Wildberries."
+
+msgid "Unable to open a temporary image file."
+msgstr "Не удалось открыть временный файл изображения."
+
+msgid "The Wildberries image download timed out."
+msgstr "Превышено время ожидания загрузки изображения Wildberries."
+
+msgid "The Wildberries image download was interrupted."
+msgstr "Загрузка изображения Wildberries была прервана."
+
+msgid "The Wildberries image is too large."
+msgstr "Изображение Wildberries слишком большое."
+
+msgid "Unable to write a temporary image file."
+msgstr "Не удалось записать временный файл изображения."
+
+msgid "Wildberries returned an empty image."
+msgstr "Wildberries вернул пустое изображение."
+
+msgid "Wildberries returned an invalid image file."
+msgstr "Wildberries вернул некорректный файл изображения."
+
+msgid "The Wildberries image dimensions are too large."
+msgstr "Слишком большие размеры изображения Wildberries."
+
+msgid "The Wildberries image format is not supported."
+msgstr "Формат изображения Wildberries не поддерживается."
+
+msgid "Another Wildberries import is being started."
+msgstr "Уже запускается другой импорт Wildberries."
+
+msgid "A completed Wildberries snapshot is required before import."
+msgstr "Для начала импорта нужно сначала собрать данные Wildberries."
+
+msgid "Wildberries group %d could not be imported: %s"
+msgstr "Не удалось импортировать группу Wildberries %d: %s"
+
+msgid "Wildberries import stopped because of an internal error: %s"
+msgstr "Импорт Wildberries остановлен из-за внутренней ошибки: %s"
+
+msgid "The Wildberries card has no importable variants."
+msgstr "В карточке Wildberries нет вариаций, доступных для импорта."
+
+msgid "A pending Wildberries product is already linked to another source group."
+msgstr "Незавершенный товар Wildberries уже связан с другой исходной группой."
+
+msgid "Unable to create a Shop-Script product."
+msgstr "Не удалось создать товар Shop-Script."
+
+msgid "Unable to save the Wildberries product mapping."
+msgstr "Не удалось сохранить сопоставление товара Wildberries."
+
+msgid "The Shop-Script product being imported no longer exists."
+msgstr "Импортируемый товар Shop-Script больше не существует."
+
+msgid "The Shop-Script product type is missing."
+msgstr "Тип товаров Shop-Script отсутствует."
+
+msgid "Size"
+msgstr "Размер"
+
+msgid "Unable to finalize the Wildberries product mapping."
+msgstr "Не удалось завершить сопоставление товара Wildberries."
+
+msgid "Product \"%s\" was imported but remains hidden because prices were not collected. Set SKU prices and availability before publishing it."
+msgstr "Товар «%s» импортирован, но оставлен скрытым, поскольку цены не были получены. Перед публикацией укажите цены артикулов и разрешите их покупку."
+
+msgid "Feature \"%s\" cannot store multiple values. Enable text feature import to preserve all values."
+msgstr "Характеристика «%s» не может сохранить несколько значений. Включите импорт характеристик в текстовом формате, чтобы сохранить все значения."
+
+msgid "Wildberries data collection was stopped. Start it again."
+msgstr "Сбор данных Wildberries остановлен. Запустите его заново."
+
+msgid "A pending Wildberries SKU is already linked to another variant."
+msgstr "Незавершенный артикул Wildberries уже связан с другой вариацией."
+
+msgid "Unable to create a Shop-Script SKU."
+msgstr "Не удалось создать артикул Shop-Script."
+
+msgid "Unable to save the Wildberries SKU mapping."
+msgstr "Не удалось сохранить сопоставление артикула Wildberries."
+
+msgid "Unable to create the Wildberries size feature."
+msgstr "Не удалось создать характеристику размера Wildberries."
+
+msgid "Wildberries product %d"
+msgstr "Товар Wildberries %d"
+
+msgid "Processed images for %d of %d products."
+msgstr "Обработаны изображения для %d из %d товаров."
+
+msgid "Processed %d of %d Wildberries products."
+msgstr "Обработано %d из %d товаров Wildberries."
+
+msgid "Wildberries image import"
+msgstr "Импорт изображений Wildberries"
+
+msgid "Wildberries product import"
+msgstr "Импорт товаров Wildberries"
+
+msgid "Preparing import..."
+msgstr "Подготовка к импорту..."
+
+msgid "Closing this window does not stop the import."
+msgstr "Закрытие этого окна не остановит импорт."
+
+msgid "Cancel import"
+msgstr "Отменить импорт"
+
+msgid "Cancellation requested"
+msgstr "Отмена запрошена"
+
+msgid "Connection lost. Retrying..."
+msgstr "Соединение прервано. Повторяем попытку..."
+
+msgid "Wildberries import failed."
+msgstr "Не удалось выполнить импорт из Wildberries."
+
+msgid "Import is running."
+msgstr "Импорт выполняется."
+
+msgid "Failed"
+msgstr "Ошибок"
+
+msgid "Images imported"
+msgstr "Импортировано изображений"
+
+msgid "Image errors"
+msgstr "Ошибок при импорте изображений"
+
+msgid "Cancel the import after the current product is completed?"
+msgstr "Отменить импорт после обработки текущего товара?"
+
+msgid "Cancel Wildberries import?"
+msgstr "Отменить импорт из Wildberries?"
+
+msgid "The importer will finish the product currently being processed and then stop."
+msgstr "Импорт остановится после обработки текущего товара."
+
+msgid "Products completed before cancellation will remain in Shop-Script."
+msgstr "Уже импортированные товары останутся в Shop-Script."
+
+msgid "Yes, cancel import"
+msgstr "Да, отменить импорт"
+
+msgid "Continue import"
+msgstr "Продолжить импорт"
+
+msgid "Requesting cancellation..."
+msgstr "Запрашиваем отмену..."
+
+msgid "Save the API token before loading a snapshot."
+msgstr "Перед сбором данных сохраните API-токен."
+
+msgid "Loading Wildberries snapshot..."
+msgstr "Собираем данные Wildberries для импорта..."
+
+msgid "Wildberries snapshot is ready."
+msgstr "Данные Wildberries для импорта собраны."
+
+msgid "Snapshot progress is invalid. Start loading again."
+msgstr "Ход сбора данных некорректен. Запустите сбор заново."
+
+msgid "Load a completed Wildberries snapshot first."
+msgstr "Сначала соберите данные Wildberries для импорта."
+
+msgid "The action URL is missing."
+msgstr "Не указан URL действия."
+
+msgid "Cancellation requested. The current product will be completed first."
+msgstr "Запрошена отмена. Сначала будет завершена обработка текущего товара."
+
+msgid "Wildberries import was cancelled after completing the current product."
+msgstr "Импорт Wildberries отменен после завершения обработки текущего товара."
+
+msgid "Wildberries import failed. Review the errors below."
+msgstr "Импорт Wildberries завершился с ошибкой. Проверьте сообщения ниже."
+
+msgid "Wildberries product images have been imported."
+msgstr "Изображения товаров Wildberries импортированы."
+
+msgid "Wildberries products have been imported into Shop-Script."
+msgstr "Товары Wildberries импортированы в Shop-Script."
+
+msgid "Wildberries import run was not found."
+msgstr "Запуск импорта Wildberries не найден."
+
+msgid "Invalid Wildberries snapshot ID."
+msgstr "Некорректный ID данных Wildberries для импорта."
+
+msgid "Invalid Wildberries parent category ID."
+msgstr "Некорректный ID родительской категории Wildberries."
+
+msgid "Invalid Wildberries subject ID."
+msgstr "Некорректный ID предмета Wildberries."
+
+msgid "Enter a Shop-Script category name."
+msgstr "Введите название категории Shop-Script."
+
+msgid "Unable to create a Shop-Script category."
+msgstr "Не удалось создать категорию Shop-Script."
+
+msgid "Select a Shop-Script category for the manual Wildberries mapping."
+msgstr "Выберите категорию Shop-Script для ручного сопоставления с Wildberries."
+
+msgid "Wildberries category names are missing from the current snapshot."
+msgstr "В текущих данных для импорта отсутствуют названия категорий Wildberries."
+
+msgid "The mapped Shop-Script category no longer exists."
+msgstr "Сопоставленная категория Shop-Script больше не существует."
+
+msgid "Wildberries products can be mapped only to a static Shop-Script category."
+msgstr "Товары Wildberries можно сопоставить только со статической категорией Shop-Script."
+
+msgid "Invalid Wildberries characteristic ID."
+msgstr "Некорректный ID характеристики Wildberries."
+
+msgid "Unable to resolve a Shop-Script feature for the Wildberries characteristic."
+msgstr "Не удалось подобрать характеристику Shop-Script для характеристики Wildberries."
+
+msgid "Unable to create a Shop-Script feature."
+msgstr "Не удалось создать характеристику Shop-Script."
+
+msgid "The newly created Shop-Script feature was not found."
+msgstr "Только что созданная характеристика Shop-Script не найдена."
+
+msgid "Wildberries characteristic name is missing from the current snapshot."
+msgstr "В текущих данных для импорта отсутствует название характеристики Wildberries."
+
+msgid "Invalid Shop-Script feature ID."
+msgstr "Некорректный ID характеристики Shop-Script."
+
+msgid "The mapped Shop-Script feature no longer exists."
+msgstr "Сопоставленная характеристика Shop-Script больше не существует."
+
+msgid "Wildberries characteristic was not found in the current snapshot."
+msgstr "Характеристика Wildberries не найдена в текущих данных для импорта."
+
+msgid "Invalid Shop-Script product type ID."
+msgstr "Некорректный ID типа товаров Shop-Script."
+
+msgid "The Shop-Script product type no longer exists."
+msgstr "Тип товаров Shop-Script больше не существует."
+
+msgid "Select a Shop-Script stock for the manual Wildberries mapping."
+msgstr "Выберите склад Shop-Script для ручного сопоставления с Wildberries."
+
+msgid "Enter a Shop-Script stock name."
+msgstr "Введите название склада Shop-Script."
+
+msgid "Unable to create a Shop-Script stock."
+msgstr "Не удалось создать склад Shop-Script."
+
+msgid "Wildberries warehouse %s"
+msgstr "Склад Wildberries %s"
+
+msgid "The mapped Shop-Script stock no longer exists."
+msgstr "Сопоставленный склад Shop-Script больше не существует."
+
+msgid "Select a Shop-Script product type for the manual Wildberries mapping."
+msgstr "Выберите тип товаров Shop-Script для ручного сопоставления с Wildberries."
+
+msgid "Enter a Shop-Script product type name."
+msgstr "Введите название типа товаров Shop-Script."
+
+msgid "Another product type with this name is being created. Try again in a moment."
+msgstr "Другой тип товаров с таким названием уже создается. Повторите попытку через несколько секунд."
+
+msgid "Unable to create a Shop-Script product type."
+msgstr "Не удалось создать тип товаров Shop-Script."
+
+msgid "The mapped Shop-Script product type no longer exists."
+msgstr "Сопоставленный тип товаров Shop-Script больше не существует."
+
+msgid "Snapshots"
+msgstr "Данные для импорта"
+
+msgid "Wildberries snapshot history and build state."
+msgstr "История сбора данных Wildberries и состояние сборки."
+
+msgid "Parent categories"
+msgstr "Родительские категории"
+
+msgid "Top-level Wildberries categories stored in snapshots."
+msgstr "Категории Wildberries верхнего уровня, сохраненные в данных для импорта."
+
+msgid "Subcategories"
+msgstr "Подкатегории"
+
+msgid "Wildberries subjects and their parent categories."
+msgstr "Предметы Wildberries и их родительские категории."
+
+msgid "Product cards"
+msgstr "Карточки товаров"
+
+msgid "Product cards received from Wildberries."
+msgstr "Карточки товаров, полученные из Wildberries."
+
+msgid "Product variants"
+msgstr "Вариации товаров"
+
+msgid "Wildberries product sizes, barcodes, and variant identifiers."
+msgstr "Размеры, штрихкоды и идентификаторы вариаций товаров Wildberries."
+
+msgid "Characteristics"
+msgstr "Характеристики"
+
+msgid "Wildberries characteristic definitions for product subjects."
+msgstr "Описания характеристик Wildberries для предметов товаров."
+
+msgid "Characteristic values"
+msgstr "Значения характеристик"
+
+msgid "Characteristic values assigned to Wildberries products."
+msgstr "Значения характеристик товаров Wildberries."
+
+msgid "Prices"
+msgstr "Цены"
+
+msgid "Wildberries prices for products and variants."
+msgstr "Цены Wildberries на товары и их вариации."
+
+msgid "Wildberries warehouses found in snapshots."
+msgstr "Склады Wildberries, найденные в данных для импорта."
+
+msgid "Stocks"
+msgstr "Остатки"
+
+msgid "Wildberries stock quantities by warehouse and variant."
+msgstr "Остатки Wildberries по складам и вариациям товаров."
+
+msgid "Product type mapping"
+msgstr "Сопоставление типов товаров"
+
+msgid "Wildberries subject mappings to Shop-Script product types."
+msgstr "Сопоставления предметов Wildberries с типами товаров Shop-Script."
+
+msgid "Wildberries category mappings to Shop-Script categories."
+msgstr "Сопоставления категорий Wildberries с категориями Shop-Script."
+
+msgid "Feature mapping"
+msgstr "Сопоставление характеристик"
+
+msgid "Wildberries characteristic mappings to Shop-Script features."
+msgstr "Сопоставления характеристик Wildberries с характеристиками Shop-Script."
+
+msgid "Warehouse mapping"
+msgstr "Сопоставление складов"
+
+msgid "Wildberries warehouse mappings to Shop-Script stocks."
+msgstr "Сопоставления складов Wildberries со складами Shop-Script."
+
+msgid "Product mapping"
+msgstr "Сопоставление товаров"
+
+msgid "Wildberries product card mappings to Shop-Script products."
+msgstr "Сопоставления карточек Wildberries с товарами Shop-Script."
+
+msgid "Variant mapping"
+msgstr "Сопоставление вариаций"
+
+msgid "Wildberries variant mappings to Shop-Script SKUs."
+msgstr "Сопоставления вариаций Wildberries с артикулами Shop-Script."
+
+msgid "Image mapping"
+msgstr "Сопоставление изображений"
+
+msgid "Downloaded Wildberries image mappings to Shop-Script images."
+msgstr "Сопоставления загруженных изображений Wildberries с изображениями Shop-Script."
+
+msgid "Import runs"
+msgstr "Запуски импорта"
+
+msgid "Wildberries import progress, counters, and completion state."
+msgstr "Ход импорта Wildberries, счетчики и состояние завершения."
+
+msgid "Wildberries snapshot was not found."
+msgstr "Данные Wildberries для импорта не найдены."
+
+msgid "Wildberries snapshot cannot be resumed because its status is %s."
+msgstr "Нельзя продолжить сбор данных Wildberries: его статус — %s."
+
+msgid "The Wildberries snapshot could not be completed. Review the import log and start a new snapshot."
+msgstr "Не удалось завершить сбор данных Wildberries. Проверьте журнал импорта и запустите сбор заново."
+
+msgid "Unknown Wildberries snapshot phase: %s."
+msgstr "Неизвестный этап сбора данных Wildberries: %s."
+
+msgid "Brand"
+msgstr "Бренд"
+
+msgid "Package length, cm"
+msgstr "Длина упаковки, см"
+
+msgid "Package width, cm"
+msgstr "Ширина упаковки, см"
+
+msgid "Package height, cm"
+msgstr "Высота упаковки, см"
+
+msgid "Gross weight, kg"
+msgstr "Вес товара с упаковкой, кг"
+
+msgid "Wildberries returned the same product page again. The plugin will retry automatically."
+msgstr "Wildberries снова вернул ту же страницу товаров. Плагин автоматически повторит загрузку."
+
+msgid "The Wildberries API token has no access to seller warehouses; seller stocks were skipped."
+msgstr "API-токен Wildberries не предоставляет доступ к складам продавца; остатки продавца пропущены."
+
+msgid "The Wildberries API token has no access to seller stocks; seller stocks were skipped."
+msgstr "API-токен Wildberries не предоставляет доступ к остаткам продавца; остатки продавца пропущены."
+
+msgid "Wildberries prices were not collected because the API token does not allow access to prices and discounts."
+msgstr "Цены Wildberries не собраны: для API-токена не включён доступ к категории «Цены и скидки»."
+
+msgid "Wildberries warehouses and stocks were not collected because the API token does not allow access to Marketplace data."
+msgstr "Склады продавца и остатки на них не собраны: для API-токена не включён доступ к категории «Маркетплейс»."
+
+msgid "Old Wildberries snapshots could not be removed."
+msgstr "Не удалось удалить старые данные Wildberries для импорта."
+
+msgid "The Wildberries API token changed while the snapshot was loading. Start a new snapshot."
+msgstr "API-токен Wildberries изменился во время сбора данных. Запустите сбор данных заново."
+
+msgid "Wildberries API returned an error."
+msgstr "API Wildberries вернул ошибку."
+
+msgid "Wildberries API is temporarily unavailable. The snapshot will retry automatically."
+msgstr "API Wildberries временно недоступен. Сбор данных будет продолжен автоматически."
+
+msgid "product cards"
+msgstr "карточки товаров"
+
+msgid "parent categories"
+msgstr "родительские категории"
+
+msgid "categories and subcategories"
+msgstr "категории и подкатегории"
+
+msgid "characteristic schemas"
+msgstr "схемы характеристик"
+
+msgid "prices"
+msgstr "цены"
+
+msgid "seller warehouses"
+msgstr "склады продавца"
+
+msgid "seller warehouse stocks"
+msgstr "остатки на складах продавца"
+
+msgid "Collecting Wildberries data before import: %s%% (%s)"
+msgstr "Собираем данные Wildberries перед импортом: %s%% (%s)"
+
+msgid "Not enough PHP memory to process a Wildberries image."
+msgstr "Недостаточно памяти PHP для обработки изображения Wildberries."
+
+msgid "Wildberries database schema for table %s is invalid."
+msgstr "Схема базы данных Wildberries для таблицы %s некорректна."
+
+msgid "Wildberries database schema is missing."
+msgstr "Схема базы данных Wildberries отсутствует."
+
+msgid "Wildberries data collection was stopped after saving the API token."
+msgstr "Сбор данных Wildberries был остановлен после сохранения токена API."
+
+msgid "API token saved. Wildberries data collection stopped."
+msgstr "Токен API сохранён. Сбор данных Wildberries остановлен."
+
+msgid "Not enough PHP memory to process the Wildberries image."
+msgstr "Недостаточно памяти PHP для обработки изображения Wildberries."
+
+msgid "The selected Webasyst image adapter is not supported."
+msgstr "Выбранный адаптер обработки изображений Webasyst не поддерживается."
+
+msgid "The selected Webasyst image adapter is not available."
+msgstr "Выбранный адаптер обработки изображений Webasyst недоступен."

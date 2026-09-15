@@ -5,9 +5,10 @@ return array(
     'description'  => /*_wp*/('Transfer data from other ecommerce platforms to Shop-Script'),
     'img'          => 'img/migrate.svg',
     'vendor'       => 'webasyst',
-    'version'      => '2.4.7',
+    'version'      => '2.5.1',
     'importexport' => true,
     'handlers'     => array(
         'backend_welcome' => 'backendWelcomeHandler',
+        'products_collection' => 'productsCollectionHandler',
     ),
 );

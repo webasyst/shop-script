@@ -695,7 +695,7 @@ class shopMigratePluginOzonSnapshotBuilder
 
         $attributes_model = $this->repository->getAttributesModel();
         foreach ($pairs as $key => $pair) {
-            $this->ensureRuntimeNotExceeded('load attributes for category/type pairs');
+            $this->ensureRuntimeNotExceeded('load attributes for categories');
             try {
                 $response = $this->api->getAttributesForCategory($pair['description_category_id'], $pair['type_id']);
             } catch (Exception $e) {
@@ -939,7 +939,7 @@ class shopMigratePluginOzonSnapshotBuilder
             return;
         }
         throw new waException(sprintf(
-            'Snapshot build exceeded %d seconds at phase: %s',
+            'Data collection exceeded %d seconds at phase: %s',
             self::HARD_DEADLINE_SECONDS,
             (string) $phase
         ));
