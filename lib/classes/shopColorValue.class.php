@@ -58,7 +58,7 @@ class shopColorValue implements ArrayAccess
                 $style = "";
                 if ($this->code !== null) {
                     $d = !!(0xFF & $this->code < 0x7F) + !!(0xFF & ($this->code >> 8) < 0x7F) + 2 * !!(0xFF & ($this->code >> 16) < 0x7F);
-                    if ($d > 2) {
+                    if ($d > 1) {
                         $color = 0xFFFFFF;
                     } else {
                         $color = 0x000000;
