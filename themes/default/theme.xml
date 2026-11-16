@@ -436,6 +436,13 @@
       <name locale="en_US">Successful payment message</name>
       <name locale="ru_RU">Сообщение после завершения оплаты заказа</name>
     </setting>
+    <setting var="show_header_second_level" control_type="checkbox">
+        <value>1</value>
+        <name locale="ru_RU">Меню второго уровня</name>
+        <name locale="en_US">Second level-menu</name>
+        <description locale="ru_RU"><![CDATA[Применяется только к текущему приложению. В зависимости от раздела сайта второй уровень меню может содержать важные элементы: кнопку каталога, поле поиска, ссылки на подразделы и т.д.<br><br>Рекомендуется отключать на сайтах с небольшим количеством контента, например, в интернет-магазина с небольшим каталогом. При необходимости ссылки на разделы каталога можно добавить в меню первого уровня в разделе «Настройки» в приложении «Сайт».]]></description>
+        <description locale="en_US"><![CDATA[Applies only to the current app. Depending on the section of the website, the second-level menu may contain important elements such as the catalog button, search field, and links to subsections.<br><br>We recommend disabling it on websites with a small amount of content, such as online stores with a small catalog. If needed, links to catalog categories can be added to the top-level menu in the Settings section of the Site app.]]></description>
+    </setting>
   </settings>
   <thumbs>
     <thumb>96x96</thumb>

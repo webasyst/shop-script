@@ -1033,6 +1033,13 @@ class shopPayment extends waAppPayment
         $fiscalization->declareFiscalization('payment', $plugin->getId(), $custom_data);
     }
 
+    /** @since 12.8.0 */
+    public function declareFees($order_id, waPayment $plugin, $fee_amount, ?string $description = null, bool $precise = false, bool $preliminary = false)
+    {
+        $fees = new shopOrderFees((int)$order_id);
+        $fees->declareFees((float)$fee_amount, 'payment_'.$plugin->getId(), $description, $precise, $preliminary);
+    }
+
     /** 
      * Returns a list of payment options for given order, using given payment plugins returned by self::getMethodsByOrder().
      * Additionally, loads $m['instance'] for all and $m['order_data'] for some of the $methods (unless already present in $m).

@@ -10,6 +10,7 @@ class shopSettingsShippingSetupAction extends waViewAction
         try {
             $this->view->assign('plugin_id', $plugin_id = waRequest::get('plugin_id'));
             $this->view->assign('plugin', $info = shopShipping::getPluginInfo($plugin_id));
+            $this->view->assign('fee_percent_default', ifset($info, 'info', 'fee_percent', 0.0));
 
             $taxes_mode = new shopTaxModel();
             $this->view->assign('taxes', $taxes_mode->getAll());

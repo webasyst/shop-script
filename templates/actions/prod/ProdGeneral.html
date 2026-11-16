@@ -313,6 +313,23 @@
                         </div>
                     </div>
 
+                    <div class="field">
+                        <div class="name">
+
+                            <div class="wa-label">
+                                <div>
+                                    [`External links`]
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="value">
+                            {* !!! TODO 
+                            {$product.external_entities|wa_dumpc}
+                            {* *}
+                        </div>
+                    </div>
+
                     <!-- plugin hook: 'backend_prod_content.form_top' -->
                     {* @event backend_prod_content.%plugin_id%.form_top *}
                     {if !empty($backend_prod_content_event)}{foreach $backend_prod_content_event as $_}{ifset($_.form_top)}{/foreach}{/if}

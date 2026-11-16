@@ -143,6 +143,21 @@
                                         {/foreach}
                                     {/if}
                                 </ul>
+
+                                {if !empty($params.is_end_customer_unknown)}
+
+                                    {* for an unknown end customer, order contact_id is considered as a contractor responsible for charging a fee/commission, e.g. marketplace, b2b partner — display it here if we know it *}
+
+                                    {if floatval($order.fee) > 0.00001}
+                                        <p class="small">
+                                            [`Fees`] —
+                                            <b>{wa_currency_html($order.fee, $order.currency)}</b>
+                                            {if !empty($order_fees_description)}<span class="hint">{$order_fees_description|escape}</span>{/if}
+                                        </p>
+                                    {/if}
+
+                                {/if}
+
                             </div>
                             {* MAP *}
                             {if $shipping_address}
@@ -158,7 +173,7 @@
                         {$has_payment = !empty($params.payment_name)}
                         {$has_shipping = !empty($params.shipping_name)}
                         {$has_shipping_address = !empty($shipping_address)}
-                        {if $has_shipping_address || $has_payment || $has_shipping}
+                        {if empty($params.is_end_customer_unknown) && ($has_shipping_address || $has_payment || $has_shipping)}
                         <div class="flexbox space-8 break-word">
                             {* SHIPPING *}
                             <div class="bordered s-block width-{if $has_payment}50{else}100{/if}">
@@ -245,6 +260,16 @@
                                 {if $billing_address !== null}
                                     <p class="s-order-address">{$billing_address}</p>
                                 {/if}
+
+                                {if floatval($order.fee) > 0.00001}
+                                    {* for orders with a known end customer, fees are associated with payment *}
+                                    <p class="small">
+                                        [`Fees`] —
+                                        <b>{wa_currency_html($order.fee, $order.currency)}</b>
+                                        {if !empty($order_fees_description)}<span class="hint">{$order_fees_description|escape}</span>{/if}
+                                    </p>
+                                {/if}
+
                             </div>
                             {/if}
                         </div>

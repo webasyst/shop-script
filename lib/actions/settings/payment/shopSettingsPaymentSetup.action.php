@@ -58,6 +58,7 @@ class shopSettingsPaymentSetupAction extends waViewAction
             unset($s);
 
             $this->view->assign(compact('plugin', 'shipping_types', 'payment_types', 'shipping', 'settings_html', 'guide_html', 'storefronts'));
+            $this->view->assign('fee_percent_default', ifset($plugin, 'info', 'fee_percent', 0.0));
         } catch (waException $ex) {
             $this->view->assign('error', $ex->getMessage());
         }

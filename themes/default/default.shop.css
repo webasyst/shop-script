@@ -239,7 +239,7 @@ ul.thumbs li .pickup-btn {
     padding: 0.875rem;
 }
 ul.thumbs li .gotocart-btn {
-    background-color: var(--gray6);
+    background-color: var(--button-selected-bg-color, var(--gray6));
     color: var(--accent-color);
     padding: 0.5rem 0.875rem;
 }
@@ -593,7 +593,7 @@ h1 .rating i.icon16 { margin-top: 0.42em; }
 .add2cart .badge:not(:last-child) { margin-right: 4px; }
 .add2cart .price { font-size: 2em; font-weight: bold; }
 .add2cart .pickup-btn { white-space: nowrap; background-color: var(--pickup-btn-bg); color: var(--pickup-btn-color); font-weight: 600; padding: 0.875em; }
-.add2cart .gotocart-btn { background-color: var(--gray6); color: var(--accent-color); padding: .5em 2em; vertical-align: middle; }
+.add2cart .gotocart-btn { background-color: var(--button-selected-bg-color, var(--gray6)); color: var(--accent-color); padding: .5em 2em; vertical-align: middle; }
 .add2cart .pickup-btn:hover,
 .add2cart .gotocart-btn:hover {
     background-color: var(--button-hover-bg-color);
@@ -864,7 +864,7 @@ input.error, textarea.error { border: 2px solid var(--red); }
 
 .wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button { display: block;
     margin-top: 1rem; }
-.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"] { background: var(--link-color); color: var(--white); }
+.wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"] { background: var(--link-color); color: var(--accent-contrast-color, var(--white)) !important; }
 .wa-forgotpassword-form-wrapper .wa-forgotpassword-form-fields .wa-field .wa-forgotpassword-button input[type="submit"]:hover { opacity: 0.75; }
 
 /* Dialogs

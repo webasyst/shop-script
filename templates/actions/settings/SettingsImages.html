@@ -373,9 +373,9 @@
 
             <main class="dialog-content">
                 <p>[`This will start the process of deleting all existing product thumbnails and re-generating them from full-size versions according to latest thumbnail generation settings such as sharpening and JPEG compression quality. Depending on the number of products, re-generation may take some time to complete and may free some disk space on your server.`]</p>
-                <p class="small">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <em>[`While thumbnails are re-generated, your storefront visitors should see no difference in your storefront functioning, and there should be no broken images, because new thumbnails are created by Webasyst automatically upon user request. However, since creating new thumbnails consume server resources, your server may experience above-average load while new thumbnails are created. The overload depends on the number of requests on thumbnails generation, i.e. on your storefront traffic. It is recommended to perform thumbnail re-generation when your storefront traffic is at its lowest.`]</em>
+                <p class="hint">
+                    <i class="fas fa-exclamation-triangle text-yellow"></i>
+                    <span>[`While thumbnails are re-generated, your storefront visitors should see no difference in your storefront functioning, and there should be no broken images, because new thumbnails are created by Webasyst automatically upon user request. However, since creating new thumbnails consume server resources, your server may experience above-average load while new thumbnails are created. The overload depends on the number of requests on thumbnails generation, i.e. on your storefront traffic. It is recommended to perform thumbnail re-generation when your storefront traffic is at its lowest.`]</span>
                 </p>
 
                 <h5>[`Optional settings`]</h5>
@@ -442,7 +442,10 @@
                         </div>
                     </div>
 
-                    <div class="hint">[`Please don’t close your browser window until re-generation is over.`]</div>
+                    <div class="state-caution-hint custom-mt-12 flexbox middle space-8">
+                        <span class="spinner large"></span>
+                        <span>[`Please don’t close your browser window until re-generation is over.`]</span>
+                    </div>
 
                     <div class="state-error"></div>
                 </div>

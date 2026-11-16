@@ -54,6 +54,7 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             'shop_country'          => $shop_config->getGeneralSettings('country'),
             'shop_version'          => wa('shop')->getVersion(),
             'shop_schedule'         => (new shopFrontApiScheduleFormatter())->format($shop_config->getSchedule()),
+            'shipping_enabled'      => (bool)ifset($checkout_config, 'shipping', 'used', false),
             'shipping_mode'         => ifempty($checkout_config, 'shipping', 'mode', shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT),
             'shipping_locations'    => $this->getShippingLocations($checkout_config),
             'locale'                => wa()->getLocale(),

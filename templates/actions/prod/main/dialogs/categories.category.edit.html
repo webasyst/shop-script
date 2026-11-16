@@ -372,7 +372,7 @@
                     &nbsp;
                     <span class="s-name">[`Upload file`]</span>
                 </button>
-                <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" title="">
+                <input class="js-file-field cursor-pointer" type="file" v-on:change="onFileChange($event)" v-bind:disabled=!category.id title="">
             </div>
 
             <div v-if="file_to_upload">
@@ -574,7 +574,8 @@
                                     v-bind:category="category"
                                     v-bind:max_file_size="{floor(waRequest::getUploadMaxFilesize() / 102.4)/10}"
                                 ></component-category-thumb>
-                                <p class="hint">[`A thumbnail is used in the mini-app catalog navigation and on the public storefront (if supported by your design theme).`]</p>
+                                <p class="hint" v-if="category.id" v-once>[`A thumbnail is used in the mini-app catalog navigation and on the public storefront (if supported by your design theme).`]</p>
+                                <p class="hint" v-else>[`Save the category first to be able to upload a logo.`]</p>
                             </div>
                         </div>
 

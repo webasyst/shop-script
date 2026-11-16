@@ -55,6 +55,8 @@ class shopWorkflowPayAction extends shopWorkflowAction
 
     protected function preparePayData(&$result, $order)
     {
+        $this->declareFees($order['id']);
+
         if (!$order['paid_year']) {
             shopAffiliate::applyBonus($order['id']);
             if ($this->getConfig()->getOption('order_paid_date') == 'create') {

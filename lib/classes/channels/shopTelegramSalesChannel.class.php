@@ -214,12 +214,12 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
             ),
             'free_shipping_informer_amount_settings' => array(
                 'value' => $this->getFreeShippingInformerFieldValue($values),
-                'title' => _w('Сумма для бесплатной доставки'),
+                'title' => _w('Minimal order amount when shipping becomes free'),
                 'control_type' => 'shop_free_shipping_informer_amount',
             ),
             'free_shipping_informer_per_method_settings' => array(
                 'value' => $this->getFreeShippingInformerFieldValue($values),
-                'title' => _w('Set up a minimum amount for a shipping method'),
+                'title' => _w('Configure by shipping method'),
                 'control_type' => 'shop_free_shipping_informer_per_method',
                 'shipping_methods' => $this->getFreeShippingMethodsByStorefront($storefront),
             ),

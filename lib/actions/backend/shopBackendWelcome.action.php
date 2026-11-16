@@ -453,12 +453,12 @@ class shopBackendWelcomeAction extends waViewAction
                 'title' => $all_currencies['RUB']['title'],
             ),
             array(
-                'code'  => 'UAH',
-                'title' => $all_currencies['UAH']['title'],
-            ),
-            array(
                 'code'  => 'BYN',
                 'title' => $all_currencies['BYN']['title'],
+            ),
+            array(
+                'code'  => 'UAH',
+                'title' => $all_currencies['UAH']['title'],
             ),
             array(
                 'code'  => 'USD',
@@ -473,16 +473,22 @@ class shopBackendWelcomeAction extends waViewAction
                 'title' => null,
             ),
         );
+        $currencies = array_column($currencies, null, 'code');
 
         uasort($all_currencies, wa_lambda('$a, $b', 'return strcmp($a["title"], $b["title"]);'));
 
         foreach ($all_currencies as $currency) {
-            $currencies[] = array(
-                'code'  => $currency['code'],
-                'title' => $currency['title'],
-            );
+            if (isset($currencies[$currency['code']])) {
+                $currencies[$currency['code']]['country_iso3'] = ifset($currency, 'country_iso3', null);
+            } else {
+                $currencies[] = array(
+                    'code'  => $currency['code'],
+                    'title' => $currency['title'],
+                    'country_iso3' => ifset($currency, 'country_iso3', null),
+                );
+            }
         }
 
-        return $currencies;
+        return array_values($currencies);
     }
 }

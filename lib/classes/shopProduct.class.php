@@ -524,6 +524,20 @@ class shopProduct implements ArrayAccess
         return $video;
     }
 
+    public function getExternalEntities()
+    {
+        $external_entity_model = new shopExternalEntityModel();
+        $external_entities = $external_entity_model->getByEntity('product', [$this->id]);
+        $external_entities = ifset($external_entities, $this->id, []);
+
+        foreach ($external_entities as &$link) {
+            $link['external_url'] = $external_entity_model->buildExternalUrl($link, ['p' => $this->data]);
+            unset($link['url_template']);
+        }
+        unset($link);
+        return $external_entities;
+    }
+
     /**
      * Returns product's subpages.
      *

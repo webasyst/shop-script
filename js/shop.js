@@ -1184,13 +1184,11 @@
 
                 showSidebar() {
                     this.$sidebar.removeClass(this.toggleClass);
-                    this.$content.addClass(this.toggleClass);
                     sessionStorage.setItem(this.namespace, 'showSidebar');
                 }
 
                 hideSidebar() {
                     this.$sidebar.addClass(this.toggleClass);
-                    this.$content.removeClass(this.toggleClass);
                     sessionStorage.setItem(this.namespace, 'hideSidebar');
                 }
 

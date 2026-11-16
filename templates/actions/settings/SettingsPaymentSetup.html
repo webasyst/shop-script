@@ -73,6 +73,18 @@
             </div>
         </div>
 
+        <div class="field">
+            <div class="name for-input">
+                <label for="s-payment-plugin-fee-percent">[`Avg. fee`]</label>
+            </div>
+
+            <div class="value">
+                <input type="number" min="0" max="100" step="0.01" name="payment[options][fee_percent]" class="shortest" value="{ifset($plugin, 'options', 'fee_percent', $fee_percent_default)}" id="s-payment-plugin-fee-percent">%
+
+                <div class="hint custom-mt-4">[`Optional. An average percentage of the order amount charged as a payment fee (commission) for this payment option. This setting will neither increase nor decrease the order amount for a customer in any way, but is useful for evaluation/comparison purposes and analytics.`]</div>
+            </div>
+        </div>
+
     </div>
 
     <!-- CUSTOM PAYMENT MODULE PARAMS -->

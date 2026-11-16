@@ -12,6 +12,9 @@ class shopSettingsShippingSaveController extends waJsonController
                 if (!isset($plugin['settings'])) {
                     $plugin['settings'] = array();
                 }
+                if (isset($plugin['options']['fee_percent'])) {
+                    $plugin['options']['fee_percent'] = self::normalizeFeePercent($plugin['options']['fee_percent']);
+                }
                 shopShipping::savePlugin($plugin);
 
                 $is_edit = intval($plugin['id']) > 0;
@@ -169,5 +172,15 @@ class shopSettingsShippingSaveController extends waJsonController
     protected static function saveFile($data, $version = '')
     {
         waUtils::varExportToFile($data, wa()->getConfig()->getConfigPath("checkout$version.php", true, 'shop'));
+    }
+
+    /** Normalize the fee_percent option to a float within [0; 100]; empty or invalid values become 0. */
+    protected static function normalizeFeePercent($value)
+    {
+        $value = trim((string)$value);
+        if ($value === '' || !is_numeric($value)) {
+            return 0;
+        }
+        return max(0, min(100, (float)$value));
     }
 }

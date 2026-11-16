@@ -12,7 +12,7 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=((((n%10)==1)&&((n%100)!=11))?(0):(((((n%10)>=2)&&((n%10)<=4))&&(((n%100)<10)||((n%100)>=20)))?(1):2));\n"
 "X-Poedit-SourceCharset: utf-8\n"
 "X-Poedit-Basepath: .\n"
-"X-Generator: Poedit 3.4.2\n"
+"X-Generator: Poedit 3.9\n"
 "X-Poedit-SearchPath-0: .\n"
 "X-Poedit-SearchPath-1: .\n"
 
@@ -2671,17 +2671,17 @@ msgstr "своих заказов"
 msgid "Credited for"
 msgstr "Начислено за"
 
-msgid "Follow-ups will not be sent, because cron is not properly configured."
-msgstr "Отправка триггерных (отложенных) сообщений в данный момент не работает, так как не настроен планировщик CRON."
+msgid "Follow-ups will not be sent, because no Cron job is properly configured."
+msgstr "Отправка триггерных (отложенных) сообщений не работает, потому что не настроено задание Cron."
 
-msgid "Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case."
-msgstr "Для автоматизированной отправки триггерных (отложенных) сообщений необходимо настроить CRON, который будет запускать скрипт отправки по расписанию без вашего участия."
+msgid "Follow-ups require a Cron job to be properly set up, which is currently not the case."
+msgstr "Для автоматизированной отправки триггерных (отложенных) сообщений необходимо настроить задание Cron, которое сейчас не активировано."
 
-msgid "Set up cron with the following command (<a href=\"%s\" target=\"_blank\">cron setup instructions</a>):"
-msgstr "Настройте CRON с указанной ниже командой в контрольной панели вашего хостинга (<a href=\"%s\" target=\"_blank\">документация по настройке</a>):"
+msgid "Set up a Cron job with the following command (<a href=\"%s\" target=\"_blank\">cron setup instructions</a>):"
+msgstr "Настройте задание Cron с этой командой в контрольной панели вашего хостинга (<a href=\"%s\" target=\"_blank\">документация по настройке</a>):"
 
 msgid "https://developers.webasyst.com/installation/tips/cron/"
-msgstr "https://developers.webasyst.ru/docs/tips/cron/"
+msgstr "https://developers.webasyst.ru/docs/installation/tips/cron/"
 
 msgid "Send in"
 msgstr "Отправлять через"
@@ -2728,8 +2728,8 @@ msgstr "У вас еще не было начислений по партнер�
 msgid "Shipment tracking number"
 msgstr "Номер отправления"
 
-msgid "Follow-ups are configured properly. Latest cron execution time: <strong>%s</strong>."
-msgstr "Отправка триггерных (отложенных) сообщений настроена и готова к работе. Последний запуск планировщика CRON: <strong>%s</strong>."
+msgid "Follow-ups are configured properly. Latest Cron job execution time: <strong>%s</strong>."
+msgstr "Отправка триггерных (отложенных) сообщений настроена и готова к работе. Последний запуск задания Cron: <strong>%s</strong>."
 
 msgid "This category does not contain any products."
 msgstr "В этой категории нет ни одного товара."
@@ -8113,7 +8113,7 @@ msgstr "Экспортировать описания"
 msgid "Generating a shopping cart from selected items"
 msgstr "Формируем корзину из выбранных товаров"
 
-msgid "Selecting shipping and payment options for selected items"
+msgid "Getting shipping and payment options for selected items"
 msgstr "Подбираем варианты доставки и оплаты для выбранных товаров"
 
 msgid "More billing addresses"
@@ -8815,23 +8815,23 @@ msgstr "Недостаточно прав доступа для редактир
 msgid "Insufficient access rights to delete selected products."
 msgstr "Недостаточно прав доступа для удаления выбранных товаров."
 
-msgid "Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>."
-msgstr "Автоматическое обновление информации о доставке выполняется. Последний запуск планировщика CRON: <strong>%s</strong>."
+msgid "Shipping-related information is automatically updated. Latest Cron job execution time: <strong>%s</strong>."
+msgstr "Автоматическое обновление информации о доставке выполняется. Последний запуск задания Cron: <strong>%s</strong>."
 
-msgid "Shipping-related information is not automatically updated, because cron is not properly configured."
-msgstr "Автоматическое обновление информации о доставке не выполняется, потому что не настроен планировщик CRON."
+msgid "Shipping-related information is not automatically updated, because no Cron job is properly configured."
+msgstr "Автоматическое обновление информации о доставке не выполняется, потому что не настроено задание Cron."
 
-msgid "Latest cron execution time: <strong>%s</strong>."
-msgstr "Последний запуск планировщика CRON: <strong>%s</strong>."
+msgid "Latest Cron job execution time: <strong>%s</strong>."
+msgstr "Последний запуск задания Cron: <strong>%s</strong>."
 
-msgid "Recommended cron execution interval is %d hour."
-msgid_plural "Recommended cron execution interval is %d hours."
-msgstr[0] "Рекомендуемая частота срабатывания интервала планировщика CRON — %d час."
-msgstr[1] "Рекомендуемая частота срабатывания интервала планировщика CRON — %d часа."
-msgstr[2] "Рекомендуемая частота срабатывания интервала планировщика CRON — %d часов."
+msgid "Recommended Cron job execution interval: %d hour."
+msgid_plural "Recommended Cron job execution interval: %d hours."
+msgstr[0] "Рекомендуемая частота выполнения задания Cron: %d час."
+msgstr[1] "Рекомендуемая частота выполнения задания Cron: %d часа."
+msgstr[2] "Рекомендуемая частота выполнения задания Cron: %d часов."
 
-msgid "For shipping-related information to be automatically updated, a cron setup is required."
-msgstr "Для автоматического обновления информации о доставке необходимо настроить планировщик CRON."
+msgid "For shipping-related information to be automatically updated, a configured Cron job is required."
+msgstr "Для автоматического обновления информации о доставке необходимо настроить задание Cron."
 
 msgid "Set up types &amp; features"
 msgstr "Настроить типы и характеристики"
@@ -9389,7 +9389,7 @@ msgid "Use only for selected storefronts"
 msgstr "Использовать для выбранных витрин"
 
 msgid "Cron setup instructions"
-msgstr "Инструкции по настройке CRON"
+msgstr "Инструкции по настройке Cron"
 
 msgid "Number of products per page"
 msgstr "Количество товаров на странице"
@@ -9835,8 +9835,8 @@ msgstr "Основная модификация товара"
 msgid "Make the main product variant"
 msgstr "Сделать основной модификацией товара"
 
-msgid "The variant is available for purchase."
-msgstr "Модификация доступна для покупки."
+msgid "The SKU variant is available for purchase."
+msgstr "Модификация артикула доступна для покупки."
 
 msgid "The variant is unavailable for purchase."
 msgstr "Модификация недоступна для покупки."
@@ -13432,7 +13432,7 @@ msgstr "напиши обзор товара для SEO"
 msgid "Input"
 msgstr "Запрос"
 
-msgid "prompt to AI"
+msgid "prompt for AI"
 msgstr "параметры для передачи ИИ"
 
 msgid "More options"
@@ -13453,8 +13453,8 @@ msgstr "пропустить"
 msgid "AI-generate anyway"
 msgstr "все равно написать с помощью ИИ"
 
-msgid "AI requests"
-msgstr "Запросов к ИИ"
+msgid "AI tokens"
+msgstr "Токенов ИИ"
 
 msgid "Generate & force-save all now"
 msgstr "Написать и сохранить для всех товаров"
@@ -13495,8 +13495,8 @@ msgstr "Пакетная ИИ-генерация и SEO"
 msgid "Duration"
 msgstr "Длительность"
 
-msgid "Remaining Webasyst AI prompts: %s"
-msgstr "Остаток запросов Webasyst AI: %s"
+msgid "Remaining Webasyst AI tokens: %s"
+msgstr "Остаток токенов Webasyst AI: %s"
 
 msgid "Only available with the premium license."
 msgstr "Доступно только с премиум-лицензией."
@@ -13917,9 +13917,6 @@ msgstr "2+ каналов одного типа доступны только с
 
 msgid "New sales channel"
 msgstr "Новый канал продаж"
-
-msgid "https://app.shop-script.com/s/%s/"
-msgstr "https://app.shop-script.ru/s/%s/"
 
 msgid "Set up a mini-app online store within the %s messaging app. Your store seamlessly integrates with %s via a custom bot or a public channel and supports an in-mini-app checkout."
 msgstr "Настройте мини-приложение с витриной своего магазина в мессенджере %s. Магазин напрямую интегрируется с %s через бота или публичный канал и позволяет оформлять заказы внутри мини-приложения."
@@ -14578,8 +14575,8 @@ msgstr "Улучшить изображение с ИИ"
 msgid "Webasyst AI will use this product image as the source for a new image in the selected style."
 msgstr "Webasyst AI использует это изображение товара в качестве основы для нового изображения в выбранном вами стиле."
 
-msgid "%s prompt cost multiplier applies for image generation tasks with Webasyst AI."
-msgstr "%s — коэффициент стоимости запросов Webasyst AI, применяемый для ИИ-генерации изображений."
+msgid "%s token consumption rate applies for image generation tasks with Webasyst AI."
+msgstr "%s — коэффициент стоимости запросов к Webasyst AI в токенах, применяемый для ИИ-генерации изображений."
 
 msgid "This will process all selected products one by one and auto-set new generated images to the first (default) position for each product respectively."
 msgstr "Выбранные товары будут обработаны по одному, и сгенерированные изображения будут установлены в качестве первых (основных) для каждого из товаров."
@@ -15082,6 +15079,9 @@ msgstr "(рекомендуется)"
 msgid "This setting applies to all images uploaded in Shop-Script, including product images, category images, and customer reviews uploads."
 msgstr "Эта настройка применяется ко всем изображениям, загружаемым в Shop-Script, включая изображения товаров, категорий и файлов в отзывах покупателей."
 
+msgid "Save the category first to be able to upload a logo."
+msgstr "Сохраните категорию, чтобы загрузить логотип."
+
 msgid "All catalog"
 msgstr "Весь каталог"
 
@@ -15151,5 +15151,41 @@ msgstr "Показывать виджет"
 msgid "Encourages customers to increase their order value. Minimum amounts for free shipping are configured within the shipping plugins. Some plugins may not support displaying this information in the informer."
 msgstr "Стимулирует покупателей к повышению чека заказа. Минимальные суммы для бесплатной доставки указываются в плагинах доставки. Некоторые плагины могут не поддерживать показ информации в индикаторе."
 
-msgid "Set up a minimum amount for a shipping method"
-msgstr "Настроить минимальную сумму для способа доставки"
+msgid "Several display options:"
+msgstr "Несколько вариантов отображения:"
+
+msgid "<strong>Embedded storefront</strong>. Display a fully functional product catalog anywhere within your custom site design."
+msgstr "<strong>Встроенная витрина</strong>. Разместите полноценный каталог товаров прямо внутри структуры и дизайна вашего сайта."
+
+msgid "<strong>“Buy now” button</strong>. Open a sleek pop-up area over a webpage. The background gently blurs, keeping the customer completely focused on the purchase."
+msgstr "<strong>Кнопка «Купить сейчас»</strong>. Открывает окно покупки поверх вашей страницы. Задний план аккуратно размывается, полностью фокусируя внимание покупателя на заказе."
+
+msgid "<strong>Key advantage</strong>: customers never have to leave your website — both checkout and payment happen on the same page."
+msgstr "<strong>Главный плюс</strong>: клиентам не нужно покидать ваш ресурс — вся оплата и оформление происходят на одной странице."
+
+msgid "Add a complete online store with checkout functionality to <span %s>any website</span> using a ready-to-use JavaScript snippet, even if the site is not powered by Webasyst."
+msgstr "Добавьте полноценный магазин с возможностью покупок на <span %s>любой сайт</span> с помощью готового JavaScript-кода. Даже если сайт не работает на основе Webasyst."
+
+msgid "Fees"
+msgstr "Комиссии"
+
+msgid "Avg. fee"
+msgstr "Средняя комиссия"
+
+msgid "Optional. An average percentage of the order amount charged as a payment fee (commission) for this payment option. This setting will neither increase nor decrease the order amount for a customer in any way, but is useful for evaluation/comparison purposes and analytics."
+msgstr "Необязательно. Настройка среднего процента комиссии не увеличивает и не уменьшает сумму заказа для клиента, но полезна для аналитики — помогает лучше оценивать затраты по каждому способу оплаты."
+
+msgid "FBS"
+msgstr "FBS"
+
+msgid "External “%s”"
+msgstr "Внешняя ссылка «%s»"
+
+msgid "Minimal order amount when shipping becomes free"
+msgstr "Минимальная сумма заказа, когда доставка становится бесплатной"
+
+msgid "Configure by shipping method"
+msgstr "Настроить по способу доставки"
+
+msgid "Invalid amount value."
+msgstr "Сумма введена неверно."

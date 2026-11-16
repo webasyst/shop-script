@@ -53,7 +53,7 @@
         {/if}
 
         <div class="pricing wa-flex wa-flex-wrap space-05 align-items-center wa-mt-4">
-            <span class="price nowrap wa-mb-0">{shop_currency_html($p.price)}</span>{$p.compare_price = 12345}
+            <span class="price nowrap wa-mb-0">{shop_currency_html($p.price)}</span>
             {if $available && $p.compare_price > 0}
                 <span class="compare-at-price nowrap small"> {shop_currency_html($p.compare_price)}</span>
             {/if}

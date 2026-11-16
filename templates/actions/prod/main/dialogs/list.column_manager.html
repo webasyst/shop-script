@@ -210,6 +210,39 @@
                         </div>
                     </div>
                 </template>
+
+                {* CUSTOM (plugin) columns: generic settings rendered from settings_schema *}
+                <template v-else-if="column.settings_schema">
+                    <div class="s-options-list">
+                        <div class="s-option-wrapper" v-for="field in column.settings_schema" v-bind:key="field.name">
+                            <div class="s-field-wrapper">
+                                <div class="s-label" v-if="field.label" v-text="field.label"></div>
+
+                                <template v-if="field.type === 'textarea'">
+                                    <component-textarea v-model="settings[field.name]"></component-textarea>
+                                </template>
+
+                                <template v-else-if="field.type === 'checkbox'">
+                                    <component-switch v-model="settings[field.name]"></component-switch>
+                                </template>
+
+                                <template v-else-if="field.type === 'select'">
+                                    <select class="s-field" v-model="settings[field.name]">
+                                        <option v-for="option in (field.options || [])" v-bind:key="option.value" v-bind:value="option.value" v-text="option.name"></option>
+                                    </select>
+                                </template>
+
+                                <template v-else-if="field.type === 'number'">
+                                    <component-input v-model="settings[field.name]" v-bind:format="'number'"></component-input>
+                                </template>
+
+                                <template v-else>
+                                    <component-input v-model="settings[field.name]"></component-input>
+                                </template>
+                            </div>
+                        </div>
+                    </div>
+                </template>
             </div>
         </template>
     </div>

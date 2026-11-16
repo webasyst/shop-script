@@ -54,7 +54,7 @@
 {capture assign="_component_review"}
     <div class="vue-component-review" v-bind:class="{ 'is-locked' : states.is_delete, 'is-new' : review.is_new }">
         <div class="tablebox space-16">
-            <div class="s-column-status-switch custom-pt-4"
+            <div class="s-column-status-switch custom-pt-4 custom-pr-8 custom-pt-2-mobile"
                 v-bind:style="{ 'visibility' : (review.status === '{$review_states["deleted"]}' ? 'hidden' : '') }">
                 <component-switch
                     v-bind:key="states.reload_key"
@@ -71,19 +71,19 @@
                         <span class="text-orange bold" v-if="review.status === '{$review_states["moderation"]}'">[`Under moderation`]</span>
                     </div>
                     <div class="s-column-actions align-right">
-                        <button class="button small light-gray"
+                        <button class="button smaller light-gray rounded"
                                 v-if="!states.is_deleted"
                                 v-on:click.prevent="reviewDelete">
                             <span class="s-icon text-red" v-if="!states.is_wait" v-bind:key="1"><i class="fas fa-trash-alt"></i></span>
                             <span class="s-icon" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-name">[`Delete`]</span>
+                            <span class="s-name desktop-and-tablet-only">[`Delete`]</span>
                         </button>
-                        <button class="button small light-gray"
+                        <button class="button smaller light-gray rounded"
                                 v-if="states.is_deleted"
                                 v-on:click.prevent="reviewRestore">
                             <span class="s-icon icon size-16 text-gray" v-if="!states.is_wait" v-bind:key="1"><svg><use xlink:href='{$_sprite_url}#trash-alt-slash'></use></svg></span>
                             <span class="s-icon" v-if="states.is_wait" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
-                            <span class="s-name">[`Restore`]</span>
+                            <span class="s-name desktop-and-tablet-only">[`Restore`]</span>
                         </button>
                     </div>
                 </div>
@@ -154,7 +154,7 @@
                                     v-on:click.prevent="imageView(image)"
                                     v-bind:style="{ 'background-image' : 'url(' + image.thumb + ')' }"></div>
 
-                            <div class="s-image-action" v-on:click.prevent="imageDelete(image)">
+                            <div class="s-image-action button nobutton" v-on:click.prevent="imageDelete(image)">
                                 <span class="icon size-12" v-if="!image.states.is_delete" v-bind:key="1"><i class="fas fa-trash-alt text-red"></i></span>
                                 <span class="icon size-12" v-if="image.states.is_delete" v-bind:key="2"><i class="fas fa-spinner fa-spin"></i></span>
                             </div>
@@ -162,7 +162,7 @@
                     </div>
                 </div>
 
-                <div class="s-review-actions">
+                <div class="s-review-actions small-mobile">
                     <button class="button small wa-short bold outlined"
                             v-on:click.prevent="formToggle(true)">
                         <span class="s-name">[`Reply`]</span>

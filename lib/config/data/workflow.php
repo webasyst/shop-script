@@ -27,6 +27,45 @@ return array(
                 'sendpin',
             ),
         ),
+        'fbs'        => array(
+            'name'              => _w('FBS'),
+            'options'           => array(
+                'icon'  => 'fas fa-store',
+                'style' => array(
+                    'color' => '#22d13d',
+                ),
+            ),
+            'payment_allowed'   => false,
+            'available_actions' => array(
+                'fulfilling',
+                'complete',
+                'comment',
+                'edit',
+                'editcode',
+                'editshippingdetails',
+                'message',
+                'delete',
+            ),
+        ),
+        'fbm'        => array(
+            'name'              => _w('FBM'),
+            'options'           => array(
+                'icon'  => 'fas fa-warehouse',
+                'style' => array(
+                    'color' => '#22d13d',
+                ),
+            ),
+            'payment_allowed'   => false,
+            'available_actions' => array(
+                'complete',
+                'comment',
+                'edit',
+                'editcode',
+                'editshippingdetails',
+                'message',
+                'delete',
+            ),
+        ),
         'processing' => array(
             'name'              => _w('Confirmed'),
             'options'           => array(

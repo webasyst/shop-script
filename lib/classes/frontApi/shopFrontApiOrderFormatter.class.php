@@ -5,8 +5,10 @@ class shopFrontApiOrderFormatter extends shopFrontApiFormatter
 {
     public function format(array $order)
     {
+        $order['id_encoded'] = $order['id_str'];
         $allowed_fields = [
             'id' => 'integer',
+            'id_encoded' => 'string',
             'create_datetime' => 'string',
             'state_id' => 'string',
             'currency' => 'string',

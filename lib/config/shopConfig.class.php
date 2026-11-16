@@ -81,7 +81,7 @@ class shopConfig extends waAppConfig
         }
 
         if ($module == 'frontend' && waRequest::param('ssl') &&
-            (strpos($action, 'my') === 0 || $action === 'checkout')) {
+            (strpos((string) $action, 'my') === 0 || $action === 'checkout')) {
             if (!waRequest::isHttps()) {
                 $url = 'https://'.waRequest::server('HTTP_HOST').wa()->getConfig()->getCurrentUrl();
                 wa()->getResponse()->redirect($url, 301);

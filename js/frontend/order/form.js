@@ -16,6 +16,8 @@
             that.errors = options["errors"];
             that.scope = options["scope"];
             that.contact_id = options["contact_id"];
+            that.wa_url = options["wa_url"];
+            that.format_phone = !!options["format_phone"];
 
             // DYNAMIC VARS
             that.reload = true;
@@ -86,6 +88,10 @@
             that.initAuth();
 
             that.initDatepicker();
+
+            if (that.format_phone) {
+                that.initFormatPhone();
+            }
         };
 
         Auth.prototype.initAuth = function() {
@@ -396,6 +402,17 @@
 
             return that.scope.update().always( function() {
                 that.reload = true;
+            });
+        };
+
+        Auth.prototype.initFormatPhone = function() {
+            $.ajax({
+                url: `${this.wa_url}wa-content/js/jquery-wa/phone-mask.js`,
+                dataType: 'script',
+                cache: true,
+                global: false
+            }).done(() => {
+                this.$form.find('[name="auth[data][phone]"]').waPhoneMask();
             });
         };
 

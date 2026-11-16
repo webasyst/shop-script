@@ -637,6 +637,13 @@ class shopShipping extends waAppShipping
         return $return;
     }
 
+    /** @since 12.8.0 */
+    public function declareFees($order_id, waShipping $plugin, $fee_amount, ?string $description = null, bool $precise = false, bool $preliminary = false)
+    {
+        $fees = new shopOrderFees((int)$order_id);
+        $fees->declareFees((float)$fee_amount, 'shipping_'.$plugin->getId(), $description, $precise, $preliminary);
+    }
+
     public static function fillDefaultData(&$data)
     {
         if (!isset($data['info'])) {

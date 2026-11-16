@@ -4,7 +4,7 @@
         $wrapper: null,
         pre_search_hash: null,
         search_item_param: null,
-        processing_states_value: 'new|processing|auth|paid|pickup|fulfilling|shipped',
+        processing_states_value: 'new|processing|auth|paid|pickup|fulfilling|shipped|fbs',
         options: {
             view: 'table'      // default view
         },
@@ -133,7 +133,7 @@
             this.initWaLoading();
 
             this.$wrapper.on('wa_init_orders_nav_before', (e, options) => {
-                if (['orders/all', 'orders/state_id=new|processing|auth|paid|pickup'].includes(this.hash)) {
+                if (['orders/all', 'orders/state_id=new|processing|auth|paid|pickup|fbs'].includes(this.hash)) {
                     this.setFiltersHashStorage(this.hash);
                 }
             });
@@ -498,7 +498,7 @@
             const that = this;
             const search_hash = 'hash=search';
             const allowed_filters_mask = ['params.', 'state_id=', 'courier_contact_id=', 'manager_contact_id', 'fulfillment_contact_id', 'cashier_contact_id'];
-            const states_processing = 'state_id=new|processing|auth|paid|pickup';
+            const states_processing = 'state_id=new|processing|auth|paid|pickup|fbs';
 
             const highlightedButton = (dropdown) => {
                 dropdown.$button.css({

@@ -280,12 +280,12 @@
         {if $cron_params.status==='ok'}
         <div class="hint">
             <i class="fas {if $cron_params.status==='ok'}fa-check-circle text-green{else} fa-exclamation-triangle text-red{/if}"></i>
-            {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest cron execution time: <strong>%s</strong>.`]"}
+            {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Shipping-related information is automatically updated. Latest Cron job execution time: <strong>%s</strong>.`]"}
         </div>
         {else}
         <div class="alert info align-center-mobile small" style="line-height: 2rem;">
             <i class="fas text-orange fa-exclamation-triangle small"></i>
-            [`Shipping-related information is not automatically updated, because cron is not properly configured.`]
+            [`Shipping-related information is not automatically updated, because no Cron job is properly configured.`]
             <button id="cron-message-link" class="button smaller light-gray rounded">
                 <i class="fas fa-info-circle"></i>
                 [`How to set up?`]
@@ -294,18 +294,18 @@
 
         {if $cron_params.time}
         <div class="hint custom-mt-4">
-            <i class="fas fa-info-circle"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Latest cron execution time: <strong>%s</strong>.`]"}
+            <i class="fas fa-info-circle"></i> {$cron_params.time|wa_datetime:'humandatetime'|string_format:"[`Latest Cron job execution time: <strong>%s</strong>.`]"}
         </div>
         {/if}
 
         <div id="cron-message-dialog" class="hidden">
-            <p>[`For shipping-related information to be automatically updated, a cron setup is required.`]
+            <p>[`For shipping-related information to be automatically updated, a configured Cron job is required.`]
                 {sprintf(
-                '[`Set up cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+                '[`Set up a Cron job with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
                 '[`https://developers.webasyst.com/installation/tips/cron/`]'
                 )}</p>
             <p><strong class="highlighted">{$cron_params.command}</strong></p>
-            <p><strong class="highlighted">{_w('Recommended cron execution interval is %d hour.', 'Recommended cron execution interval is %d hours.', $cron_params.interval)}</strong></p>
+            <p><strong class="highlighted">{_w('Recommended Cron job execution interval: %d hour.', 'Recommended Cron job execution interval: %d hours.', $cron_params.interval)}</strong></p>
         </div>
         {/if}
     </div>

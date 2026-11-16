@@ -248,7 +248,7 @@ class shopFrontendMyOrderAction extends shopFrontendAction
         if (!empty($params['entropy'])) {
             $hash = shopOrder::getPaymentLinkHashFromEntropy($id, $params['entropy']);
         } else {
-            $hash = (new shopOrder($id))::getPaymentLinkHash();
+            $hash = (new shopOrder($id))->getPaymentLinkHash();
         }
         return wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
             'hash' => $hash,

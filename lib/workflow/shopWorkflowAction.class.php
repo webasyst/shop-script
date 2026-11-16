@@ -163,8 +163,14 @@ HTML;
                 }
                 $icon = '<i class="'.$icon.' js-icon custom-mr-4 small text-'.$button_class.'"></i>';
 
+                if ($notification_icons) {
+                    $notification_icons = '<span class="s-notification-icon custom-ml-6">'.$notification_icons.'</span>';
+                }
+
                 return <<<HTML
-<a href="#" {$attrs} class="{$class}" style="{$style}" data-action-id="{$this->getId()}" title="{$description}">{$icon} {$name}<span class="smaller">{$notification_icons}</span></a>
+<a href="#" {$attrs} class="{$class}" style="{$style}" data-action-id="{$this->getId()}" title="{$description}">
+{$icon}<span class="s-text custom-ml-4">{$name}</span>{$notification_icons}
+</a>
 HTML;
             }
 
@@ -486,6 +492,65 @@ HTML;
         return $plugin;
     }
 
+    /**
+     * Declare fees (commissions) for the order based on fee_percent options
+     * of the payment and shipping plugins associated with the order.
+     *
+     * Fees are declared as preliminary estimates; a later declaration overwrites
+     * a preliminary record, while an existing final (non-preliminary) fee is kept.
+     *
+     * @param int $order_id
+     * @return void
+     */
+    protected function declareFees($order_id)
+    {
+        $order = $this->order_model->getById($order_id);
+        if (!$order || empty($order['total'])) {
+            return;
+        }
+        $order['params'] = $this->order_params_model->get($order_id);
+
+        if (!empty($order['params']['payment_id'])) {
+            try {
+                $payment_info = shopPayment::getPluginInfo($order['params']['payment_id']);
+                $fee_percent = (float)ifset($payment_info, 'options', 'fee_percent', 0);
+                if ($fee_percent > 0 && ($payment_plugin = $this->getPaymentPlugin($order_id))) {
+                    $fee_amount = round($order['total'] * $fee_percent / 100, 2);
+                    shopPayment::getInstance()->declareFees(
+                        $order_id,
+                        $payment_plugin,
+                        $fee_amount,
+                        sprintf_wp('Payment fee %s%%', $fee_percent),
+                        false,
+                        true
+                    );
+                }
+            } catch (waException $ex) {
+                // Fee declaration must not break the workflow action
+            }
+        }
+
+        if (!empty($order['params']['shipping_id'])) {
+            try {
+                $shipping_info = shopShipping::getPluginInfo($order['params']['shipping_id']);
+                $fee_percent = (float)ifset($shipping_info, 'options', 'fee_percent', 0);
+                if ($fee_percent > 0 && ($shipping_plugin = $this->getShippingPlugin($order))) {
+                    $fee_amount = round($order['total'] * $fee_percent / 100, 2);
+                    shopShipping::getInstance()->declareFees(
+                        $order_id,
+                        $shipping_plugin,
+                        $fee_amount,
+                        sprintf_wp('Shipping fee %s%%', $fee_percent),
+                        false,
+                        true
+                    );
+                }
+            } catch (waException $ex) {
+                // Fee declaration must not break the workflow action
+            }
+        }
+    }
+
     protected function getOrder(&$order_id, $extend = false)
     {
         if (is_array($order_id)) {
@@ -713,10 +778,10 @@ HTML;
                             $user_ids = array_keys($users);
                         }
                         $user_id = (new shopOrderModel())->query("
-                            SELECT wc.id, COUNT(so.assigned_contact_id) AS cnt 
-                            FROM wa_contact wc 
+                            SELECT wc.id, COUNT(so.assigned_contact_id) AS cnt
+                            FROM wa_contact wc
                             LEFT JOIN shop_order so ON so.assigned_contact_id = wc.id AND so.state_id NOT IN ('completed', 'deleted', 'refunded')
-                            WHERE wc.is_user = 1".(isset($user_ids) ? ' AND wc.id IN (?)' : '')." 
+                            WHERE wc.is_user = 1".(isset($user_ids) ? ' AND wc.id IN (?)' : '')."
                             GROUP BY wc.id
                             ORDER BY cnt, wc.id
                         ", [$user_ids])->fetchField();

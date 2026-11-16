@@ -52,6 +52,19 @@ class shopOrderAction extends waViewAction
         $order_model = new shopOrderModel();
         $order_data_array = $_order->dataArray();
 
+        $order_fees = (new shopOrderFeesModel())->getByField('order_id', $order_data_array['id'], true);
+
+        $order_fees_description = '';
+        if ($order_fees) {
+            $descriptions = array();
+            foreach ($order_fees as $_order_fee) {
+                if (!empty($_order_fee['description'])) {
+                    $descriptions[] = $_order_fee['description'];
+                }
+            }
+            $order_fees_description = implode(', ', $descriptions);
+        }
+
         $payment_storefront = $this->getPaymentStorefront($params);
         $order_data_array['payment_url'] = wa()->getRouting()->getUrl('shop/frontend/paymentLink', [
             'hash' => $_order->getPaymentLinkHash(),
@@ -120,6 +133,7 @@ class shopOrderAction extends waViewAction
             'actions_html'               => $elements['actions_html'],
             'buttons'                    => $elements['buttons'],
             'sales_channel'              => $this->formatSalesChannel($_order->params),
+            'order_fees_description'     => $order_fees_description,
             'filter_params'              => $this->getParams(),
             'filter_params_str'          => $this->getParams(true),
             'count_new'                  => $order_model->getStateCounters('new'),

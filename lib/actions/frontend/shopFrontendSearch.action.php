@@ -4,7 +4,7 @@ class shopFrontendSearchAction extends shopFrontendAction
 {
     public function execute()
     {
-        $query = waRequest::get('query');
+        $query = waRequest::get('query', '', waRequest::TYPE_STRING_TRIM);
         try {
             $this->setCollection(new shopProductsCollection('search/query='.str_replace('&', '\&', $query)));
         } catch (waDbException $dbe) {

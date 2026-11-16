@@ -19,7 +19,7 @@ class shopProdCategoryThumbActions extends waActions
             $error_message = $file->error;
             return $this->displayJson(null, [[
                 'id' => 'upload_failed',
-                'text' => ifempty($error_message, sprintf(_ws('Failed to upload file %s.'), $f->name)),
+                'text' => ifempty($error_message, sprintf(_ws('Failed to upload file %s.'), $file->name)),
             ]]);
         }
         if (!in_array(strtolower($file->extension), $allowed)) {

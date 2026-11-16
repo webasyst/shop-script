@@ -57,10 +57,14 @@
                                             </select>
                                         </div>
                                         <div class="wa-select">
-                                            <select name="currency" id="" {if $actions['welcome'].complete != 1}required{/if} class="width-100 text-ellipsis">
+                                            <select name="currency"{if $actions['welcome'].complete != 1} required{/if} class="width-100 text-ellipsis">
                                                 <option value="" disabled selected>[`Select currency`]</option>
                                                 {foreach $currencies as $currency}
-                                                    <option value="{$currency.code}" title="{$currency.code}" {if $locale_currency && $locale_currency === $currency.code}selected{/if} {if $currency.code === null}disabled{/if}>{$currency.code} — {_w($currency.title)}</option>
+                                                    {$countries_iso3 = []}
+                                                    {if !empty($currency.country_iso3)}
+                                                        {$countries_iso3 = (is_array($currency.country_iso3)) ? $currency.country_iso3 : [$currency.country_iso3]}
+                                                    {/if}
+                                                    <option value="{$currency.code}" title="{$currency.code}" {if $locale_currency && $locale_currency === $currency.code}selected{/if} {if $currency.code === null}disabled{/if}{if $countries_iso3} data-countries="{' '|implode:$countries_iso3|lower}"{/if}>{$currency.code} — {_w($currency.title)}</option>
                                                 {/foreach}
                                             </select>
                                         </div>
@@ -270,6 +274,14 @@
                                 $content_3.last().prop('checked', true).attr('checked', true).trigger('change');
                             }
                         }
+                    });
+
+                    const $country_select = $('select[name="country"]');
+                    const $currencies_select = $('select[name="currency"]');
+                    $country_select.on('change', () => {
+                        const country_iso3 = $country_select.val().toLowerCase();
+                        if (!country_iso3) return;
+                        $currencies_select.find('option[data-countries~="'+country_iso3+'"]').prop('selected', true);
                     });
 
                 })(jQuery);

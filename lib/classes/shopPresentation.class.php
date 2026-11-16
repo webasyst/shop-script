@@ -31,6 +31,9 @@ class shopPresentation
     protected $shop_currency;
     protected $template_filter_id;
 
+    /** @var ?array Cache for backend_prod_list_table_columns hook */
+    protected static $custom_columns = null;
+
     public static function getCurrentTransient()
     {
         $id = waRequest::request('presentation', null, waRequest::TYPE_INT);
@@ -579,6 +582,170 @@ class shopPresentation
         return $columns;
     }
 
+    /**
+     * Get custom columns declared by plugins via the backend_prod_list_table_columns hook.
+     *
+     * Result is normalized to the same shape as getBaseColumnsList() entries and cached in memory.
+     * 
+     * @return array id => column definition
+     */
+    public function getCustomColumnsList()
+    {
+        if (self::$custom_columns === null) {
+            self::$custom_columns = [];
+            /**
+             * @event backend_prod_list_table_columns
+             *
+             * Plugins declare custom columns for the products list table.
+             * Return a flat map [column_id => column_definition].
+             *
+             * $params is read-only context:
+             *  'presentation' => shopPresentation
+             * 
+             * @see backend_prod_list_table event
+             * @since 12.8.0
+             */
+            $results = wa('shop')->event('backend_prod_list_table_columns', ref([
+                'presentation' => $this,
+            ]));
+            foreach ($results as $plugin_id => $plugin_columns) {
+                if (!is_array($plugin_columns)) {
+                    continue;
+                }
+                foreach ($plugin_columns as $column_id => $definition) {
+                    $normalized = $this->normalizeCustomColumn($column_id, $definition);
+                    if ($normalized) {
+                        $normalized['plugin_id'] = $plugin_id;
+                        self::$custom_columns[$normalized['id']] = $normalized;
+                    }
+                }
+            }
+        }
+        return self::$custom_columns;
+    }
+
+    /**
+     * Validate and normalize a single plugin-declared custom column definition.
+     *
+     * @param string $column_id
+     * @param array $definition
+     * @return array|null normalized definition, or null if invalid (skipped)
+     */
+    protected function normalizeCustomColumn($column_id, $definition)
+    {
+        if (!is_array($definition)) {
+            return null;
+        }
+        if (empty($definition['name'])) {
+            if (waSystemConfig::isDebug()) {
+                waLog::log('backend_prod_list_table_columns: custom column "' . $column_id . '" has no name', 'shop/custom_columns.log');
+            }
+            return null;
+        }
+        $id = ifset($definition, 'id', $column_id);
+        if (!is_string($id) || !mb_strlen($id) || mb_strlen($id) > 64) {
+            if (waSystemConfig::isDebug()) {
+                waLog::log('backend_prod_list_table_columns: invalid id "' . $id . '" (must be non-empty string <= 64 chars)', 'shop/custom_columns.log');
+            }
+            return null;
+        }
+        if ($this->isReservedColumnId($id)) {
+            if (waSystemConfig::isDebug()) {
+                waLog::log('backend_prod_list_table_columns: custom column id "' . $id . '" collides with a built-in/feature/stock column', 'shop/custom_columns.log');
+            }
+            return null;
+        }
+
+        $render_scope = ifset($definition, 'render_scope', 'product');
+        if (!in_array($render_scope, ['product', 'sku', 'variant', 'all'], true)) {
+            $render_scope = 'product';
+        }
+
+        $settings_schema = [];
+        if (!empty($definition['settings_schema']) && is_array($definition['settings_schema'])) {
+            foreach ($definition['settings_schema'] as $field) {
+                if (is_array($field) && !empty($field['name']) && !empty($field['type'])) {
+                    $field += [
+                        'label' => '',
+                        'default' => null,
+                        'options' => [],
+                    ];
+                    $settings_schema[] = $field;
+                }
+            }
+        }
+
+        $normalized = [
+            'id' => $id,
+            'name' => $definition['name'],
+            'type' => ifset($definition, 'type', 'varchar'),
+            'disabled' => false,
+            'editable' => !empty($definition['editable']),
+            'sortable' => false,
+            'render_scope' => $render_scope,
+            'is_custom' => true,
+            'settings_schema' => $settings_schema,
+            'inline_update_url' => ifset($definition, 'inline_update_url', ''),
+            'min_width' => ifempty($definition, 'min_width', null),
+            'width' => ifempty($definition, 'width', null),
+            'nowrap' => ifempty($definition, 'nowrap', false),
+        ];
+        $normalized['settings'] = self::getColumnDefaultSettings($normalized);
+        return $normalized;
+    }
+
+    /**
+     * Whether the given id collides with a built-in, feature or stock column id.
+     * @param string $id
+     * @return bool
+     */
+    protected function isReservedColumnId($id)
+    {
+        if (strpos($id, 'feature_') === 0 || strpos($id, 'stocks_') === 0) {
+            return true;
+        }
+        static $reserved_ids = null;
+        if ($reserved_ids === null) {
+            $reserved_ids = array_fill_keys(array_keys($this->getBaseColumnsList()), true);
+        }
+        return isset($reserved_ids[$id]);
+    }
+
+    /**
+     * Build settings array for a column, seeded from its settings_schema defaults.
+     * @param array $column normalized column definition
+     * @return array
+     */
+    public static function getColumnDefaultSettings(array $column): array
+    {
+        if (empty($column_info['is_custom']) || empty($column['settings_schema']) || !is_array($column['settings_schema'])) {
+            return [];
+        }
+        $settings = [];
+        foreach ($column['settings_schema'] as $field) {
+            if (isset($field['default'])) {
+                $settings[$field['name']] = $field['default'];
+            }
+        }
+        return $settings;
+    }
+
+    /**
+     * Get custom column ids that are enabled in the current presentation.
+     * @return array column_type => stored column row
+     */
+    public function getEnabledCustomColumns()
+    {
+        $custom_columns = $this->getCustomColumnsList();
+        $result = [];
+        foreach ($this->getEnabledColumns() as $column) {
+            if (isset($custom_columns[$column['column_type']])) {
+                $result[$column['column_type']] = $column;
+            }
+        }
+        return $result;
+    }
+
     public function getColumnsList($options = [])
     {
         $columns = [];
@@ -586,6 +753,7 @@ class shopPresentation
         $search_string = (string) ifset($options, 'search_string', '');
         if (null === $last_id && !strlen($search_string)) {
             $columns = $this->getBaseColumnsList();
+            $columns += $this->getCustomColumnsList();
         }
 
         // Column for each feature
@@ -1262,7 +1430,25 @@ class shopPresentation
         }
         unset($p);
 
-        // TODO: hook that allows plugins to modify $products
+        /**
+         * @event backend_prod_list_table
+         * Allows plugins to provide values (or visual presentation) for their custom columns.
+         *
+         * $params['products'] is keyed by product id and each product already has a
+         * per-product 'columns' map (built above). Plugins write custom column cell data
+         * by reference, e.g.:
+         *   $params['products'][42]['columns']['my_col'] = ['render_type' => 'html', 'value' => '<b>My value</b>', ...];
+         *
+         * $params['columns'] contains definitions of the enabled custom columns.
+         *
+         * @see backend_prod_list_table_columns event
+         * @since 12.8.0
+         */
+        wa('shop')->event('backend_prod_list_table', ref([
+            'products' => &$products,
+            'columns' => $this->getEnabledCustomColumns(),
+            'presentation' => $this,
+        ]));
     }
 
     /**

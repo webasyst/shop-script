@@ -1402,6 +1402,15 @@
 
                             renderError(error.text, $wrapper, $field.closest(".s-hidden"));
                             break;
+                        case "link_invalid":
+                            const $checkbox = $banner.find(`[data-name="[type_link]"]:checked`);
+
+                            $field = $checkbox.closest('.s-banner-link-type').find('[data-name]:not([type="radio"])').first();
+                            if ($field.length) {
+                                focus_top_array.push($field.offset().top);
+                                renderError('', $field, $field.closest('.value'));
+                            }
+                            break;
                         default:
                             focus_top_array.push($rule.offset().top);
                             renderError(error.text, $rule, $rule.find("> .js-section-footer"));
@@ -2291,20 +2300,6 @@
                 $form = that.$form,
                 is_locked = false;
 
-            that.$submit_button.on("click", function() {
-                that.$wrapper.addClass("with-errors");
-
-                that.$wrapper.find("input:required").each( function() {
-                    var $field = $(this),
-                        is_empty = ($.trim($field.val()).length === 0),
-                        is_visible = $field.is(":visible");
-
-                    if (is_empty && !is_visible) {
-                        $field.trigger("error");
-                    }
-                });
-            });
-
             $form.on("submit", function(event) {
                 event.preventDefault();
 
@@ -2530,37 +2525,40 @@
                 }
 
                 return result;
+            }
 
-                function renderError(error, $error_wrapper) {
-                    var $error = $("<div class=\"s-error-message state-error-hint\" />").text(error.text);
-                    var error_class = "state-error";
+            function renderError(error, $error_wrapper) {
+                let $error = $();
+                const error_class = "state-error";
 
-                    if (error.$field) {
-                        var $field = error.$field;
+                if (error.text) {
+                    $error = $("<div class=\"s-error-message state-error-hint\" />").text(error.text);
+                }
 
-                        if (!$field.hasClass(error_class)) {
-                            $field.addClass(error_class);
+                if (error.$field) {
+                    var $field = error.$field;
 
-                            if ($error_wrapper) {
-                                $error_wrapper.append($error);
-                            } else {
-                                $error.insertAfter($field);
-                            }
+                    if (!$field.hasClass(error_class)) {
+                        $field.addClass(error_class);
 
-                            $field
-                                .trigger("error")
-                                .on("change keyup", removeFieldError);
+                        if ($error_wrapper) {
+                            $error_wrapper.append($error);
+                        } else {
+                            $error.insertAfter($field);
                         }
-                    }
 
-                    function removeFieldError() {
-                        $field.removeClass(error_class);
-                        $error.remove();
-
-                        $field.off("change keyup", removeFieldError);
+                        $field
+                            .trigger("error")
+                            .on("change keyup", removeFieldError);
                     }
                 }
 
+                function removeFieldError() {
+                    $field.removeClass(error_class);
+                    $error.remove();
+
+                    $field.off("change keyup", removeFieldError);
+                }
             }
 
             function clearError() {

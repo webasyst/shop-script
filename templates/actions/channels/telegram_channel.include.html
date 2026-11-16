@@ -1,4 +1,4 @@
-{$bot_url = '[`https://app.shop-script.com/s/%s/`]'}
+{$bot_url = 'https://app.shop-script.com/s/%s/'}
 {$mini_app_mode = $channel.params.mini_app_mode|default:''}
 <style>
     @media screen and (min-width: 761px) {
@@ -85,7 +85,7 @@
             <p class="small">
                 {sprintf_wp(
                     '<b>An advanced option</b> with a custom bot and your branding. In this mode, you will need to create your own %s bot using <code><a %s>%s</a></code> and link your store to that bot as a mini-app.',
-                    '[`MAX`]',
+                    'Telegram',
                     'href="https://t.me/BotFather" target="_blank"',
                     '@BotFather'
                 )}

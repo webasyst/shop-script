@@ -8,10 +8,11 @@ window.CurrencyChartD3 = (function () {
 
         this._uid = Math.random().toString(36).substring(2, 9);
 
-        const daysInInterval = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24));
+        const daysInInterval = Math.round((endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24)) + 1;
+
         this.timeline = new Array(daysInInterval).fill(null).map((e, i) => ({
                 period: new Date(startDate.getTime()).setDate(startDate.getDate() + i),
-                amount: null
+                sales: 0
             }));
     }
 
@@ -19,12 +20,12 @@ window.CurrencyChartD3 = (function () {
         const data = this.timeline.map((item) => Object.assign({}, item));
 
         // Merge empty period with days with data
-        chartData.forEach((element) => {
-            const i = data.findIndex((e) => {
-                return e.period === new Date(element.period).getTime();
+        chartData.forEach((chart) => {
+            const i = data.findIndex(({ period }) => {
+                return period === new Date(chart.period).getTime();
             });
             if (i > -1) {
-                data.splice(i, 1, Object.assign({}, element));
+                data[i].sales = chart.sales || data[i].sales;
             }
         });
 
@@ -40,8 +41,8 @@ window.CurrencyChartD3 = (function () {
 
         const y = d3.scale.linear()
             .domain([
-                d3.min(data, (d) => d.amount),
-                d3.max(data, (d) => d.amount)
+                d3.min(data, (d) => d.sales),
+                d3.max(data, (d) => d.sales)
             ])
             .nice()
             .range([this.height - this.margin.bottom, this.margin.top])
@@ -55,7 +56,7 @@ window.CurrencyChartD3 = (function () {
 
         const linePast = d3.svg.line()
             .x((d) => x(new Date(d.period)))
-            .y((d) => y(d.amount));
+            .y((d) => y(d.sales));
 
         svg.append('g')
             .append('path')
@@ -66,7 +67,7 @@ window.CurrencyChartD3 = (function () {
         const areaNeg = d3.svg.area()
             .x((d) => x(new Date(d.period)))
             .y0(y(0))
-            .y1(d => y(Math.min(0, d.amount)));
+            .y1(d => y(Math.min(0, d.sales)));
 
         svg.append('path')
             .datum(data)
@@ -77,7 +78,7 @@ window.CurrencyChartD3 = (function () {
         const areaPos = d3.svg.area()
             .x((d) => x(new Date(d.period)))
             .y0(y(0))
-            .y1((d) => y(Math.max(0, d.amount)));
+            .y1((d) => y(Math.max(0, d.sales)));
 
         svg.append('path')
             .datum(data)
@@ -85,14 +86,14 @@ window.CurrencyChartD3 = (function () {
             .attr('style', 'fill: url(#area-gradient-positive-' + this._uid + ');stroke-width: 0px;');
 
         // Gradient positive area
-        if (d3.max(data, (d) => d.amount) >= 0) {
+        if (d3.max(data, (d) => d.sales) >= 0) {
             svg.append('linearGradient')
                 .attr('id', 'area-gradient-positive-' + this._uid)
                 .attr('gradientUnits', 'userSpaceOnUse')
                 .attr('x1', 0)
                 .attr('y1', y(0))
                 .attr('x2', 0)
-                .attr('y2', y(d3.max(data, (d) => d.amount)))
+                .attr('y2', y(d3.max(data, (d) => d.sales)))
                 .selectAll('stop')
                 .data([
                     { offset: '0%', color: 'rgba(62, 197, 94, 0)' },
@@ -105,14 +106,14 @@ window.CurrencyChartD3 = (function () {
         }
 
         // Gradient negative area
-        if (d3.min(data, (d) => d.amount) < 0) {
+        if (d3.min(data, (d) => d.sales) < 0) {
             svg.append('linearGradient')
                 .attr('id', 'area-gradient-negative-' + this._uid)
                 .attr('gradientUnits', 'userSpaceOnUse')
                 .attr('x1', 0)
                 .attr('y1', y(0))
                 .attr('x2', 0)
-                .attr('y2', y(d3.min(data, (d) => d.amount)))
+                .attr('y2', y(d3.min(data, (d) => d.sales)))
                 .selectAll('stop')
                 .data([
                     { offset: '0%', color: 'rgba(252, 61, 56, 0)' },
@@ -125,19 +126,19 @@ window.CurrencyChartD3 = (function () {
         }
 
         // Gradient for the line
-        const amountRange = Math.abs(d3.max(data, (d) => d.amount)) +
-            Math.abs(d3.min(data, (d) => d.amount));
+        const salesRange = Math.abs(d3.max(data, (d) => d.sales)) +
+            Math.abs(d3.min(data, (d) => d.sales));
 
-        const amountMax = d3.max(data, (d) => d.amount);
-        const amountMin = d3.min(data, (d) => d.amount);
+        const salesMax = d3.max(data, (d) => d.sales);
+        const salesMin = d3.min(data, (d) => d.sales);
 
         let offset;
-        if (amountMax < 0) {
+        if (salesMax < 0) {
             offset = 0;
-        } else if (amountMin >= 0) {
+        } else if (salesMin >= 0) {
             offset = this.height;
         } else {
-            offset = Math.ceil((Math.abs(d3.max(data, (d) => d.amount)) / amountRange) * 100) + '%';
+            offset = Math.ceil((Math.abs(d3.max(data, (d) => d.sales)) / salesRange) * 100) + '%';
         }
 
         svg.append('linearGradient')
@@ -161,9 +162,9 @@ window.CurrencyChartD3 = (function () {
         const pointData = data[data.length - 1];
         svg.append('circle')
             .attr('cx', x(new Date(pointData.period)))
-            .attr('cy', y(pointData.amount))
+            .attr('cy', y(pointData.sales))
             .attr('r', 3)
-            .attr('fill', pointData.amount < 0 ? '#fc3d38' : '#3ec55e');
+            .attr('fill', pointData.sales < 0 ? '#fc3d38' : '#3ec55e');
 
         return this;
     }

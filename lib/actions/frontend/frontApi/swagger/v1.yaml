@@ -740,6 +740,9 @@ paths:
                     type: string
                     nullable: true
                     description: URL страницы оформления заказа в браузере — без использования Headless API; доступен, если такая возможность включена в настройках Shop-Script
+                  shipping_enabled:
+                    type: boolean
+                    description: Включен ли шаг доставки при оформлении заказа
                   shipping_mode:
                     type: string
                     enum:
@@ -1419,6 +1422,7 @@ paths:
                           description: Ориентировочная дата доставки в виде локализованной строки
                         delivery_date:
                           type: array
+                          nullable: true
                           description: Информация об ориентировочном времени доставки (в машиночитаемом формате); одно значение — доставка в указанный день, два значения — границы допустимого интервала времени доставки
                           items:
                             type: string
@@ -1444,7 +1448,7 @@ paths:
             type: string
       responses:
         200:
-          description: Список способов оплаты.
+          description: Информация о заказе
           content:
             application/json:
               schema:
@@ -1996,6 +2000,9 @@ components:
         id:
           type: integer
           description: ID заказа
+        id_encoded:
+          type: string
+          description: Форматированный номер заказа
         create_datetime:
           type: string
           format: date-time

@@ -30,14 +30,14 @@
                 <div class="align-center box bordered-top">
                     {if $cron_ok}
                         <p class="hint">
-                            <i class="fas fa-check-circle text-green"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest cron execution time: <strong>%s</strong>.`]"}
+                            <i class="fas fa-check-circle text-green"></i> {$last_cron|wa_datetime:'humandatetime'|string_format:"[`Follow-ups are configured properly. Latest Cron job execution time: <strong>%s</strong>.`]"}
                             <br>
                             <a id="cron-message-link" href="javascript:void(0)">[`Cron setup instructions`]</a>
                         </p>
                     {else}
                         <p class="state-caution-hint s-cron-error">
                             <i class="fas fa-times-circle text-orange"></i>
-                            [`Follow-ups will not be sent, because cron is not properly configured.`]
+                            [`Follow-ups will not be sent, because no Cron job is properly configured.`]
                             <br>
                             <a id="cron-message-link" href="javascript:void(0)">[`How to set up?`]</a>
                         </p>
@@ -419,9 +419,9 @@
                         <div class="dialog-background"></div>
                         <div class="dialog-body">
                             <div class="dialog-content">
-                                <p>[`Follow-ups require CRON to be properly setup for the Shop-Script app, which is currently not the case.`]
+                                <p>[`Follow-ups require a Cron job to be properly set up, which is currently not the case.`]
                                     {sprintf(
-                                    '[`Set up cron with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
+                                    '[`Set up a Cron job with the following command (<a href="%s" target="_blank">cron setup instructions</a>):`]',
                                     '[`https://developers.webasyst.com/installation/tips/cron/`]'
                                     )}</p>
                                 <p><strong class="highlighted">{$cron_command}</strong></p>

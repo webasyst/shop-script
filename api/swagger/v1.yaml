@@ -2256,6 +2256,7 @@ paths:
             + **stock_units**: в содержимое ответа добавляется элемент с ключом '*stock_units*' в виде массива с информацией о единицах измерения товаров в составе заказа.
             + **product_code_values**: в содержимое ответа для каждой строки заказа (items) добавляется элемент с ключом '*product_code_values*', содержащий информацию о товарных кодах, использованных в заказе.
             + **payment_url**: URL ссылки на оплату.
+            + **external_entities**: в содержимое ответа для каждого заказа добавляется элемент с ключом '*external_entities*' в виде массива связей заказа с внешними системами.
           enum:
             - products
             - skus
@@ -2269,6 +2270,7 @@ paths:
             - billing_info
             - courier
             - payment_url
+            - external_entities
           required: false
           schema:
             type: string
@@ -3682,6 +3684,8 @@ paths:
             + **sales_30days**: в содержимое ответа добавляются элементы с ключами '*sales_30days*' (с суммарной стоимостью всех модификаций товара в оплаченных заказах в виде числа, соответствующего основной валюте магазина) и '*sales_30days_html*' (с аналогичным значением, но с обозначением основной валюты магазина, подготовленным для использования в HTML-коде).
             + **stock_worth**: в содержимое ответа добавляются элементы с ключами '*stock_worth*' (с суммарной стоимостью всех модификаций товара, доступных на складе, в виде числа, соответствующего основной валюте магазина) и '*stock_worth_html*' (с аналогичным значением, но с обозначением основной валюты магазина, подготовленным для использования в HTML-коде).
             + **feature_*code***: в содержимое ответа для каждого товара и каждой модификации товара добавляются элементы с ключами вида '*feature_**code***' (например, *feature_**gtin***), содержащие значения характеристик с кодами, указанными вместо *code*.
+            + **external_entities**: в содержимое ответа для каждого товара добавляется элемент с ключом '*external_entities*' в виде массива связей товара с внешними системами.
+            + **external_entities_skus**: в содержимое ответа для каждой модификации товара (поле '*skus*') добавляется элемент с ключом '*external_entities*' в виде массива связей модификации с внешними системами.
           required: false
           schema:
             type: string
@@ -6640,6 +6644,9 @@ components:
         id:
           type: integer
           description: ID заказа
+        id_encoded:
+          type: string
+          description: Форматированный номер заказа
         contact_id:
           type: integer
           description: ID покупателя
@@ -6731,12 +6738,16 @@ components:
         items_total_discount:
           type: integer
           description: Суммарный размер скидки, рассчитанный для заказанных товаров и услуг
+        external_entities:
+          type: array
+          description: |
+            Связи заказа с внешними системами (маркетплейсы, системы складского учёта и т.п.).
+            Добавляется в ответ order.search, если поле указано в списке дополнительных полей '*fields*'.
+          items:
+            $ref: '#/components/schemas/ExternalEntityInfo'
         params:
           type: object
           description: Дополнительные параметры
-        id_encoded:
-          type: string
-          description: Форматированный номер заказа
 
     OrderInfoCustomer:
       type: object
@@ -7125,6 +7136,13 @@ components:
         features:
           type: object
           description: Характеристики
+        external_entities:
+          type: array
+          description: |
+            Связи товара с внешними системами (маркетплейсы, системы складского учёта и т.п.).
+            Добавляется в ответ product.search, если поле указано в списке дополнительных полей '*fields*'.
+          items:
+            $ref: '#/components/schemas/ExternalEntityInfo'
     ProductVariantInfo:
       type: object
       properties:
@@ -7203,6 +7221,14 @@ components:
           description: Остатки на складах
           items:
             $ref: '#/components/schemas/ProductVariantStockCounts'
+        external_entities:
+          type: array
+          description: |
+            Связи модификации товара с внешними системами (маркетплейсы, системы складского учёта и т.п.).
+            Добавляется в ответ product.search, если поле '*external_entities_skus*' указано в списке
+            дополнительных полей '*fields*' (при этом также должно быть запрошено поле '*skus*').
+          items:
+            $ref: '#/components/schemas/ExternalEntityInfo'
     ProductVariantStockCounts:
       type: object
       properties:
@@ -7405,6 +7431,32 @@ components:
           items:
             type: object
             # $ref: '#/components/schemas/ProductReviewInfo'
+    ExternalEntityInfo:
+      type: object
+      description: Связь сущности (товара, модификации, заказа, категории) с внешней системой.
+      properties:
+        entity_id:
+          type: integer
+          description: ID сущности, к которой относится связь
+        plugin:
+          type: string
+          description: Идентификатор плагина внешней системы
+        external_id:
+          type: string
+          description: ID сущности во внешней системе
+        channel_id:
+          type: integer
+          description: ID канала продаж, через который установлена связь
+        data:
+          type: object
+          description: Произвольные дополнительные данные связи (JSON)
+        external_url:
+          type: string
+          nullable: true
+          format: uri
+          description: |
+            URL, полученный в результате подстановки значений в шаблон '*url_template*'.
+            Значение равно '*null*', если шаблон не задан. Сам шаблон '*url_template*' в ответ не включается.
     SalesEntry:
       type: object
       properties:

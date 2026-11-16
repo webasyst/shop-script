@@ -44,6 +44,7 @@
         options: {},
 
         init: function(options) {
+            const that = this;
             this.options  = options;
             this.statuses = options.statuses;
             if (options.product_id) {
@@ -51,6 +52,9 @@
             }
             this.form = $('#s-review-add-form');
             this.sidebar_counter = $('#s-all-reviews').find('.count');
+
+            this.getForm = () => this.form.clone();
+
             if (options.container) {
                 if (typeof options.container === 'object') {
                     this.container = options.container;
@@ -65,16 +69,16 @@
                                 li = self.parents('li:first'),
                                 parent_id = parseInt(li.attr('data-id'), 10) || 0;
                             if (self.hasClass('s-review-reply')) {
-                                if ($.product_reviews.options.reply === 'ignore') {
+                                if (that.options.reply === 'ignore') {
                                     return;
                                 }
-                                $.product_reviews.prepareAddingForm.call(self, $.product_reviews.form, parent_id);
+                                that.prepareAddingForm(self, parent_id);
                             } else if (self.hasClass('s-review-delete')) {
-                                $.product_reviews.deleteReview(parent_id, options.afterDelete);
+                                that.deleteReview(parent_id, options.afterDelete);
                             } else if (self.hasClass('s-review-restore')) {
-                                $.product_reviews.restoreReview(parent_id, options.afterRestore);
+                                that.restoreReview(parent_id, options.afterRestore);
                             } else if (self.hasClass('js-review-publish')) {
-                                $.product_reviews.publishReview(parent_id);
+                                that.publishReview(parent_id);
                             }
                             return false;
                         }
@@ -85,20 +89,7 @@
                 this.container.addClass('ajax');
             }
 
-            var addReview = function() {
-                $.product_reviews.addReview('backend', options.afterAdd);
-            };
-            this.addHotkeyHandler('textarea', 'ctrl+enter', addReview);
-            this.form.find('input.save').unbind('click').bind('click', addReview);
-            this.form.find('.js-ai-answer-button').off('click').on('click', $.product_reviews.addAnswerAi);
-
             this.initView();
-
-//            $.product_reviews.form.find('a:first').rateWidget({
-//                onUpdate: function(rate) {
-//                    $.product_reviews.form.find('input[name=rate]').val(rate);
-//                }
-//            });
 
             if (this.options.lazy_loading) {
                 this.initLazyLoad(this.options.lazy_loading);
@@ -108,7 +99,7 @@
                 $.product.editTabReviewsAction = function(path) {
                     if (path.tail) {
                         setTimeout(function() {
-                            $.product_reviews.activeReplyToForm(path.tail);
+                            that.activeReplyToForm(path.tail);
                         }, 200);
                     }
                 };
@@ -119,7 +110,7 @@
             var li = this.container.find('.s-reviews li[data-id='+id+']');
             if (li.length) {
                 var reply_link = li.find('.s-review-reply:first');
-                this.prepareAddingForm.call(reply_link, this.form, id);
+                this.prepareAddingForm(reply_link, id);
                 $(document).scrollTop(li.offset().top);
             }
         },
@@ -251,26 +242,37 @@
             }
         },
 
-        prepareAddingForm: function(form, review_id)
+        prepareAddingForm: function($add_review_button, review_id)
         {
-            var self = this; // clicked link
+            const that = this;
+            const $form = that.getForm();
+
+            $add_review_button.prop('disabled', true);
+
+            const addReview = () => {
+                that.addReview($form, 'backend', that.options.afterAdd);
+            };
+            that.addHotkeyHandler($form, 'textarea', 'ctrl+enter', addReview);
+            $form.find('input.save').off('click').on('click', addReview);
+            $form.find('.js-ai-answer-button').off('click').on('click', function () {
+                that.addAnswerAi.call(this, $form);
+            });
+            $form.find('.s-review-close').off('click').one('click', () => {
+                $form.remove();
+                $add_review_button.prop('disabled', false);
+            });
+
             if (review_id) {
-                self.after(form);
-                form.find('.rate a:first').hide();
-            } else {
-                var acceptor = $('#s-review-add li:first');
-                if (!acceptor.find('form').length) {
-                    acceptor.append(form);
-                }
-                form.find('.rate a:first').show();
+                $add_review_button.after($form);
+                $form.find('.rate a:first').hide();
             }
-            $.product_reviews.clear(false);
-            $('input[name=parent_id]', form).val(review_id);
+
+            $('input[name=parent_id]', $form).val(review_id);
         },
 
-        addHotkeyHandler: function(item_selector, hotkey_name, handler) {
+        addHotkeyHandler: function($form, item_selector, hotkey_name, handler) {
             var hotkey = this.hotkeys[hotkey_name];
-            this.form.off('keydown', item_selector).on('keydown', item_selector,
+            $form.off('keydown', item_selector).on('keydown', item_selector,
                 function(e) {
                     if (e.keyCode == hotkey.key &&
                         e.altKey  == hotkey.alt &&
@@ -283,15 +285,18 @@
             );
         },
 
-        addReview: function(env, success) {
-            var sidebar_counter = this.sidebar_counter;
+        addReview: function($form, env, success) {
+            const sidebar_counter = this.sidebar_counter;
+            const $loading = $form.find('.s-review-add-loading').show();
+            const $hint = $form.find('.s-review-add-hint').hide();
+            const $bottom_butons = $form.find('.bottom-buttons .button').prop('disabled', true);
+            $.product_reviews.clear($form, false);
             $.post(
                 (env == 'backend' || !env) ? '?module=reviews&action=add' : '#',
-                $.product_reviews.form.serialize(),
+                $form.serialize(),
                 function (r) {
                     if (r.status == 'fail') {
-                        $.product_reviews.clear(false);
-                        $.product_reviews.showErrors(r.errors);
+                        $.product_reviews.showErrors($form, r.errors);
                         return;
                     }
                     if (r.status != 'ok' || !r.data.html) {
@@ -300,8 +305,8 @@
                         }
                         return;
                     }
-                    var parent_id_input = $('input[name=parent_id]', $.product_reviews.form);
-                    var parent_li = $.product_reviews.form.parents('.s-review:first').parent('li');
+
+                    var parent_li = $form.parents('.s-review:first').parent('li');
                     var html = r.data.html;
                     var ul = $('ul:first', parent_li);
                     var reviews_block = $.product_reviews.container;
@@ -316,26 +321,25 @@
                     }
                     ul.append($('<li data-id="'+r.data.id+'" data-parent-id="'+r.data.parent_id+'"></li>').append(html));
 
-                    // back form to 's-review-add' place and clear
-                    $('textarea', $.product_reviews.form).val('');
-                    var acceptor = $('#s-review-add');
-                    if (!acceptor.find('form').length) {
-                        acceptor.append($.product_reviews.form);
-                        parent_id_input.val(0);
-                    }
+                    $form.remove();
+
                     if (sidebar_counter.length) {
                         sidebar_counter.text(parseInt(sidebar_counter.text(), 10) + 1);
                     }
                     if (typeof success === 'function') {
                         success(r);
                     }
-                    $.product_reviews.clear();
+                    $.product_reviews.clear($form);
                 },
             'json')
             .error(function(r) {
                 if (console) {
                     console.log(r.responseText ? 'Error occured: ' + r.responseText : 'Error occured.');
                 }
+            }).always(() => {
+                $loading.hide();
+                $hint.show();
+                $bottom_butons.prop('disabled', false);
             });
         },
 
@@ -385,9 +389,6 @@
                         if (sidebar_counter.length) {
                             sidebar_counter.text(parseInt(sidebar_counter.text(), 10) + 1);
                         }
-                        if (typeof success === 'function') {
-                            success();
-                        }
                     }
                 },
             'json');
@@ -412,20 +413,17 @@
                         if (sidebar_counter.length) {
                             sidebar_counter.text(parseInt(sidebar_counter.text(), 10) + 1);
                         }
-                        if (typeof success === 'function') {
-                            success();
-                        }
                     }
                 },
             'json');
         },
 
-        addAnswerAi: function() {
+        addAnswerAi: function($form) {
             const self = $(this);
             self.prop('disabled', true);
             $.post(
                 '?module=reviews&action=addAi',
-                $.product_reviews.form.serialize(),
+                $form.serialize(),
                 function (r) {
                     if (r.status == 'fail') {
                         r.errors.forEach(({ error, error_description }) => {
@@ -442,7 +440,7 @@
                         return;
                     }
 
-                    const $textarea = $('textarea', $.product_reviews.form);
+                    const $textarea = $('textarea', $form);
                     $textarea.val($textarea.val() ? $textarea.val() + '\n' + r.data.text : r.data.text);
 
                 },
@@ -457,26 +455,30 @@
             });
         },
 
-        clear: function(clear_inputs) {
+        clear: function($form, clear_inputs) {
             clear_inputs = typeof clear_inputs === 'undefined' ? true : clear_inputs;
-            $('.errormsg', this.form).remove();
-            $('.error',    this.form).removeClass('error');
-            $('.wa-captcha-refresh', this.form).click();
+            $('.state-error-hint', $form).remove();
+            $('.state-error', $form).removeClass('state-error');
+            $('.wa-captcha-refresh', $form).click();
             if (clear_inputs) {
-                $('input[name=captcha], textarea', this.form).val('');
-                $('input[name=rate]', this.form).val(0);
-                $('.rate a:first', this.form).trigger('clear');
+                $('input[name=captcha], textarea', $form).val('');
+                $('input[name=rate]', $form).val(0);
+                $('.rate a:first', $form).trigger('clear');
             }
         },
 
-        showErrors: function(errors) {
-            for (var i = 0, n = errors.length, errs = errors[i]; i < n; errs = errors[++i]) {
-                for (var name in errs) {
-                    $('[name='+name+']', this.form).
-                        after($('<em class="errormsg"></em>').text(errs[name])).
-                        addClass('error');
-                }
+        showErrors: function($form, errors) {
+            if (!errors) return;
+            if (!Array.isArray(errors)) {
+                errors = [errors];
             }
+            errors.forEach(err => {
+                for (const key in err) {
+                    if (typeof err[key] !== 'string') return;
+                    // $form.find('[name='+key+']', $form).addClass('state-error');
+                    $form.append($('<div class="state-error-hint custom-mt-4"></div>').text(err[key]));
+                }
+            });
         }
     };
 })(jQuery);

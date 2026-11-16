@@ -6,7 +6,7 @@ return [
         'fullname' => /*_w*/('Mini-app and storefront within Telegram'),
         'menu_icon' => '<i class="fab fa-telegram-plane" style="color: #24A1DE;"></i>',
         'available' => true,
-        'demo_link' => /*_w*/('https://t.me/ShopScriptDemoRU_bot'),
+        'demo_link' => /*_w*/('https://t.me/ShopScriptDemo_bot'),
     ],
     'pos' => [
         'class' => 'shopPosSalesChannel',

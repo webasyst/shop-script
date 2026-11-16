@@ -30,7 +30,7 @@
                 {include file="templates/includes/webasystAINotAvailableAlert.html" inline}
             {/if}
             <div class="custom-mb-24">
-                <h5 class="custom-mb-12">[`Input`] <span class="gray">[`prompt to AI`]</span></h5>
+                <h5 class="custom-mb-12">[`Input`] <span class="gray">[`prompt for AI`]</span></h5>
                 <div class="flexbox space-8">
                     {top_badge title=_w('Product name')}
                     {top_badge title=_w('Price')}
@@ -96,7 +96,7 @@
                 <div class="custom-my-32">
                     <div class="js-generation-time-estimation">
                         <div class="align-center semibold large">
-                            <span class="gray">[`AI requests`]</span>
+                            <span class="gray">[`AI tokens`]</span>
                             {count($product_ids)} &times; <span class="js-count">0</span>
                             = <span class="js-sum highlighted bold custom-p-2">0</span>
                             <div class="custom-mt-16"><span class="gray">[`Duration`]</span>&nbsp;<span class="js-duration"></span></div>
@@ -112,7 +112,7 @@
                     <i class="icon webasyst-magic-wand-ai custom-mr-4"></i>
                     [`Generate & force-save all now`]
                 </button>
-                <button {if $waid_is_connected}class="js-submit-by-one button purple-gradient nowrap"{else}class="button purple-gradient" disabled{/if} type="button" style="color: var(--text-color);background: linear-gradient(90deg, rgba(0, 21, 253, 0.07) 0%, rgba(205, 61, 215, 0.07) 100%);">
+                <button {if $waid_is_connected}class="js-submit-by-one button light-purple-gradient nowrap"{else}class="button purple-gradient" disabled{/if} type="button">
                     <i class="icon webasyst-magic-wand-ai custom-mr-4 shimmer"></i>
                     [`Proceed one by one`] <i class="fas fa-arrow-right"></i>
                 </button>

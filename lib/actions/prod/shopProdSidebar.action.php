@@ -58,8 +58,7 @@ class shopProdSidebarAction extends waViewAction
         $sales_data = [];
         if ($report_rights) {
             foreach ($sales as $s) {
-                $amount = ifset($s, 'sales', null);
-                $sales_data[] = ['period' => $s['date'], 'amount' => $amount,];
+                $sales_data[] = ['period' => $s['date'], 'sales' => ifset($s, 'sales', 0)];
             }
         }
 

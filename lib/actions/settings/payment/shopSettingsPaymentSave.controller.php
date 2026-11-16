@@ -17,6 +17,9 @@ class shopSettingsPaymentSaveController extends waJsonController
                     }
                     $plugin['settings'][$key] = $value;
                 }
+                if (isset($plugin['options']['fee_percent'])) {
+                    $plugin['options']['fee_percent'] = self::normalizeFeePercent($plugin['options']['fee_percent']);
+                }
                 if ($plugin['plugin'] === 'pay') {
                     $services_api = new waServicesApi();
                     if (!$services_api->isConnected()) {
@@ -87,5 +90,15 @@ class shopSettingsPaymentSaveController extends waJsonController
             waUtils::varExportToFile($full_config, $path);
         }
         return $something_changed;
+    }
+
+    /** Normalize the fee_percent option to a float within [0; 100]; empty or invalid values become 0. */
+    protected static function normalizeFeePercent($value)
+    {
+        $value = trim((string)$value);
+        if ($value === '' || !is_numeric($value)) {
+            return 0;
+        }
+        return max(0, min(100, (float)$value));
     }
 }

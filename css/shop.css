@@ -293,6 +293,8 @@ ul.s-courier-list li.s-expired a { color: #aaa; }
 .wf-action.button.white { box-shadow: 0 3px 13px -5px color-mix(in srgb, var(--color) 60%, transparent); transition: box-shadow 0.5s; }
 .wf-action.button.white:hover { box-shadow: 0 1px 16px 2px  color-mix(in srgb, var(--color) 50%, transparent); }
 .wf-action.button svg:not(.fa-w-10) { font-size: 1rem; height: 1rem; width: auto; }
+.wf-action.button .s-notification-icon svg { height: .875rem; color: var(--gray); }
+.wf-action.button .s-text { color: var(--text-color-input); }
 .s-order-aux ul.workflow-actions > li > a > .icon { flex: 0 0 1.25rem; max-width: 1.25rem; margin: 0 0.5rem 0 0.125rem !important; }
 
 /* PRODUCTS
@@ -591,7 +593,7 @@ ul.s-promos-list li.new-promo-placeholder:hover .s-promo-dummy { box-shadow: non
 .s-review.s-deleted .s-review-auth-user a, .s-review.s-deleted h5, .s-review.s-deleted span, .s-review.s-deleted p { text-decoration: line-through; color: #AAA; }
 
 #s-review-add-form { margin: 20px 0 0 20px; overflow: visible; }
-#s-review-add-form textarea { height: 100px; min-height: 100px; width: 75%; margin-top: 0; }
+#s-review-add-form textarea { height: 100px; min-height: 100px; width: 100%; margin-top: 0; }
 #s-review-add-form .rate { display: block; margin-bottom: 10px; }
 #s-review-add-form .rate a { display: inline; }
 

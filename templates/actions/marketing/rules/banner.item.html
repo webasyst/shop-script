@@ -93,7 +93,7 @@
                         </span>
                     </div>
                     <p class="hint custom-mb-0">
-                        {sprintf('[`%s prompt cost multiplier applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
+                        {sprintf('[`%s token consumption rate applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
                         {if !$_is_premium}<a href="{$wa_app_url}?action=settings#/premium/" class="bold" style="color: var(--accent-color); text-decoration: none !important;">[`Upgrade to premium to reduce costs`]&nbsp;&rsaquo;</a>{/if}
                     </p>
                     <p class="state-error-hint js-banner-ai-error" style="display: none;"></p>
@@ -130,13 +130,13 @@
             <div class="value">
                 {$type_link = $banner.type_link|default:'link'}
                 {$b_link = $banner.link|default:''|escape}
-                <div class="flexbox wrap-mobile middle space-12">
+                <div class="s-banner-link-type flexbox wrap-mobile middle space-12">
                     <label class="flexbox middle space-4"><input type="radio" class="custom-m-0" data-name="[type_link]" value="product"{if $type_link == 'product'} checked{/if}> [`Product`]</label>
-                    <input class="long js-product-autocomplete" type="search" data-name="[product_name]" value="{$banner.product_name|default:''|escape}" placeholder="[`Type product or SKU name`]"{if $type_link != 'product'} disabled{/if} required>
+                    <input class="long js-product-autocomplete" type="search" data-name="[product_name]" value="{$banner.product_name|default:''|escape}" placeholder="[`Type product or SKU name`]"{if $type_link != 'product'} disabled{/if}>
                     <input type="hidden" data-name="[link]" value="{if $type_link == 'product'}{$b_link}{/if}">
                     <span class="hint">{if $type_link == 'product'}[`ID`]: {$b_link}{/if}</span>
                 </div>
-                <div class="flexbox wrap-mobile middle space-8 custom-my-8">
+                <div class="s-banner-link-type flexbox wrap-mobile middle space-8 custom-my-8">
                     <label class="flexbox middle space-4"><input type="radio" class="custom-m-0" data-name="[type_link]" value="category"{if $type_link == 'category'} checked{/if}> [`Category`]</label>
                     {if empty($categories)}
                     <span>[`There are no product categories.`]</span>
@@ -151,9 +151,9 @@
                     </div>
                     {/if}
                 </div>
-                <div class="flexbox wrap-mobile middle space-8">
+                <div class="s-banner-link-type flexbox wrap-mobile middle space-8">
                     <label class="flexbox middle space-4"><input type="radio" class="custom-m-0" data-name="[type_link]" value="link"{if $type_link == 'link'} checked{/if}> [`Link`]</label>
-                    <input class="long" type="text" data-name="[link]" value="{if $type_link == 'link'}{$b_link}{/if}"{if $type_link != 'link'} disabled{/if} required>
+                    <input class="long" type="text" data-name="[link]" value="{if $type_link == 'link'}{$b_link}{/if}"{if $type_link != 'link'} disabled{/if}>
                 </div>
             </div>
         </div>

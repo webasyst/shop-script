@@ -108,11 +108,12 @@ class shopSalesModel extends waModel
                     {$date_col} AS `date`,
                     SUM(order_count) AS order_count,
                     SUM(new_customer_count) AS new_customer_count,
-                    SUM(sales - purchase - shipping - tax) AS profit,
+                    SUM(sales - purchase - shipping - tax - fee) AS profit,
                     SUM(sales) AS sales,
                     SUM(purchase) AS purchase,
                     SUM(shipping) AS shipping,
                     SUM(tax) AS tax,
+                    SUM(fee) AS fee,
                     SUM(cost) AS cost
                 FROM {$this->table} AS ss
                 WHERE {$hash_sql}
@@ -142,6 +143,7 @@ class shopSalesModel extends waModel
             'purchase' => 0,
             'shipping' => 0,
             'tax' => 0,
+            'fee' => 0,
             'cost' => 0,
         );
         $end_ts = strtotime($date_end);
@@ -194,7 +196,7 @@ class shopSalesModel extends waModel
         $sql = "SELECT
                     SUM(order_count) AS order_count,
                     SUM(new_customer_count) AS new_customer_count,
-                    SUM(sales - purchase - shipping - tax) AS profit,
+                    SUM(sales - purchase - shipping - tax - fee) AS profit,
                     SUM(sales) AS sales,
                     SUM(purchase) AS purchase,
                     SUM(shipping) AS shipping,
@@ -255,11 +257,12 @@ class shopSalesModel extends waModel
                         name,
                         SUM(order_count) AS order_count,
                         SUM(new_customer_count) AS new_customer_count,
-                        SUM(sales - purchase - shipping - tax) AS profit,
+                        SUM(sales - purchase - shipping - tax - fee) AS profit,
                         SUM(sales) AS sales,
                         SUM(purchase) AS purchase,
                         SUM(shipping) AS shipping,
                         SUM(tax) AS tax,
+                        SUM(fee) AS fee,
                         SUM(cost) AS cost
                     FROM {$this->table}
                     WHERE {$hash_sql}
@@ -309,6 +312,8 @@ class shopSalesModel extends waModel
             '!cost' => 'cost DESC',
             'roi' => 'IF(cost > 0, profit / cost, 0)',
             '!roi' => 'IF(cost > 0, profit / cost, 0) DESC',
+            'fee' => 'fee',
+            '!fee' => 'fee DESC',
             'average_order' => 'IF(order_count > 0, sales / order_count, 0)',
             '!average_order' => 'IF(order_count > 0, sales / order_count, 0) DESC',
         );
@@ -583,7 +588,7 @@ class shopSalesModel extends waModel
 
         if ($cohorts_type == 'profit' || $cohorts_type == 'clv' || $cohorts_type == 'roi') {
             // Calculate profit
-            $cohorts = $this->getCohorts('subtotal', $date_start, $date_end, $options);
+            $cohorts = $this->getCohorts('subtotal_minus_fee', $date_start, $date_end, $options);
             $cohorts_purchase = $this->getCohorts('purchase', $date_start, $date_end, $options);
             foreach($cohorts_purchase as $reg_date => $series) {
                 foreach($series as $order_date => $stats) {
@@ -655,6 +660,9 @@ class shopSalesModel extends waModel
                 break;
             case 'subtotal':
                 $metric_sql = "SUM((o.total - o.tax - o.shipping - o.discount)*o.rate)";
+                break;
+            case 'subtotal_minus_fee':
+                $metric_sql = "SUM((o.total - o.tax - o.shipping - o.discount - o.fee)*o.rate)";
                 break;
             case 'purchase':
                 $metric_join = "JOIN shop_order_items AS oi
@@ -968,7 +976,7 @@ class shopSalesModel extends waModel
         // Fill in data into shop_sales using [order=>name] bound in temporary table
         // `order_count`, `sales`, `shipping`, `tax`, `new_customer_count`:
         $escaped_hash = $this->escape($hash);
-        $sql = "INSERT IGNORE INTO {$this->table} (hash, `date`, name, order_count, sales, shipping, tax, new_customer_count)
+        $sql = "INSERT IGNORE INTO {$this->table} (hash, `date`, name, order_count, sales, shipping, tax, fee, new_customer_count)
                 SELECT
                     '{$escaped_hash}' AS `hash`,
                     {$date_col} as `date`,
@@ -977,6 +985,7 @@ class shopSalesModel extends waModel
                     SUM(o.total*o.rate) AS `sales`,
                     SUM(o.shipping*o.rate) AS `shipping`,
                     SUM(o.tax*o.rate) AS `tax`,
+                    SUM(o.fee*o.rate) AS `fee`,
                     SUM(o.is_first) AS `new_customer_count`
                 FROM shop_sales_tmp AS st
                     JOIN shop_order AS o

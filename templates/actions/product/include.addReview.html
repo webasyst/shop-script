@@ -10,11 +10,14 @@
     <p>
         <textarea name="text"></textarea>
     </p>
-    <input type="button" class="save smallest" value="[`Add comment`]">
-    <span class="s-review-add-form-status s-ajax-status" style="display: none;">
-      <i class="s-ajax-status-loading fas fa-spinner wa-animation-spin loading"></i>
-    </span>
-    <em class="hint">Ctrl+Enter</em>
     <input type="hidden" name="parent_id" value="0">
     <input type="hidden" name="product_id" value="{if isset($product.id)}{$product.id}{else}0{/if}">
+    <div class="bottom-buttons flexbox middle">
+        <input type="button" class="button light-gray save smallest" value="[`Add comment`]">
+        <div style="width: 4rem;">
+            <span class="s-review-add-hint hint">Ctrl+Enter</span>
+            <span class="s-review-add-loading" style="display: none;"><i class="fas fa-spinner wa-animation-spin"></i></span>
+        </div>
+        <button class="s-review-close button nobutton smaller gray custom-px-8 custom-ml-auto" type="button" title="[`Close`]"><i class="fas fa-times"></i></button>
+    </div>
 </form>

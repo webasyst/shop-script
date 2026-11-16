@@ -491,8 +491,14 @@ class shopWorkflowCreateAction extends shopWorkflowAction
             $data['params']['signup_url'] = shopHelper::generateSignupUrl($contact, $data['params']['storefront']);
         }
 
+        if (in_array($order['state_id'], ['fbs', 'fbm'], true) && !isset($data['params']['is_end_customer_unknown'])) {
+            $data['params']['is_end_customer_unknown'] = 1;
+        }
+
         // Save params
         $this->order_params_model->set($order_id, $data['params']);
+
+        $this->declareFees($order_id);
 
         // Write discounts description to order log
         if (!empty($data['discount_description']) && !empty($data['discount']) && empty($data['skip_description'])) {

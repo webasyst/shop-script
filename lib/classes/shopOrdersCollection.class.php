@@ -183,6 +183,52 @@ class shopOrdersCollection
     }
 
     /**
+     * Collections /external/<plugin>/id,id,id — search orders by external marketplace ids.
+     *
+     * @param string $params <plugin>/<external_ids>; external ids are assumed never to contain a comma
+     * @param bool $auto_title
+     */
+    protected function externalPrepare($params, $auto_title = true)
+    {
+        list($plugin, $ids_str) = explode('/', $params, 2) + ['', ''];
+
+        $external_ids = array();
+        foreach (explode(',', $ids_str) as $external_id) {
+            if (strlen($external_id)) {
+                $external_ids[] = trim($external_id);
+            }
+        }
+
+        $order_ids = array();
+        if ($plugin && $external_ids) {
+            $entity_model = new shopExternalEntityModel();
+            $rows = $entity_model->getByField(array(
+                'plugin'      => $plugin,
+                'entity_type' => 'order',
+                'external_id' => $external_ids,
+            ), 'entity_id');
+            $order_ids = array_unique(array_map('intval', array_keys($rows)));
+        }
+
+        $this->info = array(
+            'hash'         => 'external',
+            'plugin'       => $plugin,
+            'external_ids' => $external_ids,
+            'order_ids'    => $order_ids,
+        );
+
+        if ($order_ids) {
+            $this->where[] = "o.id IN (".implode(',', $order_ids).")";
+        } else {
+            $this->where[] = '0';
+        }
+
+        if ($auto_title) {
+            $this->addTitle(sprintf_wp('External “%s”', $plugin.': '.implode(', ', $external_ids)));
+        }
+    }
+
+    /**
      * Returns collection hash.
      *
      * @return string
@@ -731,6 +777,12 @@ class shopOrdersCollection
                 }
             }
         }
+
+        // 'external_entities' needs all shop_order columns so that any {o.*} placeholder
+        // in a url_template can be resolved; force 'o.*' in the SELECT even for partial field requests.
+        if (in_array('external_entities', $raw_fields) && empty($fields['*'])) {
+            $fields['*'] = 'o.*';
+        }
         return array(implode(",", $fields), $postprocess_fields);
     }
 
@@ -1141,6 +1193,21 @@ class shopOrdersCollection
                     }
                 }
             }
+        }
+
+        if (isset($postprocess_fields['external_entities'])) {
+            $external_entity_model = new shopExternalEntityModel();
+            $external_entities = $external_entity_model->getByEntity('order', $ids);
+            foreach ($data as &$o) {
+                $links = ifset($external_entities, $o['id'], []);
+                foreach ($links as &$link) {
+                    $link['external_url'] = $external_entity_model->buildExternalUrl($link, ['o' => $o]);
+                    unset($link['url_template']);
+                }
+                unset($link);
+                $o['external_entities'] = $links;
+            }
+            unset($o);
         }
 
         foreach ($data as &$o) {

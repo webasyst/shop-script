@@ -332,6 +332,18 @@
     {/if}
 </form>
 
+{$_skus = []}
+{foreach $product.skus as $_sku}
+    {$_skus[$_sku.id] = [
+        'id'            => $_sku.id,
+        'name'          => $_sku.name,
+        'available'     => $_sku.available,
+        'image_id'      => $_sku.image_id,
+        'price'         => $_sku.price,
+        'compare_price' => $_sku.compare_price
+    ]}
+{/foreach}
+
 <script>
     ( function($) {
         $.getScript("{$wa_theme_url}product.js?v{$wa_theme_version}", function() {
@@ -342,7 +354,7 @@
                     images: {if !empty($_is_dialog)}{$_images|json_encode}{else}[]{/if},
                     compare_price: {if !empty($product.compare_price)}{shop_currency($product.compare_price, null, null, 0)}{else}0{/if},
                     currency: {json_encode($currency_info)},
-                    skus: {$product.skus|json_encode}
+                    skus: {$_skus|json_encode}
                     {if count($product.skus) > 1 or $product.sku_type}
                         ,services: {json_encode($sku_services)}
                     {/if}

@@ -233,7 +233,7 @@
                                                 [`Webasyst AI will use this product image as the source for a new image in the selected style.`]
                                             </p>
                                             <p class="hint">
-                                                {sprintf('[`%s prompt cost multiplier applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
+                                                {sprintf('[`%s token consumption rate applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
                                                 {if !$_is_premium}<a href="{$wa_app_url}?action=settings#/premium/" class="bold" style="color: var(--accent-color); text-decoration: none !important;">[`Upgrade to premium to reduce costs`]&nbsp;&rsaquo;</a>{/if}
                                             </p>
                                             <template v-if="is_mass_mode">
@@ -276,7 +276,7 @@
                                                 [`Webasyst AI will generate new product image from scratch based on the selected style, product info, and your custom prompt.`]
                                             </p>
                                             <p class="hint">
-                                                {sprintf('[`%s prompt cost multiplier applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
+                                                {sprintf('[`%s token consumption rate applies for image generation tasks with Webasyst AI.`]', '<b>&times;'|cat:$_mltplr|cat:'</b>')}
                                                 {if !$_is_premium}<a href="{$wa_app_url}?action=settings#/premium/" class="bold" style="color: var(--accent-color); text-decoration: none !important;">[`Upgrade to premium to reduce costs`]&nbsp;&rsaquo;</a>{/if}
                                             </p>
                                             <template v-if="is_mass_mode">

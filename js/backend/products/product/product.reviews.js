@@ -249,7 +249,7 @@
                                     onChange: Function
                                 },
                                 emits: ["change"],
-                                template: '<div class="switch wa-small"><input type="checkbox" v-bind:checked="modelValue" v-bind:disabled="prop_disabled"></div>',
+                                template: '<div class="switch small smaller-mobile"><input type="checkbox" v-bind:checked="modelValue" v-bind:disabled="prop_disabled"></div>',
                                 delimiters: ['{ { ', ' } }'],
                                 data() {
                                     return {

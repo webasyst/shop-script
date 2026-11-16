@@ -12,9 +12,8 @@
                 <div class="js-loyalty-result">
                     <div class="flexbox middle">
                         <code class="large js-loyalty-code nowrap">{$formatted_id_code|escape}</code>
-                        <a href="javascript:void(0)" class="js-loyalty-copy button small nowrap light-gray custom-ml-8">
-                            <span class="js-success-icon" style="display: none;"><i class="fas fa-check text-green"></i></span>
-                            <span data-default-text="[`Copy`]" data-success-text="[`Copied`]">[`Copy`]</span>
+                        <a href="javascript:void(0)" class="js-loyalty-copy button small nowrap light-gray custom-ml-8" data-success-text="[`Copied`]" title="[`Copy`]">
+                            <span class="js-copy-icon text-blue"><i class="fas fa-copy"></i></span>
                         </a>
                         <a href="javascript:void(0)" class="js-loyalty-edit button nobutton small"><i class="fas fa-pen mobile-only"></i> <span class="desktop-and-tablet-only">[`Edit`]</span></a>
                     </div>
@@ -36,7 +35,7 @@
                 </div>
                 <!-- <p class="small gray js-loyalty-barcode-text custom-mt-8"></p> -->
             </div>
-            <div class="align-right wide-mobile" style="min-width: 18rem;max-width: 18rem;">
+            <div class="align-right wide-mobile" style="min-width: 16rem;max-width: 16rem;">
                 <div class="js-loyalty-barcode-wrapper" style="display:none;">
                     <div class="js-loyalty-barcode custom-p-12" style="background-color: #fff; border:1px solid var(--border-color-soft); border-radius:0.5rem;"></div>
                 </div>

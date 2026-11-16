@@ -12,10 +12,23 @@
     }
 </style>
 
-<p class="small">
-    [`A universal JavaScript widget for embedding an online store & shopping flow in any website.`]
-    [`Embed either as an inline dedicated section within the existing site layout or as a “Shop now” button that opens up a blurred background with an &lt;iframe&gt; focusing a customer’s attention on the full-screen shopping experience without making them leave your site.`]
+<p>
+    {sprintf_wp(
+        'Add a complete online store with checkout functionality to <span %s>any website</span> using a ready-to-use JavaScript snippet, even if the site is not powered by Webasyst.',
+        'class="highlighted"'
+    )}
 </p>
+
+<p>
+    [`Several display options:`]
+</p>
+
+<ul>
+    <li>[`<strong>Embedded storefront</strong>. Display a fully functional product catalog anywhere within your custom site design.`]</li>
+    <li>[`<strong>“Buy now” button</strong>. Open a sleek pop-up area over a webpage. The background gently blurs, keeping the customer completely focused on the purchase.`]</li>
+</ul>
+
+<p>[`<strong>Key advantage</strong>: customers never have to leave your website — both checkout and payment happen on the same page.`]</p>
 
 <div class="fields form js-widget-settings-form">
     <form action="{$wa_app_url}?module=channels&action=save" id="js-sales-channel-form">

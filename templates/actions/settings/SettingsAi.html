@@ -7,7 +7,7 @@
         <div class="s-section-header">
                 {if $wa_total !== null}
                     <div class="flexbox middle space-16 custom-mt-24 wrap-mobile">
-                        <span>{sprintf_wp('Remaining Webasyst AI prompts: %s', '<strong>'|cat:$wa_total|cat:'</strong>')}</span>
+                        <span>{sprintf_wp('Remaining Webasyst AI tokens: %s', '<strong>'|cat:$wa_total|cat:'</strong>')}</span>
                         <a href="javascript:void(0)" class="button small custom-mb-4 green" id="js-balance-button">[s`Add credit`]</a>
                     </div>
                 {/if}

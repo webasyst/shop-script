@@ -136,7 +136,14 @@
         {/if}
         <div class="s-promotion-footer custom-mt-24">
             {if $promotion_enabled}
-            <a href="#/payment/plugin/add/pay/" id="js-enable-sbp-button" class="button large white width-100-mobile">Включить оплату СБП</a>
+                {$_enable_sbp_button_link = '#/payment/plugin/add/pay/'}
+                {foreach $instances as $_p_plugin}
+                    {if $_p_plugin.plugin === 'pay'}
+                        {$_enable_sbp_button_link = '#/payment/plugin/setup/'|cat:$_p_plugin.id|cat:'/enable'}
+                        {break}
+                    {/if}
+                {/foreach}
+            <a href="{$_enable_sbp_button_link}" id="js-enable-sbp-button" class="button large white width-100-mobile">Включить оплату СБП</a>
             {/if}
             {* <a href="javascript:void(0)" id="js-toggle-stats-button" class="button large nobutton text-white width-100-mobile custom-mt-12-mobile">Как считаем <i class="fas fa-caret-down"></i></a> *}
         </div>

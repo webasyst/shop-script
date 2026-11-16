@@ -277,20 +277,20 @@ class shopFrontendCheckoutAction extends waViewAction
         if ($universal) {
             $result = "ga('require', 'ecommerce', 'ecommerce.js');\n";
             $result .= "ga('ecommerce:addTransaction', {
-                'id': '".$order['id']."',           // transaction ID - required
-                'affiliation': '".htmlspecialchars($title, ENT_QUOTES, 'utf-8')."',  // affiliation or store name
+                'id': ".json_encode($order['id']).",           // transaction ID - required
+                'affiliation': ".json_encode($title).",  // affiliation or store name
                 'revenue': '".$this->formatPrice($order['total'])."',          // total - required
                 'shipping': '".$this->formatPrice($order['shipping'])."',              // shipping
                 'tax': '".$this->formatPrice($order['tax'])."',           // tax
-                'currency': '".$order['currency']."' // currency
+                'currency': ".json_encode($order['currency'])." // currency
             });\n";
 
             foreach ($order['items'] as $item) {
                 $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
                 $result .= "ga('ecommerce:addItem', {
-                'id': '".$order['id']."',           // transaction ID - required
-                'name': '".htmlspecialchars($item['name'], ENT_QUOTES, 'utf-8')."',        // product name
-                'sku': '".$sku."',           // SKU/code - required
+                'id': ".json_encode($order['id']).",           // transaction ID - required
+                'name': ".json_encode($item['name']).",        // product name
+                'sku': ".json_encode($sku).",           // SKU/code - required
                 'category': '',   // category or variation
                 'price': '".$this->formatPrice($item['price'])."',          // unit price - required
                 'quantity': '".$item['quantity']."'               // quantity - required
@@ -299,25 +299,25 @@ class shopFrontendCheckoutAction extends waViewAction
             $result .= "ga('ecommerce:send');\n";
 
         } else {
-            $items = '';
+            $items = [];
             foreach ($order['items'] as $item) {
                 $sku = $item['type'] == 'product' ? $item['sku_code'] : '';
-                $items = "{
-                    item_id: '{$order['id']}',
-                    item_name: '".htmlspecialchars($item['name'], ENT_QUOTES, 'utf-8')."',
+                $items[] = "{
+                    item_id: ".json_encode($item['id']).",
+                    item_name: ".json_encode($item['name']).",
                     price: {$this->formatPrice($item['price'])},
                     quantity: {$item['quantity']},
-                    item_variant: '$sku'
-                },\n";
+                    item_variant: ".json_encode($sku)."
+                }";
             }
-
+            $items = join(',', $items);
             $result = "gtag('event', 'purchase', {
-                transaction_id: '{$order['id']}', // transaction ID - required
+                transaction_id: ".json_encode($order['id']).", // transaction ID - required
                 value: {$this->formatPrice($order['total'])}, // total - required
-                currency: '{$order['currency']}', // currency - required
+                currency: ".json_encode($order['currency']).", // currency - required
                 tax: {$this->formatPrice($order['tax'])}, // tax
                 shipping: {$this->formatPrice($order['shipping'])}, // shipping
-                affiliation: '".htmlspecialchars($title, ENT_QUOTES, 'utf-8')."', // affiliation or store name
+                affiliation: ".json_encode($title).", // affiliation or store name
                 items: [$items]
             });";
         }

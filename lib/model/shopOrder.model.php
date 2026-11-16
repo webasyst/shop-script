@@ -592,6 +592,7 @@ SQL;
      */
     public function returnProductsToStocks($order_id)
     {
+        $order_id = (int) $order_id;
         $app_settings_model = new waAppSettingsModel();
         if (!$app_settings_model->get('shop', 'disable_stock_count')) {
             $order_params_model = new shopOrderParamsModel();
@@ -623,9 +624,17 @@ SQL;
                 'counts' => &$items_stocks, // sku_id => stock_id => count (positive numbers)
             ]));
 
-            $items_model->updateStockCount($items_stocks);
-            $order_params_model->unsetReduced($order_id);
-            $order_params_model->incReturnTimes($order_id);
+            try {
+                $this->exec("SELECT GET_LOCK(?, -1)", ['shop_order_stock_'.$order_id]);
+                if (!$order_params_model->isReduced($order_id)) {
+                    return null;
+                }
+                $items_model->updateStockCount($items_stocks);
+                $order_params_model->unsetReduced($order_id);
+                $order_params_model->incReturnTimes($order_id);
+            } finally {
+                $this->exec("SELECT RELEASE_LOCK(?)", ['shop_order_stock_'.$order_id]);
+            }
 
             /**
              * @since 10.2.0
@@ -641,6 +650,7 @@ SQL;
 
     public function reduceProductsFromStocks($order_id)
     {
+        $order_id = (int) $order_id;
         $order_params_model = new shopOrderParamsModel();
         $reduced = $order_params_model->isReduced($order_id);
         if ($reduced) {
@@ -657,9 +667,17 @@ SQL;
             'counts' => &$items_stocks, // sku_id => stock_id => count (negative numbers)
         ]));
 
-        $items_model->updateStockCount($items_stocks);
-        $order_params_model->setReduced($order_id);
-        $order_params_model->incReduceTimes($order_id);
+        try {
+            $this->exec("SELECT GET_LOCK(?, -1)", ['shop_order_stock_'.$order_id]);
+            if ($order_params_model->isReduced($order_id)) {
+                return;
+            }
+            $items_model->updateStockCount($items_stocks);
+            $order_params_model->setReduced($order_id);
+            $order_params_model->incReduceTimes($order_id);
+        } finally {
+            $this->exec("SELECT RELEASE_LOCK(?)", ['shop_order_stock_'.$order_id]);
+        }
 
         wa('shop')->event('order_reduce_stock_counts_after', ref([
             'order_id' => $order_id,

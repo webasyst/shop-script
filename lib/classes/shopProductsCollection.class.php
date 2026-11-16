@@ -126,10 +126,10 @@ class shopProductsCollection
         if (is_array($hash)) {
             $hash = '/id/'.implode(',', $hash);
         }
-        if (substr($hash, 0, 1) == '#') {
+        if (substr((string) $hash, 0, 1) == '#') {
             $hash = substr($hash, 1);
         }
-        $this->hash = trim($hash, '/');
+        $this->hash = trim((string) $hash, '/');
         if ($this->hash == 'all') {
             $this->hash = '';
         }
@@ -1528,6 +1528,70 @@ SQL;
     }
 
     /**
+     * Collections /external/<plugin>/id,id,id — search products by external marketplace ids.
+     *
+     * Matches product-type links and, additionally, sku-type links
+     * (returning the products those SKUs belong to).
+     *
+     * @param string $params <plugin>/<external_ids>; external ids are assumed never to contain a comma
+     * @param bool $auto_title
+     */
+    protected function externalPrepare($params, $auto_title = true)
+    {
+        list($plugin, $ids_str) = explode('/', $params, 2) + ['', ''];
+
+        $external_ids = array();
+        foreach (explode(',', $ids_str) as $external_id) {
+            if (strlen($external_id)) {
+                $external_ids[] = trim($external_id);
+            }
+        }
+
+        $sku_ids = $product_ids = [];
+        if ($plugin && $external_ids) {
+            $entity_model = new shopExternalEntityModel();
+            $rows = $entity_model->getByField(array(
+                'plugin'      => $plugin,
+                'entity_type' => array('product', 'sku'),
+                'external_id' => $external_ids,
+            ), 'entity_id');
+
+            foreach ($rows as $entity_id => $row) {
+                if ($row['entity_type'] === 'sku') {
+                    $sku_ids[] = $entity_id;
+                } else {
+                    $product_ids[$entity_id] = $entity_id;
+                }
+            }
+
+            $skus = [];
+            if ($sku_ids) {
+                $sku_model = new shopProductSkusModel();
+                $skus = $sku_model->select('product_id')->where('id IN (?)', [$sku_ids])->fetchAll('product_id');
+            }
+            $product_ids = array_keys($product_ids + $skus);
+        }
+
+        $this->info = array(
+            'hash'         => 'external',
+            'plugin'       => $plugin,
+            'external_ids' => $external_ids,
+            'product_ids'  => $product_ids,
+            'sku_ids'      => $sku_ids,
+        );
+
+        if ($product_ids) {
+            $this->where[] = "p.id IN (".implode(',', $product_ids).")";
+        } else {
+            $this->where[] = '0';
+        }
+
+        if ($auto_title) {
+            $this->addTitle(sprintf(_w('External “%s”'), $plugin.': '.implode(', ', $external_ids)));
+        }
+    }
+
+    /**
      * Collections /type/1
      *
      * @param int $id - type_id
@@ -2247,6 +2311,14 @@ SQL;
             $this->fields['drop_out_of_stock'] = '(p.count > 0 || p.count IS NULL) AS in_stock';
         }
 
+        // 'external_entities'/'external_entities_skus' need all shop_product columns so that
+        // any {p.*} placeholder in a url_template can be resolved
+        if (in_array('external_entities', $split_fields) || in_array('external_entities_skus', $split_fields)) {
+            if (!in_array('*', $split_fields)) {
+                $fields = '*,'.$fields;
+            }
+        }
+
         // 'skus_filtered' require additional data if joined with product_skus table
         if (isset($this->join_index['ps']) && (in_array('skus_filtered', $split_fields) || in_array('sku_filtered', $split_fields))) {
             $this->fields['skus_filtered'] = "GROUP_CONCAT(DISTINCT ps" . $this->join_index['ps'] . ".id) AS sku_ids";
@@ -2301,6 +2373,8 @@ SQL;
             'skus_filtered',
             'skus',
             'skus_image',
+            'external_entities',
+            'external_entities_skus',
             'categories',
             'category_ids',
             'features',
@@ -2851,16 +2925,6 @@ SQL;
                     '</span>';
             }
 
-            // escape
-            if ($escape) {
-                if (isset($p['name'])) {
-                    $p['name'] = htmlspecialchars($p['name']);
-                }
-                if (isset($p['url'])) {
-                    $p['url'] = htmlspecialchars($p['url']);
-                }
-            }
-
             // Make sure array exists for all products
             if ($fetch_params) {
                 $p['params'] = array();
@@ -3245,6 +3309,9 @@ SQL;
                         }
 
                         $p['frontend_url'] = wa()->getRouteUrl('shop/frontend/product', $route_params);
+                        if ($escape) {
+                            $p['frontend_url'] = htmlspecialchars($p['frontend_url']);
+                        }
                     }
                     unset($p);
                 }
@@ -3673,6 +3740,51 @@ SQL;
                 }
             }
 
+            // External entities: fetch marketplace links for products (and optionally SKUs)
+            if (isset($fields['external_entities_skus']) || isset($fields['external_entities'])) {
+                $external_entity_model = new shopExternalEntityModel();
+                $build_external_entities = function (array $links, array $vars) use ($external_entity_model) {
+                    $result = [];
+                    foreach ($links as $link) {
+                        $link['external_url'] = $external_entity_model->buildExternalUrl($link, $vars);
+                        unset($link['url_template']);
+                        $result[] = $link;
+                    }
+                    return $result;
+                };
+                if (isset($fields['external_entities'])) {
+                    $external_entities = $external_entity_model->getByEntity('product', array_keys($products));
+                }
+                $sku_ids = [];
+                foreach ($products as &$p) {
+                    if (isset($fields['external_entities'])) {
+                        $p['external_entities'] = $build_external_entities($external_entities[$p['id']] ?? [], ['p' => $p]);
+                    }
+                    if (isset($fields['external_entities_skus']) && !empty($p['skus'])) {
+                        foreach ($p['skus'] as $sku) {
+                            if (!empty($sku['id'])) {
+                                $sku_ids[$sku['id']] = $sku['id'];
+                            }
+                        }
+                    }
+                }
+                unset($p, $external_entities);
+                if ($sku_ids) {
+                    $external_entities_skus = $external_entity_model->getByEntity('sku', $sku_ids);
+                    foreach ($products as &$p) {
+                        if (!empty($p['skus'])) {
+                            foreach ($p['skus'] as &$sku) {
+                                $sku['external_entities'] = $build_external_entities(
+                                    ifset($external_entities_skus, $sku['id'], []),
+                                    ['p' => $p, 's' => $sku]
+                                );
+                            }
+                        }
+                    }
+                    unset($p, $sku, $external_entities_skus);
+                }
+            }
+
             // features
             if (!empty($unprocessed['_features'])) {
                 $feature_ids = [];
@@ -4014,6 +4126,20 @@ SQL;
                 }
             }
         }
+
+        // escape product names and urls as the very last step, after all
+        // post-processing (including 'frontend_url' and 'external_entities')
+        if ($escape) {
+            foreach ($products as &$p) {
+                if (isset($p['name'])) {
+                    $p['name'] = htmlspecialchars($p['name']);
+                }
+                if (isset($p['url'])) {
+                    $p['url'] = htmlspecialchars($p['url']);
+                }
+            }
+            unset($p);
+        }
     }
 
     /**
@@ -4131,7 +4257,7 @@ SQL;
             }
 
             //get id virtual stock
-            $v_stock[] = substr($stock, 1);
+            $v_stock[] = substr((string) $stock, 1);
             unset($public_stocks[$key]);
         }
 

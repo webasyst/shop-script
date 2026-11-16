@@ -12,8 +12,8 @@ return array(
     'pages'            => true,
     'mobile'           => true,
     'my_account'       => true,
-    'version'          => '12.7.0',
-    'critical'         => '12.7.0',
+    'version'          => '12.8.0', // deveoper preview
+    'critical'         => '12.8.0',
     'vendor'           => 'webasyst',
     'csrf'             => true,
     'payment_plugins'  => array(

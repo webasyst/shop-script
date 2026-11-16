@@ -723,15 +723,20 @@ class shopProdListAction extends waViewAction
         $position = 0;
         foreach ($presentation_columns as $enabled_column) {
             if (isset($columns[$enabled_column['column_type']])) {
-                $columns[$enabled_column['column_type']]['enabled'] = true;
-                $columns[$enabled_column['column_type']]['sort'] = $enabled_column['sort'];
-                $columns[$enabled_column['column_type']]['settings'] = [];
+                $column_info =& $columns[$enabled_column['column_type']];
+                $column_info['enabled'] = true;
+                $column_info['sort'] = $enabled_column['sort'];
+                $column_info['settings'] = shopPresentation::getColumnDefaultSettings($column_info);
                 if (!empty($enabled_column['data'])) {
-                    $columns[$enabled_column['column_type']]['settings'] = ifset($enabled_column, 'data', 'settings', []);
+                    $column_info['settings'] = array_merge(
+                        $column_info['settings'], 
+                        (array) ifset($enabled_column, 'data', 'settings', [])
+                    );
                 }
             }
             $position = max($enabled_column['sort'], $position);
         }
+        unset($column_info);
         foreach ($columns as $col_id => &$column) {
             if (empty($column['enabled'])) {
                 if ($remove_disabled) {

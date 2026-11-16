@@ -88,7 +88,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
 
     protected function report()
     {
-        $report = '<div class="successmsg"><i class="icon16 yes"></i> ';
+        $report = '<div class="successmsg state-success"><i class="icon16 yes fas fa-check-circle"></i> ';
         $report .= $this->getReports();
 
         if (!empty($this->data['timestamp'])) {
@@ -97,7 +97,7 @@ class shopSettingsImagesRegenerateController extends waLongActionController
             $report .= ' '.sprintf(_w('(total time: %s)'), $interval);
         }
 
-        $report .= '&nbsp;<a class="close" href="javascript:void(0);">'._w('close').'</a></div>';
+        $report .= '&nbsp;<a class="close bold" href="javascript:void(0);">'._w('close').'</a></div>';
 
         return $report;
     }

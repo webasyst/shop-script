@@ -19,6 +19,7 @@ class shopOrderGetInfoMethod extends shopApiMethod
             }
         }
 
+        $data['id_encoded'] = shopHelper::encodeOrderId($data['id']);
         $this->response = $data;
     }
 }

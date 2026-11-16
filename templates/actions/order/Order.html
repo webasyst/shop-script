@@ -121,13 +121,30 @@
 
                             {/if}
 
-                            {if !empty($params.customer_timezone)}
-                                <p class="small custom-mt-0" title="[`Current time in the timezone where the client placed this order`]">
-                                    <i class="fas fa-clock text-gray custom-mr-4"></i>
-                                    [`Client current time:`]
-                                    <strong>{waDateTime::format('time', null, $params.customer_timezone)}</strong>
-                                    <span class="hint">{$params.customer_timezone}</span>
-                                </p>
+                            {if empty($params.is_end_customer_unknown)}
+
+                                {* known end customer -> display time zone if we know it *}
+                                {if !empty($params.customer_timezone)}
+                                    <p class="small custom-mt-0" title="[`Current time in the timezone where the client placed this order`]">
+                                        <i class="fas fa-clock text-gray custom-mr-4"></i>
+                                        [`Client current time:`]
+                                        <strong>{waDateTime::format('time', null, $params.customer_timezone)}</strong>
+                                        <span class="hint">{$params.customer_timezone}</span>
+                                    </p>
+                                {/if}
+
+                            {else}
+
+                                {* for an unknown end customer, order contact_id is considered as a contractor responsible for charging a fee/commission, e.g. marketplace, b2b partner — display it here if we know it *}
+
+                                {if floatval($order.fee) > 0.00001}
+                                    <p class="small">
+                                        [`Fees`] —
+                                        <b>{wa_currency_html($order.fee, $order.currency)}</b>
+                                        {if !empty($order_fees_description)}<span class="hint">{$order_fees_description|escape}</span>{/if}
+                                    </p>
+                                {/if}
+
                             {/if}
 
                         </div>
@@ -150,8 +167,9 @@
                     {* @event backend_order.%plugin_id%.info_section *}
                     {if !empty($backend_order)}{foreach $backend_order as $_}{if (!empty($_.info_section))}{$_.info_section}{/if}{/foreach}{/if}
 
+                    {if empty($params.is_end_customer_unknown)}
                     <div class="s-order-shipping-and-payment flexbox full-width wrap-mobile space-16 break-word">
-                        {if ($shipping_address) || !empty($params.shipping_name)}
+                        {if $shipping_address || !empty($params.shipping_name)}
                             <div class="s-block width-50 width-100-mobile custom-mr-0-mobile s-order-shipping">
 
                                 <h6 class="custom-mb-8">
@@ -248,59 +266,68 @@
                             </div>
                         {/if}
 
-                            <div class="s-block width-50 width-100-mobile s-order-payment{if !empty($order.paid_date)} highlighted green{elseif !empty($order.auth_date)} highlighted yellow{elseif $order.state_id == 'refunded'} highlighted orange{/if}">
+                        <div class="s-block width-50 width-100-mobile s-order-payment{if !empty($order.paid_date)} highlighted green{elseif !empty($order.auth_date)} highlighted yellow{elseif $order.state_id == 'refunded'} highlighted orange{/if}">
 
-                                <h6>
-                                    {if !empty($order.paid_date)}
-                                        <i class="fas fa-check-circle s-order-paid-checkmark"></i>
-                                    {/if}
-                                    <span class="gray">[`Payment`]</span>
-                                    {if !empty($params.payment_name)}
-                                        <span class="gray">—</span>
-                                        <span>{$params.payment_name|escape}</span>
-                                    {/if}
-                                </h6>
-                                {if $billing_address !== null}
-                                    <p class="s-order-address">{$billing_address}</p>
-                                {/if}
-
+                            <h6>
                                 {if !empty($order.paid_date)}
+                                    <i class="fas fa-check-circle s-order-paid-checkmark"></i>
+                                {/if}
+                                <span class="gray">[`Payment`]</span>
+                                {if !empty($params.payment_name)}
+                                    <span class="gray">—</span>
+                                    <span>{$params.payment_name|escape}</span>
+                                {/if}
+                            </h6>
+                            {if $billing_address !== null}
+                                <p class="s-order-address">{$billing_address}</p>
+                            {/if}
 
-                                    <p class="small">{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}</p>
+                            {if !empty($order.paid_date)}
 
-                                {elseif !empty($order.auth_date)}
+                                <p class="small">{sprintf('[`Order was paid on %s`]', $order.paid_date|wa_date:'humandate')}</p>
 
-                                    <p class="small"><em>{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}</em></p>
+                            {elseif !empty($order.auth_date)}
 
+                                <p class="small"><em>{sprintf('[`Order payment was captured on %s`]', $order.auth_date|wa_date:'humandate')}</em></p>
+
+                            {else}
+                                {if $order.state_id === 'deleted'}
+                                    <div><p class="gray small">[`Payment links are not eligible for deleted orders.`]</p></div>
                                 {else}
-                                    {if $order.state_id === 'deleted'}
-                                        <div><p class="gray small">[`Payment links are not eligible for deleted orders.`]</p></div>
+                                    {if $order.state_id == 'refunded'}
+                                        <p class="small text-orange"><i class="fas fa-times"></i> <strong>[`Order payment was refunded`]</strong></p>
                                     {else}
-                                        {if $order.state_id == 'refunded'}
-                                            <p class="small text-orange"><i class="fas fa-times"></i> <strong>[`Order payment was refunded`]</strong></p>
-                                        {else}
-                                            <p class="small"><em>[`Order was not paid yet`]</em></p>
-                                        {/if}
-
-                                        <h6 class="gray custom-mt-16">[`Payment link`]</h6>
-
-                                        {* <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre> *}
-                                        <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]" style="height:29px;">[`Copy link`]</button>
-                                        <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
+                                        <p class="small"><em>[`Order was not paid yet`]</em></p>
                                     {/if}
-                                {/if}
 
-                                {if !empty($assistants.cashier)}
-                                    <!-- POS order -->
-                                    <h6 class="custom-mt-16">
-                                        <span class="gray">[`Cashier`] —</span>
-                                        <a href="#/orders/hash=search/{'&cashier_contact_id='|urlencode|cat:$assistants.cashier.id}/"{if $order.assigned_to_me && $assistants.cashier.id == $wa->user()->getId()} class="highlighted" title="[`Assigned to me`]"{/if}>{$assistants.cashier.name|escape}</a>
-                                    </h6>
-                                {/if}
+                                    <h6 class="gray custom-mt-16">[`Payment link`]</h6>
 
-                            </div>
+                                    {* <pre class="break-all small" id="js-payment-url">{$order.payment_url}</pre> *}
+                                    <button class="button smaller green nowrap js-copy-btn" data-url="{$order.payment_url}" data-title-copied="[`Copied`]" data-initial-title="[`Copy link`]" style="height:29px;">[`Copy link`]</button>
+                                    <a href="{$order.payment_url}" target="_blank" class="button smaller light-gray">[`Open link`] <i class="fas fa-external-link-alt fa-xs opacity-30"></i></a>
+                                {/if}
+                            {/if}
+
+                            {if !empty($assistants.cashier)}
+                                <h6 class="custom-mt-16">
+                                    <span class="gray">[`Cashier`] —</span>
+                                    <a href="#/orders/hash=search/{'&cashier_contact_id='|urlencode|cat:$assistants.cashier.id}/"{if $order.assigned_to_me && $assistants.cashier.id == $wa->user()->getId()} class="highlighted" title="[`Assigned to me`]"{/if}>{$assistants.cashier.name|escape}</a>
+                                </h6>
+                            {/if}
+
+                            {if floatval($order.fee) > 0.00001}
+                                {* for orders with a known end customer, fees are associated with payment *}
+                                <p class="small">
+                                    [`Fees`] —
+                                    <b>{wa_currency_html($order.fee, $order.currency)}</b>
+                                    {if !empty($order_fees_description)}<span class="hint">{$order_fees_description|escape}</span>{/if}
+                                </p>
+                            {/if}
+
+                        </div>
 
                     </div>
+                    {/if}
 
                     <!-- order content -->
                     {$visible_fulfilment_mode = !in_array($order.state_id, ['shipped', 'completed', 'refunded', 'deleted'])}
@@ -426,7 +453,7 @@
                                                                     {if !empty($_code.icon) && $_code.code_plugin_enabled}
                                                                         <img src="{$wa_url}{$_code.icon}">
                                                                     {else}
-                                                                        <i class="fas fa-qrcode text-dark-gray large"></i>
+                                                                        <i class="fas fa-qrcode text-blue large"></i>
                                                                     {/if}
                                                                 </td>
                                                                 <td class="min-width nowrap">

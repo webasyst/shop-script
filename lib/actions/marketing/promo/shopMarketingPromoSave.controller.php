@@ -407,6 +407,20 @@ class shopMarketingPromoSaveController extends waJsonController
             } else {
                 $banner['countdown_datetime'] = null;
             }
+
+            if (
+                (($banner['type_link'] === 'link' || $banner['type_link'] === 'category') && !trim(ifset($banner, 'link', ''))) ||
+                ($banner['type_link'] === 'product' && empty($banner['product_name']))
+            ) {
+                $rule_errors[] = [
+                    'id' => 'rule_error',
+                    'text' => _w('This field is required'),
+                    'rule_data' => [
+                        'banner_id' => $i,
+                        'error_code' => 'link_invalid',
+                    ],
+                ];
+            }
         }
         unset($banner);
 

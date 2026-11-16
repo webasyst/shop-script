@@ -3740,6 +3740,7 @@
                                           is_extended = (that.presentation.view === "table_extended");
 
                                     var column_info = (that.columns[self.column.column_type] ? that.columns[self.column.column_type] : null),
+                                        is_custom_col = !!(column_info && column_info.is_custom),
                                         column_data = getColumnData();
 
                                     return {
@@ -3760,6 +3761,24 @@
 
                                     function showColumn(column_data) {
                                         var result = true;
+
+                                        // Custom columns bypass the built-in whitelist: visibility is
+                                        // decided by the column's render_scope.
+                                        if (is_custom_col && is_extended) {
+                                            var render_scope = (column_info.render_scope || 'product');
+                                            if (!is_normal_mode) {
+                                                // single-SKU products render everything on the product row
+                                                // (there are no separate SKU/variant rows), so scope is irrelevant there
+                                                result = is_product_col;
+                                            } else if (is_product_col) {
+                                                result = (render_scope === 'product' || render_scope === 'all');
+                                            } else if (is_sku_col) {
+                                                result = (render_scope === 'sku' || render_scope === 'variant' || render_scope === 'all');
+                                            } else if (is_sku_mod_col) {
+                                                result = (render_scope === 'variant' || render_scope === 'all');
+                                            }
+                                            return result;
+                                        }
 
                                         var product_columns = [
                                             "image_crop_small", "image_count",
@@ -3847,7 +3866,17 @@
                                             // return self.product.columns[self.column.column_type];
                                             column_data = $.wa.clone(self.product.columns[self.column.column_type]);
                                             var name = "["+self.product.id+"]["+self.column.column_type+"]";
-                                            if (self.sku_mod && column_data.skus) {
+
+                                            // Custom columns on the SKU row (render_scope 'sku'/'all'):
+                                            // the sku object has no 'id', so resolve the value from skus map
+                                            // using sku.sku_id (or the first modification id) falling back to the product value.
+                                            if (is_custom_col && self.sku && !self.sku_mod && column_data.skus) {
+                                                var sku_key = (self.sku.sku_id || (self.sku.modifications && self.sku.modifications[0] ? self.sku.modifications[0].id : null));
+                                                if (sku_key && column_data.skus[sku_key]) {
+                                                    column_data = $.wa.clone($.extend({}, column_data, column_data.skus[sku_key]));
+                                                }
+                                                if (column_data && column_data.skus) { delete column_data.skus; }
+                                            } else if (self.sku_mod && column_data.skus) {
                                                 var sku_mod_data = column_data.skus[self.sku_mod.id];
                                                 if (sku_mod_data) {
                                                     // Если это характеристика
@@ -6175,17 +6204,41 @@
                                             // Если это модификация
                                             if (self.sku_mod) { data["sku_id"] = self.sku_mod.id; }
 
-                                            $.post(that.urls["product_update"], data, "json")
+                                            // Custom columns save to a plugin-provided endpoint.
+                                            var column_info = that.columns[self.column.column_type];
+                                            var is_custom = !!(column_info && column_info.is_custom);
+
+                                            // For custom columns on the SKU row (render_scope 'sku'/'all')
+                                            // the sku has no id, so resolve it from sku_id or the first modification.
+                                            if (is_custom && self.sku && !self.sku_mod && !data["sku_id"]) {
+                                                var sku_key = (self.sku.sku_id || (self.sku.modifications && self.sku.modifications[0] ? self.sku.modifications[0].id : null));
+                                                if (sku_key) { data["sku_id"] = sku_key; }
+                                            }
+
+                                            var save_url = (is_custom && column_info.inline_update_url) ? column_info.inline_update_url : that.urls["product_update"];
+
+                                            $.post(save_url, data, "json")
                                                 .always( function() {
                                                     self.states.is_locked = false;
                                                 })
                                                 .done( function(response) {
                                                     if (response.status !== "ok") {
-                                                        var error_search = response.errors.filter( error => (error.id === "not_found"));
+                                                        var error_search = (response.errors || []).filter( error => (error.id === "not_found"));
                                                         if (error_search.length) {
                                                             $.wa_shop_products.showDeletedProductDialog();
                                                         } else {
-                                                            console.error("ERROR", response.errors);
+                                                            // Surface plugin errors simply.
+                                                            var error_text = "";
+                                                            if (response.errors && response.errors.length) {
+                                                                $.each(response.errors, function(i, error) {
+                                                                    if (error && error.text) { error_text += (error_text ? "\n" : "") + error.text; }
+                                                                });
+                                                            }
+                                                            if (error_text) {
+                                                                alert(error_text);
+                                                            } else {
+                                                                console.error("ERROR", response.errors);
+                                                            }
                                                         }
                                                     }
                                                 });
@@ -7858,8 +7911,22 @@
                                     break;
                             }
 
+                            // Custom columns: seed settings from settings_schema defaults so the
+                            // 'configure' link is always shown and defaults persist on save.
+                            if (this.column.settings_schema) {
+                                var self = this;
+                                if (!this.column.settings || Array.isArray(this.column.settings)) {
+                                    this.column.settings = {};
+                                }
+                                $.each(this.column.settings_schema, function(i, field) {
+                                    if (typeof field.default !== 'undefined' && typeof self.column.settings[field.name] === 'undefined') {
+                                        self.column.settings[field.name] = field.default;
+                                    }
+                                });
+                            }
+
                             var settings = null;
-                            if (Object.keys(this.column.settings).length) {
+                            if (Object.keys(this.column.settings).length || this.column.settings_schema) {
                                 settings = this.column.settings;
                             }
 
@@ -7879,7 +7946,9 @@
                         delimiters: ['{ { ', ' } }'],
                         components: {
                             "component-radio": that.vue_components["component-radio"],
-                            "component-switch": that.vue_components["component-switch"]
+                            "component-switch": that.vue_components["component-switch"],
+                            "component-input": that.vue_components["component-input"],
+                            "component-textarea": that.vue_components["component-textarea"]
                         },
                         computed: {
                             is_stock: function() {

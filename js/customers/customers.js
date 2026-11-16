@@ -266,23 +266,48 @@
 
                 $card.on('click', '.js-loyalty-copy', function () {
                     const $self = $(this);
-                    const $success_icon = $self.find('.js-success-icon');
-                    const $text = $self.find('[data-default-text]');
+                    const $copy_icon = $self.find('.js-copy-icon');
+                    const $success_text = $self.attr('data-success-text');
                     try {
                         const id_code = $code.text().trim();
                         $.wa.copyToClipboard(id_code).then(() => {
                             $self.prop('disabled', true);
-                            $success_icon.show();
-                            $text.text($text.data('success-text'));
+                            $copy_icon.toggleClass('text-blue text-green');
                             setTimeout(() => {
-                                $success_icon.hide();
-                                $text.text($text.data('default-text'));
+                                $copy_icon.toggleClass('text-blue text-green');
                                 $self.prop('disabled', false);
-                            }, 1000)
+                            }, 1000);
+
+                            $.wa.notify({
+                                isCloseable: false,
+                                timeout: 2000,
+                                class: 'success',
+                                content: '<i class="fas fa-check-circle custom-mr-4"></i>' + $success_text,
+                            });
                         });
                     } catch {}
                     return false;
                 });
+
+                $('.js-cheatsheet .field .name').on('click', async function() {
+                    try {
+                        await $.wa.copyToClipboard($(this).text().trim());
+                        $.wa.notify({
+                            isCloseable: false,
+                            timeout: 2000,
+                            class: 'success',
+                            content: '<i class="fas fa-check-circle custom-mr-4"></i>[`Copied`]',
+                        });
+                    } catch(e) {
+                        console.error(e);
+                        $.wa.notify({
+                            isCloseable: false,
+                            timeout: 2000,
+                            class: 'danger',
+                            content: '[`Copying error`]',
+                        });
+                    }
+                })
 
                 $input.on('input', function () {
                     const value = $.customers.normalizeLoyaltyCodeValue($(this).val());

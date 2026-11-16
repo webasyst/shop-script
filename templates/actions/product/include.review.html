@@ -140,7 +140,7 @@
 
             <div class="s-review-footer">
                 {if $reply_allowed}
-                    <a href="{if isset($reply_link)}{$reply_link}{else}#{/if}" class="s-review-reply small inline-link"><b>[`reply`]</b></a>
+                    <a href="{if isset($reply_link)}{$reply_link}{else}javascript:void(0){/if}" class="s-review-reply small inline-link"><b>[`reply`]</b></a>
                 {/if}
             </div>
         </div>

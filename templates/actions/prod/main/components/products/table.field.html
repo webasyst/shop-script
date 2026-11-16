@@ -9,8 +9,17 @@
 
 {capture assign="_component_products_table_field"}
     <div class="vue-products-table-field" v-if="states.display" v-bind:data-feature-id="column.column_type" v-bind:data-render-type="column_data.render_type">
+        {* CUSTOM (plugin) columns: html/text only; editable types (input/textarea/select)
+           fall through to the generic render_type branches below *}
+        <template v-if="column_info && column_info.is_custom && column_data.render_type === 'html'">
+            <div class="vue-render-type-html" v-html="column_data.value"></div>
+        </template>
+        <template v-else-if="column_info && column_info.is_custom && column_data.render_type === 'text'">
+            <div class="vue-render-type-text" v-text="column_data.value"></div>
+        </template>
+
         {* FEATURES *}
-        <template v-if="column.column_type.indexOf('feature_') >= 0">
+        <template v-else-if="column.column_type.indexOf('feature_') >= 0">
             <component-product-column-feature
                 v-bind:product="product"
                 v-bind:sku_mod="sku_mod"

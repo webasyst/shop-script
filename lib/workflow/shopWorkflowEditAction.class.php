@@ -221,6 +221,8 @@ class shopWorkflowEditAction extends shopWorkflowAction
         if (!empty($data['params'])) {
             $this->order_params_model->set($data['id'], $data['params'], false);
 
+            $this->declareFees($data['id']);
+
             // Update shop customer source if this is the first order and source changed
             if (isset($data['params']['referer_host'])) {
                 $scm = new shopCustomerModel();

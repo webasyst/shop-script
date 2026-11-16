@@ -149,7 +149,7 @@ if (typeof($) != 'undefined') {
                         function regenerate(event) {
                             event.preventDefault();
 
-                            dialog.$block.find('.dialog-buttons').hide();
+                            dialog.$block.find('.dialog-footer').hide();
 
                             //Off global handler, so that image processing is not interrupted
                             $.ajaxSetup({'global': false});
@@ -161,7 +161,7 @@ if (typeof($) != 'undefined') {
 
                             dialog.$block.find('#s-regenerate-progressbar').show();
                             dialog.$block.find('.progressbar .progressbar-inner').css('width', '0%');
-                            dialog.$block.find('.progressbar-text').text('0.000%');
+                            dialog.$block.find('.progressbar-text').text('0%');
                             dialog.$block.find('.progressbar').show();
                             dialog.$block.find("#s-regenerate-report").hide();
 
@@ -205,9 +205,7 @@ if (typeof($) != 'undefined') {
                                             if (!r) {
                                                 step(3000);
                                             } else if (r && r.ready) {
-                                                form.find('.progressbar .progressbar-inner').css({
-                                                    width: '100%'
-                                                });
+                                                form.find('.progressbar .progressbar-inner').css('width', '100%');
                                                 form.find('.progressbar-text').text('100%');
                                                 cleanup();
                                             } else if (r && r.error) {
@@ -215,14 +213,13 @@ if (typeof($) != 'undefined') {
                                             } else {
                                                 if (r && r.progress) {
                                                     const progress = parseFloat(r.progress.replace(/,/, '.'));
-                                                    form.find('.progressbar .progressbar-inner').animate({
-                                                        'width': progress + '%'
-                                                    });
-                                                    form.find('.progressbar-text').text(r.progress);
+                                                    const formatted_progress = Math.round(progress) + '%';
+                                                    form.find('.progressbar .progressbar-inner').css('width', formatted_progress);
+                                                    form.find('.progressbar-text').text(formatted_progress);
                                                 }
 
                                                 if (r && r.warning) {
-                                                    form.find('.progressbar-text').append('<i class="fas fa-exclamation-triangle"></i><p>' + r.warning + '</p>');
+                                                    form.find('.progressbar-text').append('<i class="fas fa-exclamation-triangle text-yellow"></i> <p>' + r.warning + '</p>');
                                                 }
 
                                                 step();
@@ -255,12 +252,9 @@ if (typeof($) != 'undefined') {
                         }
                     },
                     onClose(dialog) {
-                        console.log(dialog);
-                        let timer_id = pull.pop();
-
-                        while (timer_id) {
+                        while (pull.length) {
+                            const timer_id = pull.pop();
                             clearTimeout(timer_id);
-                            timer_id = pull.pop();
                         }
 
                         dialog.$block.find('#s-regenerate-progressbar').hide();
