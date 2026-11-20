@@ -58,6 +58,7 @@ class shopFrontendApiShopController extends shopFrontApiJsonController
             'shipping_mode'         => ifempty($checkout_config, 'shipping', 'mode', shopCheckoutConfig::SHIPPING_MODE_TYPE_DEFAULT),
             'shipping_locations'    => $this->getShippingLocations($checkout_config),
             'locale'                => wa()->getLocale(),
+            'storefront_title'      => waIdna::dec(wa()->getRouting()->getUrl('shop/frontend/', [], true)),
             'customer_agreement'    => [
                 'setting' => ifset($checkout_config, 'customer', 'service_agreement', ''), // 'checkbox' | 'notice' | ''
                 'text' => ifset($checkout_config, 'customer', 'service_agreement', '') ? ifset($checkout_config, 'customer', 'service_agreement_hint', '') : '',

@@ -527,7 +527,7 @@ class shopProduct implements ArrayAccess
     public function getExternalEntities()
     {
         $external_entity_model = new shopExternalEntityModel();
-        $external_entities = $external_entity_model->getByEntity('product', [$this->id]);
+        $external_entities = $external_entity_model->getByEntity('product', [$this->id], ['products' => [$this->id => $this->data]]);
         $external_entities = ifset($external_entities, $this->id, []);
 
         foreach ($external_entities as &$link) {

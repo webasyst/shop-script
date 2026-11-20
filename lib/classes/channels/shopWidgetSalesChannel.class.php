@@ -67,4 +67,9 @@ class shopWidgetSalesChannel extends shopTelegramSalesChannel
             )
         );
     }
+
+    public function getExternalLinks(array $channel, string $entity_type, array $rows): array
+    {
+        return [];
+    }
 }

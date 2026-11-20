@@ -32,7 +32,7 @@ class shopProductFeaturesAction extends waViewAction
                 foreach ($changed_features as $code => $value) {
                     if (isset($product->features[$code])) {
                         if (is_array($value)) {
-                            $intersect = array_unique(array_merge($value, (array)$product->features[$code]));
+                            $intersect = array_unique(array_merge($value, (array) $product->features[$code]), SORT_REGULAR);
                             if (count($value) == count($intersect)) {
                                 unset($changed_features[$code]);
                             }

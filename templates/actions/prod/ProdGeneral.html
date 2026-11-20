@@ -324,9 +324,28 @@
 
                         </div>
                         <div class="value">
-                            {* !!! TODO 
-                            {$product.external_entities|wa_dumpc}
-                            {* *}
+                            <ul class="s-product-external-links flexbox middle space-8">
+                            {foreach $product.external_entities as $external_entity}
+                                <li class="custom-m-0">
+                                    {$channel_type_id = ifset($external_entity, 'plugin', '')|replace:'sales_channel_':''}
+                                    {$channel_type = ifset($channel_types, $channel_type_id, null)}
+                                    {if !empty($channel_type['menu_icon'])}
+                                        <a class="s-product-external-link button outlined rounded smaller" href="{$external_entity.external_url}" target="_blank" title="{$channel_type.name|escape}">
+                                            {$channel_type.menu_icon}
+                                            <i class="s-product-external-link-icon fas fa-external-link-alt fa-xs"></i>
+                                        </a>
+                                    {else}
+                                        <a class="s-product-external-link button outlined rounded smaller" href="{$external_entity.external_url}" target="_blank">
+                                            <span class="wide width-0 text-ellipsis">{$external_entity.external_url|escape}</span>
+                                            <i class="s-product-external-link-icon fas fa-external-link-alt fa-xs"></i>
+                                        </a>
+                                    {/if}
+                                </li>
+                            {foreachelse}
+                                <li>[`No links here yet. Add a sales channel to publish and sell the product on external platforms.`]</li>
+                            {/foreach}
+                            </ul>
+
                         </div>
                     </div>
 

@@ -3,7 +3,7 @@
  * Implements sales channel type 'telegram:<id>'
  * Storefront via Telegram messenger bot.
  */
-class shopTelegramSalesChannel extends shopSalesChannelType implements shopSalesChannelWaidInterface
+class shopTelegramSalesChannel extends shopSalesChannelType implements shopSalesChannelWaidInterface, shopSalesChannelWithLinksInterface
 {
     protected function getFormFieldsConfig($values = []): array
     {
@@ -316,7 +316,7 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
                             'title' => $c['name'],
                             'disabled' => empty($c['iso3letter']),
                         ];
-                    }, (new waCountryModel())->allWithFav()),
+                    }, (new waCountryModel())->allWithFav())
                 ),
             ),
             'checkout_terms_link' => array(
@@ -449,6 +449,53 @@ class shopTelegramSalesChannel extends shopSalesChannelType implements shopSales
         $result['homepage_blocks'] = $this->hydratePublicHomepageBlocks($result['homepage_blocks']);
 
         return $result;
+    }
+
+    public function getExternalLinks(array $channel, string $entity_type, array $rows): array
+    {
+        $result = [];
+        if ($entity_type !== shopExternalEntityModel::ENTITY_TYPE_PRODUCT) {
+            return $result;
+        }
+
+        $wa_channel_id = (string) ifset($channel, 'wa_channel_id', '');
+        if (!$wa_channel_id) {
+            return $result;
+        }
+
+        foreach ($rows as $product_id => $row) {
+            if (empty($product_id)) {
+                continue;
+            }
+
+            $url_template = $this->buildProductDeepLink($wa_channel_id, (int) $product_id);
+            if ($url_template) {
+                $result[$product_id] = $url_template;
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * Builds a storefront deep link URL opening the given product inside the Telegram mini-app.
+     *
+     * The product id is baked into the base64 `startapp` payload, so the resulting link is
+     * a concrete URL per product.
+     */
+    protected function buildProductDeepLink(string $wa_channel_id, int $product_id): string
+    {
+        $payload = rtrim(strtr(base64_encode((string)json_encode([
+            'redirect' => [
+                'storefront' => $wa_channel_id,
+                'productId'  => $product_id,
+            ],
+        ])), '+/', '-_'), '=');
+        if (!$payload) {
+            return '';
+        }
+        // or 'https://t.me/{botUsername}?startapp='.$payload
+        return 'https://app.shop-script.ru/s/'.$wa_channel_id.'/?startapp='.$payload;
     }
 
     public function getWaidChannelParams(array $channel): array

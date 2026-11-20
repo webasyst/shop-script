@@ -85,6 +85,9 @@ class shopProdGeneralAction extends waViewAction
             $formatted_product['normal_mode'] = true;
         }
 
+        $channel_types = shopSalesChannelType::getAllTypes();
+        $channel_types = array_combine(array_column($channel_types, 'id'), $channel_types);
+
         $this->view->assign([
             'url_template' => $url_template,
             'frontend_urls' => $frontend_urls,
@@ -102,6 +105,7 @@ class shopProdGeneralAction extends waViewAction
             'backend_prod_content_event' => $backend_prod_content_event,
             'show_sku_warning' => shopProdSkuAction::isSkuCorrect($product['id'], $product['sku_type']),
             'ai_generate_quick_mode' => wa()->getSetting('ai_dna_descr', null, 'shop'),
+            'channel_types' => $channel_types,
         ]);
 
         $this->setLayout(new shopBackendProductsEditSectionLayout([

@@ -242,7 +242,7 @@ class shopNotifications
         $root_url = rtrim(wa()->getRootUrl(true), '/');
         $root_url_len = strlen($root_url);
 
-        $d = $data['storefront_domain'] ? 'http://'.$data['storefront_domain'] : $root_url;
+        $d = $data['storefront_domain'] ? (ifempty($data, 'storefront_route', 'ssl', '') ? 'https://' : 'http://').$data['storefront_domain'] : $root_url;
 
         $collection = new shopProductsCollection(
             'id/'.join(',', array_keys($product_ids)),

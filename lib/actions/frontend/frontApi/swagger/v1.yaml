@@ -538,6 +538,9 @@ paths:
                   default_currency:
                     type: string
                     description: 3-буквенный код основной валюты витрины
+                  storefront_title:
+                    type: string
+                    description: Полный URL до корня витрины ШС, punicode decoded
                   customer_agreement:
                     type: object
                     description: Настройки согласия с условиями регистрации (например, с обработкой персональных данных)

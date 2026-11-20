@@ -3753,7 +3753,7 @@ SQL;
                     return $result;
                 };
                 if (isset($fields['external_entities'])) {
-                    $external_entities = $external_entity_model->getByEntity('product', array_keys($products));
+                    $external_entities = $external_entity_model->getByEntity('product', array_keys($products), ['products' => $products]);
                 }
                 $sku_ids = [];
                 foreach ($products as &$p) {
@@ -3770,7 +3770,7 @@ SQL;
                 }
                 unset($p, $external_entities);
                 if ($sku_ids) {
-                    $external_entities_skus = $external_entity_model->getByEntity('sku', $sku_ids);
+                    $external_entities_skus = $external_entity_model->getByEntity('sku', $sku_ids, ['products' => $products]);
                     foreach ($products as &$p) {
                         if (!empty($p['skus'])) {
                             foreach ($p['skus'] as &$sku) {

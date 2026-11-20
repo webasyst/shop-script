@@ -689,7 +689,7 @@ table.rating-distribution td .bar .filling { background: var(--orange); height: 
 .reviews > ul > li { margin-bottom: 40px; }
 .reviews ul li ul {padding-left: 26px; margin-top: 30px; }
 
-.reviews ul li ul .s-review-wrapper { box-shadow: none;}
+.reviews ul li ul .s-review-wrapper { box-shadow: none; }
 .reviews ul li ul li .review h6 { color: #555; }
 .reviews ul li .review-form { padding: 20px 0 0; }
 .reviews ul li .review-form textarea { min-height: 100px; }
@@ -698,6 +698,7 @@ table.rating-distribution td .bar .filling { background: var(--orange); height: 
 .reviews ul li ul li.in-reply-to { box-shadow: none; padding: 0; }
 .reviews ul .new { background: var(--bg-color); padding: 15px; border: 30px solid var(--bg-color-accent); box-shadow: var(--shadow); border-radius: var(--element-border-radius); }
 .reviews textarea { height: 100px; min-height: 100px; margin-top: 0; }
+.reviews ul li .review { word-break: break-word; }
 
 .review-form { padding: 0; margin-bottom: 30px; }
 .review-form h4 { margin: 0 0 20px; font-weight: normal; }

@@ -1197,7 +1197,7 @@ class shopOrdersCollection
 
         if (isset($postprocess_fields['external_entities'])) {
             $external_entity_model = new shopExternalEntityModel();
-            $external_entities = $external_entity_model->getByEntity('order', $ids);
+            $external_entities = $external_entity_model->getByEntity('order', $ids, ['orders' => $data]);
             foreach ($data as &$o) {
                 $links = ifset($external_entities, $o['id'], []);
                 foreach ($links as &$link) {

@@ -4,6 +4,9 @@
  * Fees (commissions) declared for an order by payment and shipping plugins.
  * One record per (order_id, fee_provider); preliminary and final fees overwrite each other
  * according to the logic in shopOrderFees::declareFees().
+ * 
+ * Amounts in this table are stored in order currency. Do not sum them flat,
+ * join shop_order and multiply by o.rate to get result in shop default currency.
  */
 class shopOrderFeesModel extends waModel
 {

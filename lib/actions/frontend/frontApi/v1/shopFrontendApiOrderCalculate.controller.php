@@ -116,22 +116,6 @@ class shopFrontendApiOrderCalculateController extends shopFrontApiJsonController
             throw new waAPIException('bad_param', sprintf_wp('Unknown “%s” parameter value: %s.', 'shipping_variant_id', _w('plugin not found')), 400);
         }
 
-        $required_address_fields = $plugin->requestedAddressFieldsForService($shipping_variant_id);
-        $required_address_fields = array_filter(ifempty($required_address_fields, []), function($f){
-            // Make sure plugin marked fields as required, not merely asking them as optional
-            return !empty($f['required']);
-        });
-        $missing_field_ids = array_keys(array_diff_key($required_address_fields, $address));
-        if ($missing_field_ids) {
-            throw new waAPIException(
-                'required_param', 
-                sprintf_wp('Missing address fields required by the shipping plugin: %s.', join(', ', $missing_field_ids)), 
-                400, [
-                    'address_fields' => $missing_field_ids,
-                ]
-            );
-        }
-
         // Ask shipping plugin for final shipping rate, taking address data into account
         $order->discount;
         $is_free_shipping = ifempty($order, 'coupon', 'type', '') === '$FS';
@@ -156,6 +140,22 @@ class shopFrontendApiOrderCalculateController extends shopFrontApiJsonController
         if (!$selected_variant) {
             // Shipping plugin didn't return rate that user asked for.
             throw new waAPIException('bad_param', sprintf_wp('Unknown “%s” parameter value: %s.', 'shipping_variant_id', _w('failed to calculate the shipping cost')), 400);
+        }
+
+        $required_address_fields = $plugin->requestedAddressFieldsForService($selected_variant);
+        $required_address_fields = array_filter(ifempty($required_address_fields, []), function($f){
+            // Make sure plugin marked fields as required, not merely asking them as optional
+            return !empty($f['required']);
+        });
+        $missing_field_ids = array_keys(array_diff_key($required_address_fields, $address));
+        if ($missing_field_ids) {
+            throw new waAPIException(
+                'required_param', 
+                sprintf_wp('Missing address fields required by the shipping plugin: %s.', join(', ', $missing_field_ids)), 
+                400, [
+                    'address_fields' => $missing_field_ids,
+                ]
+            );
         }
 
         // Apply free shipping coupon if set

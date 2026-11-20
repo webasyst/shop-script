@@ -5969,6 +5969,52 @@ paths:
                 items:
                   $ref: '#/components/schemas/ProductTypeInfo'
 
+  /shop.user.getList:
+    get:
+      summary: Возвращает список пользователей.
+      security:
+        - ApiKeyAuth: []
+      externalDocs:
+        description: shop.user.getList
+        url: https://developers.webasyst.ru/api/explorer/shop/shop.user.getList/
+      parameters:
+        - $ref: '#/components/parameters/requestFormat'
+      responses:
+        200:
+          description: Список пользователей.
+          content:
+            application/json:
+              schema:
+                type: array
+                description: Список пользователей
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      description: ID пользователя
+                    name:
+                      type: string
+                      description: Полное имя пользователя
+                    firstname:
+                      type: string
+                      description: Имя
+                    middlename:
+                      type: string
+                      description: Отчество
+                    lastname:
+                      type: string
+                      description: Фамилия
+                    role:
+                      type: string
+                      description: Роль пользователя
+                      enum:
+                        - courier
+                        - fulfillment
+                        - cashier
+                        - manager
+                        - admin
+
 components:
   securitySchemes:
     ApiKeyAuth:

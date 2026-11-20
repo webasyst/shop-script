@@ -88,9 +88,9 @@ let initMainWaSidebar;
                 $submenu.on('click touchstart', 'li', function() {
                     const $li = $(this);
 
-                    $('li', $submenu).removeClass('selected');
+                    $('li', $submenu).removeClass(selected_class);
                     setTimeout(() => {
-                        $li.addClass('selected');
+                        $li.addClass(selected_class);
                     }, 200);
                 });
             });
@@ -270,7 +270,7 @@ let initMainWaSidebar;
                 });
 
                 if (link_index || link_index === 0) {
-                    $link = $links.eq(link_index);
+                    const $link = $links.eq(link_index);
                     that.setItem($link.closest("li"));
                 }
             }

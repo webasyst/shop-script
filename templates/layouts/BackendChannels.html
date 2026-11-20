@@ -7,6 +7,7 @@
 <div class="s-channels-content height-100 not-blank" id="js-channels-content">{$content}</div>
 <script>(function($) { "use strict";
     $.shop.channels_router = new ContentRouter({
+        $sidebar: $("#js-app-sidebar"),
         $content: $("#js-channels-content"),
         app_url: {"`$wa_app_url`channels"|json_encode},
         onLoaded: function() {

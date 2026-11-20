@@ -129,9 +129,7 @@ var ContentRouter = ( function($) {
             that.xhr = false;
 
             if (typeof that.on.loaded === "function") { that.on.loaded(that); }
-            if (that.$sidebar.hasClass('-active')) {
-                $(document).trigger("wa_loaded");
-            }
+            $(document).trigger("wa_loaded");
         }).fail(function(data) {
             if (data.responseText) {
                 console.log(data.responseText);

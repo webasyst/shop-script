@@ -928,6 +928,7 @@ class shopSalesModel extends waModel
                     'sources' => 'referer_host',
                     'shipping' => 'shipping_name',
                     'payment' => 'payment_name',
+                    'payment_id' => 'payment_id',
                     'payment_plugin' => 'payment_plugin',
                     'campaigns' => 'utm_campaign',
                     'landings' => 'landing',
@@ -960,6 +961,7 @@ class shopSalesModel extends waModel
                     shop_product AS p READ,
                     shop_product_skus AS ps READ,
                     shop_currency AS pcur READ,
+                    shop_order_fees AS sof READ,
                     shop_order_items AS oi READ"
             );
         } catch (waDbException $e) {
@@ -973,6 +975,11 @@ class shopSalesModel extends waModel
         $sql = "DELETE FROM {$this->table} WHERE $date_sql AND hash=?";
         $this->exec($sql, $hash);
 
+        $fee_expr_sql = 'SUM(o.fee*o.rate)';
+        if (!empty($options['order_fees_provider_template'])) {
+            $fee_expr_sql = '0';
+        }
+
         // Fill in data into shop_sales using [order=>name] bound in temporary table
         // `order_count`, `sales`, `shipping`, `tax`, `new_customer_count`:
         $escaped_hash = $this->escape($hash);
@@ -985,7 +992,7 @@ class shopSalesModel extends waModel
                     SUM(o.total*o.rate) AS `sales`,
                     SUM(o.shipping*o.rate) AS `shipping`,
                     SUM(o.tax*o.rate) AS `tax`,
-                    SUM(o.fee*o.rate) AS `fee`,
+                    {$fee_expr_sql} AS `fee`,
                     SUM(o.is_first) AS `new_customer_count`
                 FROM shop_sales_tmp AS st
                     JOIN shop_order AS o
@@ -1015,6 +1022,31 @@ class shopSalesModel extends waModel
                     GROUP BY st.name, {$date_col}
                 ON DUPLICATE KEY UPDATE purchase=VALUES(purchase)";
         $this->exec($sql);
+
+        // Payment or shipping or other subset of fees
+        if (!empty($options['order_fees_provider_template'])) {
+            $sql = "INSERT INTO {$this->table} (hash, `date`, name, fee)
+                        SELECT
+                            '{$escaped_hash}',
+                            {$date_col},
+                            st.name,
+                            SUM(sof.amount*o.rate)
+                        FROM shop_sales_tmp AS st
+                            JOIN shop_order AS o
+                                ON o.id=st.order_id
+                            JOIN shop_order_fees AS sof
+                                ON sof.order_id=o.id
+                        WHERE sof.fee_provider LIKE ?
+                            AND sof.is_precise IN (?)
+                            AND sof.is_preliminary IN (?)
+                        GROUP BY st.name, {$date_col}
+                    ON DUPLICATE KEY UPDATE fee=VALUES(fee)";
+            $this->exec($sql, [
+                $options['order_fees_provider_template'],
+                ifset($options, 'order_fees_is_precise', [0, 1]),
+                ifset($options, 'order_fees_is_preliminary', [0, 1]),
+            ]);
+        }
 
         // Marketing costs: `cost`. Used in the loop below.
         $expenses = array();

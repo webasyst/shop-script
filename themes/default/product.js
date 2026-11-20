@@ -272,11 +272,9 @@ Product.prototype.cartButtonVisibility = function (visible) {
     //toggles "Add to cart" / "%s is now in your shopping cart" visibility status
     if (visible) {
         this.add2cart.find('[type="submit"]').show();
-        this.add2cart.find('.qty').show();
         this.add2cart.find('.gotocart-btn').addClass('wa-hide');
     } else {
         this.add2cart.find('[type="submit"]').hide();
-        this.add2cart.find('.qty').hide();
         this.add2cart.find('.gotocart-btn').removeClass('wa-hide');
     }
 };

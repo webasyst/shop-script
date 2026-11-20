@@ -23,12 +23,18 @@ class shopExternalEntityModel extends waModel
      *
      * The 'data' column is JSON and is decoded into an array when it holds valid JSON.
      *
+     * `$event_params` is expected to contain DB rows for entities
+     * (products, skus, orders and categories) depending on `$entity_type`.
+     * For `$entity_type = 'sku' or 'product'` there should be [ 'products' => [ product_id => $row ] ],
+     * while for 'order' and 'category' corresponding 'orders' or 'categories' arrays.
+     *
      * @param string $entity_type
      * @param int[] $entity_ids List of product/sku/order/category ids
+     * @param array|null $event_params Extra key-value pairs passed as additional params of the 'external_links' event; pass null to skip the hook
      * @param bool $return_full_rows true for full table rows; false to return essential only
      * @return array
      */
-    public function getByEntity(string $entity_type, array $entity_ids, bool $return_full_rows=false)
+    public function getByEntity(string $entity_type, array $entity_ids, ?array $event_params = [], bool $return_full_rows=false)
     {
         $entity_ids = array_map('intval', (array)$entity_ids);
         $entity_ids = array_values(array_filter($entity_ids));
@@ -49,13 +55,55 @@ class shopExternalEntityModel extends waModel
                     $row['data'] = $decoded;
                 }
             }
-            if (!$return_full_rows) {
-                $row = array_intersect_key($row, [
-                    'entity_id'=>1, 'plugin'=>1, 'external_id'=>1, 'channel_id'=>1, 'data'=>1, 'url_template'=>1,
-                ]);
-            }
             $result[$row['entity_id']][] = $row;
         }
+
+        if ($event_params !== null) {
+            $event_params = [
+                'entity_ids'       => $entity_ids,
+                'return_full_rows' => $return_full_rows,
+                'entity_type'      => $entity_type,
+                'links'            => &$result,
+            ] + $event_params;
+
+            wa('shop')->event('external_entities', $event_params);
+
+            // fetch URLs provided by sales channels (e.g. Telegram mini-app deep links)
+            switch ($entity_type) {
+                case self::ENTITY_TYPE_SKU:
+                case self::ENTITY_TYPE_PRODUCT:
+                    $rows = ifset($event_params, 'products', []);
+                    break;
+                case self::ENTITY_TYPE_ORDER:
+                    $rows = ifset($event_params, 'orders', []);
+                    break;
+                case self::ENTITY_TYPE_CATEGORY:
+                    $rows = ifset($event_params, 'categories', []);
+                    break;
+                default:
+                    $rows = [];
+                    break;
+            }
+
+            if ($rows) {
+                foreach ($this->getEntitiesFromSalesChannels($entity_type, $rows) as $entity_id => $new_rows) {
+                    $result[$entity_id] = array_merge(ifset($result, $entity_id, []), $new_rows);
+                }
+            }
+        }
+
+        $empty_row = $this->getEmptyRow();
+        foreach ($result as &$rows) {
+            foreach ($rows as &$row) {
+                $row += $empty_row;
+                if (!$return_full_rows) {
+                    $row = array_intersect_key($row, [
+                        'entity_id'=>1, 'plugin'=>1, 'external_id'=>1, 'channel_id'=>1, 'data'=>1, 'url_template'=>1,
+                    ]);
+                }
+            }
+        }
+        unset($rows, $row);
 
         return $result;
     }
@@ -135,5 +183,64 @@ class shopExternalEntityModel extends waModel
             // non-scalar (array/object) cannot be embedded in a URL
             return '';
         }, $url_template);
+    }
+
+    /**
+     * Asks sales channels to provide URLs and builds fake shop_external_entity rows from them.
+     *
+     * @param string $entity_type
+     * @param array $rows [entity_id => DB row] products, orders or categories depending on $entity_type
+     * @return array entity_id => list of fake rows
+     */
+    protected function getEntitiesFromSalesChannels(string $entity_type, array $rows): array
+    {
+        $result = [];
+        if (!$rows) {
+            return $result;
+        }
+
+        $channel_types = shopSalesChannelType::getAllTypes();
+        if (!$channel_types) {
+            return $result;
+        }
+        $channel_types = array_combine(array_column($channel_types, 'id'), $channel_types);
+
+        foreach ((new shopSalesChannelModel())->getAll() as $channel) {
+            if ($channel['status'] <= 0) {
+                continue;
+            }
+
+            $type = ifset($channel_types, $channel['type'], null);
+            if (empty($type['class']) || !class_exists($type['class']) || !is_subclass_of($type['class'], shopSalesChannelWithLinksInterface::class)) {
+                continue;
+            }
+
+            $channel_type = shopSalesChannelType::factory($channel['type']);
+            if (!$channel_type instanceof shopSalesChannelWithLinksInterface) {
+                continue; // paranoid
+            }
+            $links = $channel_type->getExternalLinks($channel, $entity_type, $rows);
+            foreach ($links as $entity_id => $url_templates) {
+                foreach ((array)$url_templates as $url_template) {
+                    if (empty($url_template) || !is_string($url_template)) {
+                        continue;
+                    }
+                    $result[$entity_id][] = [
+                        'id'              => null,
+                        'entity_type'     => $entity_type,
+                        'entity_id'       => (int) $entity_id,
+                        'plugin'          => 'sales_channel_'.$channel['type'],
+                        'external_id'     => '',
+                        'channel_id'      => (int) $channel['id'],
+                        'data'            => null,
+                        'url_template'    => $url_template,
+                        'create_datetime' => date('Y-m-d H:i:s'),
+                        'update_datetime' => null,
+                    ];
+                }
+            }
+        }
+
+        return $result;
     }
 }

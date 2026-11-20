@@ -3,7 +3,7 @@
     <div class="flexbox middle full-width wrap" href="javascript:void(0)">
         <h4 class="wide flexbox space-8 text-white custom-mb-0">
             <span class="icon custom-mt-2"><img src="{$wa_static_url}wa-content/img/payment/sbp.svg" alt=""></span>
-            <span class="wide width-0">Экономия с СБП и Webasyst Pay</span>
+            <span class="wide width-0">{if $promotion_enabled}Приоритизируйте СБП и экономьте на эквайринге{else}Экономия с СБП и Webasyst Pay{/if}</span>
         </h4>
         {if $has_sales}
         <div class="s-promotion-toggler custom-mx-32">
@@ -123,7 +123,7 @@
 
             <div>
                 <div class="opacity-70 text-white">
-                    Прямая интеграция Webasyst × СБП через платежные системы ЮКасса или Т-Касса (на ваш выбор). QR-код на оплату показывается сразу же после оформления заказа в Shop-Script без перехода на сайт платежной системы. Конверсия становится выше, так как во время чекаута покупателю задается меньше вопросов, а выбор способа оплаты предлагается после того, как заказ оформлен.
+                    Webasyst Pay приоритизирует оплату по QR-коду СБП над другими способами оплаты. QR-код показывается сразу же после оформления заказа в Shop-Script без перехода на сайт платежной системы. Покупатели чаще платят по СБП, конверсия становится выше, а комиссия — ниже. Интеграция работает через платежные системы ЮКасса или Т-Касса (на ваш выбор).
                 </div>
 
                 <div class="js-promotion-chart s-promotion-chart wide" {* style="display: none;" *}>
@@ -143,7 +143,7 @@
                         {break}
                     {/if}
                 {/foreach}
-            <a href="{$_enable_sbp_button_link}" id="js-enable-sbp-button" class="button large white width-100-mobile">Включить оплату СБП</a>
+            <a href="{$_enable_sbp_button_link}" id="js-enable-sbp-button" class="button large white width-100-mobile">Включить приоритизацию СБП</a>
             {/if}
             {* <a href="javascript:void(0)" id="js-toggle-stats-button" class="button large nobutton text-white width-100-mobile custom-mt-12-mobile">Как считаем <i class="fas fa-caret-down"></i></a> *}
         </div>
